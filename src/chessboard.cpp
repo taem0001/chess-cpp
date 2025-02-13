@@ -41,6 +41,14 @@ ChessBoard::ChessBoard() {
     chessBoard[7][4] = new King({7, 4}, PieceColor::WHITE);
 }
 
+ChessBoard::~ChessBoard() {
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            delete chessBoard[i][j];
+        }
+    }
+}
+
 void ChessBoard::draw_board() {
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
