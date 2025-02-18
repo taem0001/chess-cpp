@@ -13,4 +13,6 @@ enum class PieceColor {
 };
 typedef enum PieceColor PieceColor;
 
+int _abs(int);
+
 #endif // !UTILS_H

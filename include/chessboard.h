@@ -5,11 +5,14 @@
 
 class ChessBoard {
   private:
-    Piece *chessBoard[8][8];
+    Piece *board[8][8];
 
   public:
     ChessBoard();
     ~ChessBoard();
+    Piece *get_piece(Position);
+    Piece *(*get_board())[8][8];
+    void move_piece(Position, Position);
     void draw_board();
 };
 

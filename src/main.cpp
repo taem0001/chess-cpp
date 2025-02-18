@@ -1,7 +1,7 @@
-#include "../include/chessboard.h"
+#include "../include/game.h"
 
 int main(void) {
-    ChessBoard board;
-    board.draw_board();
+    Game chess;
+    chess.chess_game();
     return 0;
 }

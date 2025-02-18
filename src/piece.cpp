@@ -1,6 +1,6 @@
 #include "../include/piece.h"
-#include "../include/utils.h"
 
+// TODO: Implement is_valid_move function for the other pieces
 // Parent class Piece
 Piece::Piece(Position p, PieceColor c) : pos(p), color(c) {};
 
@@ -31,8 +31,8 @@ bool Pawn::is_valid_move(Position new_pos, Piece *board[8][8]) const {
     }
 
     int forward_dir = color == PieceColor::WHITE ? -1 : 1;
-    unsigned int row_diff = pos.row - new_pos.row;
-    unsigned int col_diff = pos.col - new_pos.col;
+    unsigned int row_diff = abs(pos.row - new_pos.row);
+    unsigned int col_diff = abs(pos.col - new_pos.col);
 
     // Moving the pawn one square forward
     if (row_diff == 1 && col_diff == 0 && !board[new_pos.row][new_pos.col]) {
@@ -61,11 +61,19 @@ char Rook::draw_piece() const {
     return 'R';
 }
 
+bool Rook::is_valid_move(Position new_pos, Piece *board[8][8]) const {
+    return false;
+}
+
 // Child class Bishop
 Bishop::Bishop(Position p, PieceColor c) : Piece(p, c) {};
 
 char Bishop::draw_piece() const {
     return 'B';
+}
+
+bool Bishop::is_valid_move(Position new_pos, Piece *board[8][8]) const {
+    return false;
 }
 
 // Child class Knight
@@ -75,6 +83,10 @@ char Knight::draw_piece() const {
     return 'N';
 }
 
+bool Knight::is_valid_move(Position new_pos, Piece *board[8][8]) const {
+    return false;
+}
+
 // Child class Queen
 Queen::Queen(Position p, PieceColor c) : Piece(p, c) {};
 
@@ -82,9 +94,17 @@ char Queen::draw_piece() const {
     return 'Q';
 }
 
+bool Queen::is_valid_move(Position new_pos, Piece *board[8][8]) const {
+    return false;
+}
+
 // Child class King
 King::King(Position p, PieceColor c) : Piece(p, c) {};
 
 char King::draw_piece() const {
     return 'K';
+}
+
+bool King::is_valid_move(Position new_pos, Piece *board[8][8]) const {
+    return false;
 }
