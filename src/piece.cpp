@@ -21,6 +21,9 @@ bool Piece::set_pos(unsigned int newRow, unsigned int newCol) {
 Pawn::Pawn(Position p, PieceColor c) : Piece(p, c) {};
 
 char Pawn::draw_piece() const {
+    if (color == PieceColor::WHITE) {
+        return 'P';
+    }
     return 'p';
 }
 
@@ -57,7 +60,10 @@ bool Pawn::is_valid_move(Position new_pos, Piece *board[8][8]) const {
 Rook::Rook(Position p, PieceColor c) : Piece(p, c) {};
 
 char Rook::draw_piece() const {
-    return 'R';
+    if (color == PieceColor::WHITE) {
+        return 'R';
+    }
+    return 'r';
 }
 
 bool Rook::is_valid_move(Position new_pos, Piece *board[8][8]) const {
@@ -110,7 +116,10 @@ bool Rook::is_valid_move(Position new_pos, Piece *board[8][8]) const {
 Bishop::Bishop(Position p, PieceColor c) : Piece(p, c) {};
 
 char Bishop::draw_piece() const {
-    return 'B';
+    if (color == PieceColor::WHITE) {
+        return 'B';
+    }
+    return 'b';
 }
 
 bool Bishop::is_valid_move(Position new_pos, Piece *board[8][8]) const {
@@ -150,7 +159,10 @@ bool Bishop::is_valid_move(Position new_pos, Piece *board[8][8]) const {
 Knight::Knight(Position p, PieceColor c) : Piece(p, c) {};
 
 char Knight::draw_piece() const {
-    return 'N';
+    if (color == PieceColor::WHITE) {
+        return 'N';
+    }
+    return 'n';
 }
 
 bool Knight::is_valid_move(Position new_pos, Piece *board[8][8]) const {
@@ -182,7 +194,10 @@ bool Knight::is_valid_move(Position new_pos, Piece *board[8][8]) const {
 Queen::Queen(Position p, PieceColor c) : Piece(p, c) {};
 
 char Queen::draw_piece() const {
-    return 'Q';
+    if (color == PieceColor::WHITE) {
+        return 'Q';
+    }
+    return 'q';
 }
 
 bool Queen::is_valid_move(Position new_pos, Piece *board[8][8]) const {
@@ -240,7 +255,10 @@ bool Queen::is_valid_move(Position new_pos, Piece *board[8][8]) const {
 King::King(Position p, PieceColor c) : Piece(p, c) {};
 
 char King::draw_piece() const {
-    return 'K';
+    if (color == PieceColor::WHITE) {
+        return 'K';
+    }
+    return 'k';
 }
 
 bool King::is_valid_move(Position new_pos, Piece *board[8][8]) const {
