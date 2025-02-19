@@ -14,5 +14,7 @@ enum class PieceColor {
 typedef enum PieceColor PieceColor;
 
 int _abs(int);
+int _min(int, int);
+int _max(int, int);
 
 #endif // !UTILS_H

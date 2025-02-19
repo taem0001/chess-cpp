@@ -1,6 +1,5 @@
 #include "../include/piece.h"
 
-// TODO: Implement is_valid_move function for the other pieces
 // Parent class Piece
 Piece::Piece(Position p, PieceColor c) : pos(p), color(c) {};
 
@@ -31,8 +30,8 @@ bool Pawn::is_valid_move(Position new_pos, Piece *board[8][8]) const {
     }
 
     int forward_dir = color == PieceColor::WHITE ? -1 : 1;
-    unsigned int row_diff = abs(pos.row - new_pos.row);
-    unsigned int col_diff = abs(pos.col - new_pos.col);
+    unsigned int row_diff = _abs(pos.row - new_pos.row);
+    unsigned int col_diff = _abs(pos.col - new_pos.col);
 
     // Moving the pawn one square forward
     if (row_diff == 1 && col_diff == 0 && !board[new_pos.row][new_pos.col]) {
@@ -62,6 +61,48 @@ char Rook::draw_piece() const {
 }
 
 bool Rook::is_valid_move(Position new_pos, Piece *board[8][8]) const {
+    if (pos.row == new_pos.row && pos.col == new_pos.col) {
+        return false;
+    }
+
+    unsigned int row_diff = _abs(pos.row - new_pos.row);
+    unsigned int col_diff = _abs(pos.col - new_pos.col);
+
+    // Only diagonal movement is allowed
+    if (row_diff > 0 && col_diff > 0) {
+        return false;
+    }
+
+    if (row_diff == 0) { // Check horizontal movement
+        unsigned int start_col = _min(new_pos.col, pos.col) + 1;
+        unsigned int end_col = _max(new_pos.col, pos.col);
+
+        for (int col = start_col; col < end_col; col++) {
+            Piece *rook = board[new_pos.row][col];
+            if (rook) {
+                return false;
+            }
+        }
+    } else if (col_diff == 0) { // Check vertical movement
+        unsigned int start_row = _min(new_pos.row, pos.row) + 1;
+        unsigned int end_row = _max(new_pos.row, pos.row);
+
+        for (int row = start_row; row < end_row; row++) {
+            Piece *rook = board[row][new_pos.col];
+            if (rook) {
+                return false;
+            }
+        }
+    }
+
+    Piece *piece = board[new_pos.row][new_pos.col];
+
+    if (!piece) {
+        return true;
+    } else if (piece->get_color() != this->color) {
+        return true;
+    }
+
     return false;
 }
 
@@ -73,6 +114,35 @@ char Bishop::draw_piece() const {
 }
 
 bool Bishop::is_valid_move(Position new_pos, Piece *board[8][8]) const {
+    if (pos.row == new_pos.row && pos.col == new_pos.col) {
+        return false;
+    }
+
+    int row_diff = pos.row - new_pos.row;
+    int col_diff = pos.col - new_pos.col;
+
+    if (_abs(row_diff) != _abs(col_diff)) {
+        return false;
+    }
+
+    int row_dir = row_diff > 0 ? -1 : 1;
+    int col_dir = col_diff > 0 ? -1 : 1;
+    int steps = _abs(row_diff);
+
+    for (int i = 1; i < steps; i++) {
+        if (board[i * row_dir + pos.row][i * col_dir + pos.col]) {
+            return false;
+        }
+    }
+
+    Piece *piece = board[new_pos.row][new_pos.col];
+
+    if (!piece) {
+        return true;
+    } else if (piece->get_color() != this->color) {
+        return true;
+    }
+
     return false;
 }
 
@@ -84,6 +154,27 @@ char Knight::draw_piece() const {
 }
 
 bool Knight::is_valid_move(Position new_pos, Piece *board[8][8]) const {
+    if (pos.row == new_pos.row && pos.col == new_pos.col) {
+        return false;
+    }
+
+    unsigned int row_diff = _abs(pos.row - new_pos.row);
+    unsigned int col_diff = _abs(pos.col - new_pos.col);
+
+    bool valid_move = (row_diff == 2 && col_diff == 1) || (row_diff == 1 && col_diff == 2);
+
+    if (!valid_move) {
+        return false;
+    }
+
+    Piece *piece = board[new_pos.row][new_pos.col];
+
+    if (!piece) {
+        return true;
+    } else if (piece->get_color() != this->color) {
+        return true;
+    }
+
     return false;
 }
 
@@ -95,6 +186,53 @@ char Queen::draw_piece() const {
 }
 
 bool Queen::is_valid_move(Position new_pos, Piece *board[8][8]) const {
+    if (pos.row == new_pos.row && pos.col == new_pos.col) {
+        return false;
+    }
+
+    int row_diff = pos.row - new_pos.row;
+    int col_diff = pos.col - new_pos.col;
+
+    if (row_diff == 0) { // Check horizontal movement
+        unsigned int start_col = _min(new_pos.col, pos.col) + 1;
+        unsigned int end_col = _max(new_pos.col, pos.col);
+
+        for (int col = start_col; col < end_col; col++) {
+            Piece *queen = board[new_pos.row][col];
+            if (queen) {
+                return false;
+            }
+        }
+    } else if (col_diff == 0) { // Check vertical movement
+        unsigned int start_row = _min(new_pos.row, pos.row) + 1;
+        unsigned int end_row = _max(new_pos.row, pos.row);
+
+        for (int row = start_row; row < end_row; row++) {
+            Piece *rook = board[row][new_pos.col];
+            if (rook) {
+                return false;
+            }
+        }
+    } else if (_abs(row_diff) == _abs(col_diff)) {
+        int row_dir = row_diff > 0 ? -1 : 1;
+        int col_dir = col_diff > 0 ? -1 : 1;
+        int steps = _abs(row_diff);
+
+        for (int i = 1; i < steps; i++) {
+            if (board[i * row_dir + pos.row][i * col_dir + pos.col]) {
+                return false;
+            }
+        }
+    }
+
+    Piece *piece = board[new_pos.row][new_pos.col];
+
+    if (!piece) {
+        return true;
+    } else if (piece->get_color() != this->color) {
+        return true;
+    }
+
     return false;
 }
 
@@ -106,5 +244,24 @@ char King::draw_piece() const {
 }
 
 bool King::is_valid_move(Position new_pos, Piece *board[8][8]) const {
+    if (pos.row == new_pos.row && pos.col == new_pos.col) {
+        return false;
+    }
+
+    unsigned int row_diff = _abs(pos.row - new_pos.row);
+    unsigned int col_diff = _abs(pos.col - new_pos.col);
+
+    if (row_diff > 1 || col_diff > 1) {
+        return false;
+    }
+
+    Piece *piece = board[new_pos.row][new_pos.col];
+
+    if (!piece) {
+        return true;
+    } else if (piece->get_color() != this->color) {
+        return true;
+    }
+
     return false;
 }
