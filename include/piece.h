@@ -1,11 +1,11 @@
 #pragma once
 
 class Piece {
-  private:
+private:
     static const unsigned char type_mask;
     static const unsigned char color_mask;
 
-  public:
+public:
     static const unsigned char none = 0;
     static const unsigned char pawn = 1;
     static const unsigned char knight = 2;
