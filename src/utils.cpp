@@ -9,3 +9,4 @@ std::string evaluate_fen_char(int &spacing, char piece) {
     res += piece;
     return res;
 }
+

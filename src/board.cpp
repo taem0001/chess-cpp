@@ -3,11 +3,35 @@
 #include "../include/utils.h"
 #include <iostream>
 #include <string>
+#include <vector>
 #define START_POS "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
 
 Board::Board() {
     load_pos(START_POS, board);
+    precompute_squares_to_edges();
     white_to_move = true;
+}
+
+void Board::precompute_squares_to_edges() {
+    for (int row = 0; row < 8; row++) {
+        for (int col = 0; col < 8; col++) {
+            int dist_up = 7 - row;
+            int dist_down = row;
+            int dist_left = col;
+            int dist_right = 7 - col;
+
+            int index = row * 8 + col;
+
+            squares_to_edges[index][0] = dist_down;
+            squares_to_edges[index][1] = dist_up;
+            squares_to_edges[index][2] = dist_left;
+            squares_to_edges[index][3] = dist_right;
+            squares_to_edges[index][4] = std::min(dist_left, dist_down);
+            squares_to_edges[index][5] = std::min(dist_right, dist_up);
+            squares_to_edges[index][6] = std::min(dist_right, dist_down);
+            squares_to_edges[index][7] = std::min(dist_left, dist_up);
+        }
+    }
 }
 
 // TODO: Finish implementing the entirety of the FEN-notation
@@ -159,8 +183,8 @@ void Board::draw_board() {
 }
 
 // TODO: Finish this function
-int Board::generate_legal_moves() {
-    int num_moves = 0;
+std::vector<Move> Board::generate_legal_moves() {
+    std::vector<Move> moves;
 
     for (int i = 0; i < 64; i++) {
         unsigned char piece = board[i];
@@ -170,16 +194,48 @@ int Board::generate_legal_moves() {
         }
 
         if ((Piece::is_piece_white(piece) && white_to_move) || (!Piece::is_piece_white(piece) && !white_to_move)) {
+            if (Piece::is_sliding_piece(piece)) {
+                generate_sliding_moves(i, moves);
+            }
         }
     }
 
-    return num_moves;
+    return moves;
 }
 
 unsigned char *Board::get_board() {
     return board;
 }
 
-std::vector<Move> Board::get_move_list() {
-    return moves;
+// Private functions
+void Board::generate_sliding_moves(int square, std::vector<Move> &moves) {
+    unsigned char piece = board[square];
+    int start_index = 0;
+    int end_index = 8;
+
+    if (Piece::get_type(piece) == Piece::bishop) {
+        start_index = 4;
+    }
+    if (Piece::get_type(piece) == Piece::rook) {
+        end_index = 4;
+    }
+
+    for (int i = start_index; i < end_index; i++) {
+        for (int j = 0; j < squares_to_edges[square][i]; j++) {
+            int end_square = square + dir[i] * (j + 1);
+            unsigned char piece_on_end_square = board[end_square];
+
+            // Blocked by friendly piece
+            if (Piece::is_friendly(piece, piece_on_end_square)) {
+                break;
+            }
+
+            moves.push_back({square, end_square});
+
+            // Enemy piece on end square
+            if (!Piece::is_friendly(piece, piece_on_end_square)) {
+                break;
+            }
+        }
+    }
 }

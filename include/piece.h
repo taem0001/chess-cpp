@@ -17,7 +17,10 @@ public:
     static const unsigned char black = 16;
 
     static unsigned char make_piece(unsigned char, unsigned char);
+    static unsigned char get_type(unsigned char);
     static bool is_piece_white(unsigned char);
+    static bool is_sliding_piece(unsigned char);
+    static bool is_friendly(unsigned char, unsigned char);
     static char get_symbol(unsigned char);
 };
 

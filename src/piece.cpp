@@ -7,9 +7,24 @@ unsigned char Piece::make_piece(unsigned char type, unsigned char color) {
     return color | type;
 }
 
+unsigned char Piece::get_type(unsigned char piece) {
+    return piece & type_mask;
+}
+
 bool Piece::is_piece_white(unsigned char piece) {
     unsigned char color = piece & Piece::color_mask;
     return color == Piece::white;
+}
+
+bool Piece::is_sliding_piece(unsigned char piece) {
+    unsigned char type = piece & type_mask;
+    return type == queen || type == bishop || type == rook;
+}
+
+bool Piece::is_friendly(unsigned char p1, unsigned char p2) {
+    unsigned char p1_color = p1 & color_mask;
+    unsigned char p2_color = p2 & color_mask;
+    return p1_color == p2_color;
 }
 
 char Piece::get_symbol(unsigned char piece) {
@@ -58,4 +73,3 @@ char Piece::get_symbol(unsigned char piece) {
 
     return res;
 }
-
