@@ -3,14 +3,14 @@
 #include "../include/utils.h"
 #include <iostream>
 #include <string>
-#define START_POS \
-    "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R" // TODO: Add the rest of the
-                                                        // FEN-notation
+#define START_POS "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
 
-Board::Board() { load_start_pos(board); }
+Board::Board() {
+    load_pos(START_POS, board);
+    white_to_move = true;
+}
 
-void Board::load_start_pos(unsigned char *board) { load_pos(START_POS, board); }
-
+// TODO: Finish implementing the entirety of the FEN-notation
 void Board::load_pos(const char *fen, unsigned char *board) {
     int index = 0;
 
@@ -118,6 +118,7 @@ void Board::load_pos(const char *fen, unsigned char *board) {
     }
 }
 
+// TODO: Finish implementing the entirety of the FEN-notation
 std::string Board::write_fen() {
     int index = 0;
     int spacing = 0;
@@ -155,4 +156,30 @@ void Board::draw_board() {
             std::cout << std::endl;
         }
     }
+}
+
+// TODO: Finish this function
+int Board::generate_legal_moves() {
+    int num_moves = 0;
+
+    for (int i = 0; i < 64; i++) {
+        unsigned char piece = board[i];
+
+        if (piece == Piece::none) {
+            continue;
+        }
+
+        if ((Piece::is_piece_white(piece) && white_to_move) || (!Piece::is_piece_white(piece) && !white_to_move)) {
+        }
+    }
+
+    return num_moves;
+}
+
+unsigned char *Board::get_board() {
+    return board;
+}
+
+std::vector<Move> Board::get_move_list() {
+    return moves;
 }
