@@ -2,6 +2,7 @@
 
 const unsigned char Piece::type_mask = 0b111;
 const unsigned char Piece::color_mask = 0b11000;
+const unsigned char Piece::first_move_mask = 0b100000;
 
 unsigned char Piece::make_piece(unsigned char type, unsigned char color) {
     return color | type;
@@ -11,9 +12,13 @@ unsigned char Piece::get_type(unsigned char piece) {
     return piece & type_mask;
 }
 
+unsigned char Piece::set_pawn_first_move(unsigned char pawn) {
+    return first_move | pawn;
+}
+
 bool Piece::is_piece_white(unsigned char piece) {
-    unsigned char color = piece & Piece::color_mask;
-    return color == Piece::white;
+    unsigned char color = piece & color_mask;
+    return color == white;
 }
 
 bool Piece::is_sliding_piece(unsigned char piece) {
@@ -25,6 +30,10 @@ bool Piece::is_friendly(unsigned char p1, unsigned char p2) {
     unsigned char p1_color = p1 & color_mask;
     unsigned char p2_color = p2 & color_mask;
     return p1_color == p2_color;
+}
+
+bool Piece::has_pawn_moved(unsigned char pawn) {
+    return (pawn & first_move_mask) == first_move;
 }
 
 char Piece::get_symbol(unsigned char piece) {

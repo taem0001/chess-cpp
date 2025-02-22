@@ -12,11 +12,13 @@ class Board {
   private:
     unsigned char board[64];
     bool white_to_move;
-    constexpr static const int dir[] = {8, -8, -1, 1, 7, -7, 9, -9};
-    static int squares_to_edges[64][8];
+    int squares_to_edges[64][8];
 
-    static void precompute_squares_to_edges();
+    void precompute_squares_to_edges();
     void generate_sliding_moves(int, std::vector<Move> &);
+    void generate_knight_moves(int, std::vector<Move> &);
+    void generate_pawn_moves(int, std::vector<Move> &);
+    void generate_king_moves(int, std::vector<Move> &);
 
   public:
     Board();
