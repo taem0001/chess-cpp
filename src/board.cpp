@@ -5,32 +5,32 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#define START_POS "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
+#define START_POS "rnbqkbnr/pppppppp/8/8/8/4P3/PPPP1PPP/RNBQKBNR"
 
 Board::Board() {
     load_pos(START_POS, board);
-    precompute_squares_to_edges();
+    precompute_squares_to_edges(squares_to_edges);
     white_to_move = true;
 }
 
-void Board::precompute_squares_to_edges() {
+void Board::precompute_squares_to_edges(int (*arr)[8]) {
     for (int row = 0; row < 8; row++) {
         for (int col = 0; col < 8; col++) {
-            int dist_up = 7 - row;
-            int dist_down = row;
-            int dist_left = col;
-            int dist_right = 7 - col;
+            int dist_south = 7 - row;
+            int dist_north = row;
+            int dist_east = 7 - col;
+            int dist_west = col;
 
             int index = row * 8 + col;
 
-            squares_to_edges[index][0] = dist_down;
-            squares_to_edges[index][1] = dist_up;
-            squares_to_edges[index][2] = dist_left;
-            squares_to_edges[index][3] = dist_right;
-            squares_to_edges[index][4] = std::min(dist_left, dist_down);
-            squares_to_edges[index][5] = std::min(dist_right, dist_up);
-            squares_to_edges[index][6] = std::min(dist_right, dist_down);
-            squares_to_edges[index][7] = std::min(dist_left, dist_up);
+            arr[index][0] = dist_south;
+            arr[index][1] = dist_north;
+            arr[index][2] = dist_west;
+            arr[index][3] = dist_east;
+            arr[index][4] = std::min(dist_west, dist_south);
+            arr[index][5] = std::min(dist_east, dist_north);
+            arr[index][6] = std::min(dist_east, dist_south);
+            arr[index][7] = std::min(dist_west, dist_north);
         }
     }
 }
@@ -198,11 +198,12 @@ std::vector<Move> Board::generate_legal_moves() {
         }
 
         if ((Piece::is_piece_white(piece) && white_to_move) || (!Piece::is_piece_white(piece) && !white_to_move)) {
-            if (Piece::is_sliding_piece(piece)) {
+            unsigned char type = Piece::get_type(piece);
+            if (type == Piece::queen || type == Piece::bishop || type == Piece::rook) {
                 generate_sliding_moves(i, moves);
-            } else if (Piece::get_type(piece) == Piece::knight) {
+            } else if (type == Piece::knight) {
                 generate_knight_moves(i, moves);
-            } else if (Piece::get_type(piece) == Piece::pawn) {
+            } else if (type == Piece::pawn) {
                 generate_pawn_moves(i, moves);
             } else {
                 generate_king_moves(i, moves);
@@ -211,6 +212,28 @@ std::vector<Move> Board::generate_legal_moves() {
     }
 
     return moves;
+}
+
+bool Board::is_move_legal(std::vector<Move> &moves, int s_square, int e_square) {
+    for (Move move : moves) {
+        if (move.start_square == s_square && move.end_square == e_square) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void Board::move_piece(int s_square, int e_square) {
+    board[e_square] = board[s_square];
+    board[s_square] = Piece::none;
+}
+
+void Board::change_turn() {
+    white_to_move = !white_to_move;
+}
+
+bool Board::get_turn() {
+    return white_to_move;
 }
 
 // Private functions
@@ -227,19 +250,14 @@ void Board::generate_sliding_moves(int start_square, std::vector<Move> &moves) {
     }
 
     for (int i = start_index; i < end_index; i++) {
-        for (int j = 0; j < squares_to_edges[start_square][i]; j++) {
-            int end_square = start_square + Piece::dir[i] * (j + 1);
+        for (int j = 1; j <= squares_to_edges[start_square][i]; j++) {
+            int end_square = start_square + Piece::dir[i] * j;
             unsigned char piece_on_end_square = board[end_square];
-
-            if (!in_bounds(end_square)) {
-                continue;
-            }
 
             // Blocked by friendly piece
             if (Piece::is_friendly(piece, piece_on_end_square)) {
                 break;
             }
-
             moves.push_back({start_square, end_square});
 
             // Enemy piece on end square
@@ -271,6 +289,7 @@ void Board::generate_knight_moves(int start_square, std::vector<Move> &moves) {
     }
 }
 
+// TODO: Implement en passant
 void Board::generate_pawn_moves(int start_square, std::vector<Move> &moves) {
     unsigned char pawn = board[start_square];
 
@@ -304,6 +323,7 @@ void Board::generate_pawn_moves(int start_square, std::vector<Move> &moves) {
     }
 }
 
+// TODO: include castling
 void Board::generate_king_moves(int start_square, std::vector<Move> &moves) {
     unsigned char king = board[start_square];
 

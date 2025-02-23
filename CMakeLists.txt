@@ -4,4 +4,4 @@ project(ChessProject)
 set(CMAKE_CXX_STANDARD 17)
 
 include_directories(include)
-add_executable(ChessProject src/main.cpp src/board.cpp src/piece.cpp src/utils.cpp)
+add_executable(ChessProject src/main.cpp src/game.cpp src/board.cpp src/piece.cpp src/utils.cpp)

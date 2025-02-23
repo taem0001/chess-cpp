@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PIECE_H
+#define PIECE_H
 
 class Piece {
   private:
@@ -26,7 +27,6 @@ class Piece {
     static unsigned char get_type(unsigned char);
     static unsigned char set_pawn_first_move(unsigned char);
     static bool is_piece_white(unsigned char);
-    static bool is_sliding_piece(unsigned char);
     static bool is_friendly(unsigned char, unsigned char);
     static bool has_pawn_moved(unsigned char);
     static char get_symbol(unsigned char);
@@ -46,3 +46,5 @@ enum class PieceType {
     BLACK_QUEEN = Piece::black | Piece::queen,
     BLACK_KING = Piece::black | Piece::king,
 };
+
+#endif // !PIECE_H
