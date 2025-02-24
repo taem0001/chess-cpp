@@ -25,10 +25,10 @@ class Piece {
 
     static unsigned char make_piece(unsigned char, unsigned char);
     static unsigned char get_type(unsigned char);
-    static unsigned char set_pawn_first_move(unsigned char);
+    static unsigned char set_piece_first_move(unsigned char);
     static bool is_piece_white(unsigned char);
     static bool is_friendly(unsigned char, unsigned char);
-    static bool has_pawn_moved(unsigned char);
+    static bool has_piece_moved(unsigned char);
     static char get_symbol(unsigned char);
 };
 

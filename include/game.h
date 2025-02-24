@@ -5,12 +5,16 @@
 class Game {
   private:
     Board *board;
-    bool make_move(std::vector<Move> &, int, int);
+    std::vector<std::string> fens;
 
   public:
     Game();
     ~Game();
     void run_game();
+    void add_fen();
+    bool make_move(std::vector<Move> &, int, int);
+    bool unmake_move(Move &);
+    Board *get_board();
 };
 
 #endif // !GAME_H

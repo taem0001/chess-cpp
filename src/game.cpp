@@ -3,6 +3,7 @@
 
 Game::Game() {
     board = new Board();
+    board->setup_board();
 }
 
 Game::~Game() {
@@ -17,6 +18,14 @@ bool Game::make_move(std::vector<Move> &moves, int s, int e) {
     }
 
     return false;
+}
+
+Board *Game::get_board() {
+    return board;
+}
+
+void Game::add_fen() {
+
 }
 
 void Game::run_game() {

@@ -12,8 +12,8 @@ unsigned char Piece::get_type(unsigned char piece) {
     return piece & type_mask;
 }
 
-unsigned char Piece::set_pawn_first_move(unsigned char pawn) {
-    return first_move | pawn;
+unsigned char Piece::set_piece_first_move(unsigned char piece) {
+    return first_move | piece;
 }
 
 bool Piece::is_piece_white(unsigned char piece) {
@@ -27,12 +27,14 @@ bool Piece::is_friendly(unsigned char p1, unsigned char p2) {
     return p1_color == p2_color;
 }
 
-bool Piece::has_pawn_moved(unsigned char pawn) {
-    return (pawn & first_move_mask) == first_move;
+bool Piece::has_piece_moved(unsigned char piece) {
+    return (piece & first_move_mask) == first_move;
 }
 
 char Piece::get_symbol(unsigned char piece) {
     char res;
+    piece = piece & (color_mask | type_mask);
+
     switch (piece) {
     case 0:
         res = '*';

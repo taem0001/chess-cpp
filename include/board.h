@@ -23,8 +23,8 @@ class Board {
     void generate_king_moves(int, std::vector<Move> &);
 
   public:
-    Board();
-    void load_pos(const char *, unsigned char *);
+    void setup_board();
+    void load_pos(const char *);
     std::string write_fen();
     void draw_board();
     std::vector<Move> generate_legal_moves();

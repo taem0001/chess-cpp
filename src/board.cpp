@@ -5,12 +5,11 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#define START_POS "rnbqkbnr/pppppppp/8/8/8/4P3/PPPP1PPP/RNBQKBNR"
+#define START_POS "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w"
 
-Board::Board() {
-    load_pos(START_POS, board);
+void Board::setup_board() {
+    load_pos(START_POS);
     precompute_squares_to_edges(squares_to_edges);
-    white_to_move = true;
 }
 
 void Board::precompute_squares_to_edges(int (*arr)[8]) {
@@ -36,107 +35,95 @@ void Board::precompute_squares_to_edges(int (*arr)[8]) {
 }
 
 // TODO: Finish implementing the entirety of the FEN-notation
-void Board::load_pos(const char *fen, unsigned char *board) {
+void Board::load_pos(const char *fen) {
     int index = 0;
+    int spaces = 0;
+    unsigned char piece, temp;
+
+    for (int i = 0; i < 64; i++) {
+        board[i] = Piece::none;
+    }
 
     while (*fen) {
         switch (*fen) {
-        case 'p':
-            board[index] = Piece::make_piece(Piece::pawn, Piece::black);
-            index++;
-            break;
-        case 'n':
-            board[index] = Piece::make_piece(Piece::knight, Piece::black);
-            index++;
-            break;
-        case 'b':
-            board[index] = Piece::make_piece(Piece::bishop, Piece::black);
-            index++;
-            break;
-        case 'r':
-            board[index] = Piece::make_piece(Piece::rook, Piece::black);
-            index++;
-            break;
-        case 'q':
-            board[index] = Piece::make_piece(Piece::queen, Piece::black);
-            index++;
-            break;
-        case 'k':
-            board[index] = Piece::make_piece(Piece::king, Piece::black);
-            index++;
-            break;
-        case 'P':
-            board[index] = Piece::make_piece(Piece::pawn, Piece::white);
-            index++;
-            break;
-        case 'N':
-            board[index] = Piece::make_piece(Piece::knight, Piece::white);
-            index++;
-            break;
-        case 'B':
-            board[index] = Piece::make_piece(Piece::bishop, Piece::white);
-            index++;
-            break;
-        case 'R':
-            board[index] = Piece::make_piece(Piece::rook, Piece::white);
-            index++;
-            break;
-        case 'Q':
-            board[index] = Piece::make_piece(Piece::queen, Piece::white);
-            index++;
-            break;
-        case 'K':
-            board[index] = Piece::make_piece(Piece::king, Piece::white);
-            index++;
-            break;
-        case '/':
-            break;
-        case '1':
-            board[index] = Piece::none;
-            index++;
-            break;
-        case '2':
-            for (int i = index; i < index + 2; i++) {
-                board[i] = Piece::none;
-            }
-            index += 2;
-            break;
-        case '3':
-            for (int i = index; i < index + 3; i++) {
-                board[i] = Piece::none;
-            }
-            index += 3;
-            break;
-        case '4':
-            for (int i = index; i < index + 4; i++) {
-                board[i] = Piece::none;
-            }
-            index += 4;
-            break;
-        case '5':
-            for (int i = index; i < index + 5; i++) {
-                board[i] = Piece::none;
-            }
-            index += 5;
-            break;
-        case '6':
-            for (int i = index; i < index + 6; i++) {
-                board[i] = Piece::none;
-            }
-            index += 6;
-            break;
-        case '7':
-            for (int i = index; i < index + 7; i++) {
-                board[i] = Piece::none;
-            }
-            index += 7;
-            break;
-        case '8':
-            for (int i = index; i < index + 8; i++) {
-                board[i] = Piece::none;
-            }
-            index += 8;
-            break;
+            case 'p':
+                piece = Piece::make_piece(Piece::pawn, Piece::black);
+                if (index / 8 != 1) {
+                    temp = Piece::set_piece_first_move(piece);
+                    piece = temp;
+                }
+                board[index] = piece;
+                index++;
+                break;
+            case 'n':
+                board[index] = Piece::make_piece(Piece::knight, Piece::black);
+                index++;
+                break;
+            case 'b':
+                board[index] = Piece::make_piece(Piece::bishop, Piece::black);
+                index++;
+                break;
+            case 'r':
+                board[index] = Piece::make_piece(Piece::rook, Piece::black);
+                index++;
+                break;
+            case 'q':
+                board[index] = Piece::make_piece(Piece::queen, Piece::black);
+                index++;
+                break;
+            case 'k':
+                board[index] = Piece::make_piece(Piece::king, Piece::black);
+                index++;
+                break;
+            case 'P':
+                piece = Piece::make_piece(Piece::pawn, Piece::white);
+                if (index / 8 != 6) {
+                    temp = Piece::set_piece_first_move(piece);
+                    piece = temp;
+                }
+                board[index] = piece;
+                index++;
+                break;
+            case 'N':
+                board[index] = Piece::make_piece(Piece::knight, Piece::white);
+                index++;
+                break;
+            case 'B':
+                board[index] = Piece::make_piece(Piece::bishop, Piece::white);
+                index++;
+                break;
+            case 'R':
+                board[index] = Piece::make_piece(Piece::rook, Piece::white);
+                index++;
+                break;
+            case 'Q':
+                board[index] = Piece::make_piece(Piece::queen, Piece::white);
+                index++;
+                break;
+            case 'K':
+                board[index] = Piece::make_piece(Piece::king, Piece::white);
+                index++;
+                break;
+            case '/':
+                break;
+            case '1' ... '8':
+                index += (*fen - '0');
+                break;
+            case ' ':
+                if (spaces == 0) {
+                    ++fen;
+                    if (*fen == 'w') {
+                        white_to_move = true;
+                    } else if (*fen == 'b') {
+                        white_to_move = false;
+                    } else {
+                        std::cerr << "Invalid FEN character: " << *fen << std::endl;
+                    }
+                }
+                break;
+            default:
+                std::cerr << "Invalid FEN character: " << *fen << std::endl;
+                return;
         }
 
         ++fen;
@@ -150,25 +137,30 @@ std::string Board::write_fen() {
     std::string res = "";
 
     while (index < 64) {
-        switch (board[index]) {
-        case 0:
+        if (board[index] == Piece::none) {
             spacing++;
-            break;
-        default:
-            res += evaluate_fen_char(spacing, Piece::get_symbol(board[index]));
-            break;
-        }
-
-        if (index % 8 == 7 && index != 63) {
+        } else {
             if (spacing > 0) {
                 res += std::to_string(spacing);
                 spacing = 0;
             }
-            res += "/";
+            res += Piece::get_symbol(board[index]);
+        }
+
+        if (index % 8 == 7) {
+            if (spacing > 0) {
+                res += std::to_string(spacing);
+                spacing = 0;
+            }
+            if (index != 63)
+                res += "/";
         }
 
         index++;
     }
+
+    res += " ";
+    res += white_to_move ? "w" : "b";
 
     return res;
 }
@@ -224,6 +216,10 @@ bool Board::is_move_legal(std::vector<Move> &moves, int s_square, int e_square) 
 }
 
 void Board::move_piece(int s_square, int e_square) {
+    if (!Piece::has_piece_moved(board[s_square])) {
+        unsigned char temp = board[s_square];
+        board[s_square] = Piece::set_piece_first_move(temp);
+    }
     board[e_square] = board[s_square];
     board[s_square] = Piece::none;
 }
@@ -261,7 +257,7 @@ void Board::generate_sliding_moves(int start_square, std::vector<Move> &moves) {
             moves.push_back({start_square, end_square});
 
             // Enemy piece on end square
-            if (!Piece::is_friendly(piece, piece_on_end_square)) {
+            if (!Piece::is_friendly(piece, piece_on_end_square) && piece_on_end_square != Piece::none) {
                 break;
             }
         }
@@ -301,7 +297,7 @@ void Board::generate_pawn_moves(int start_square, std::vector<Move> &moves) {
         moves.push_back({start_square, one_step});
 
         // Double step forward (only if the single step was possible)
-        if (!Piece::has_pawn_moved(pawn)) {
+        if (!Piece::has_piece_moved(pawn)) {
             int two_step = start_square + dir * Piece::pawn_dir[3];
             if (in_bounds(two_step) && board[two_step] == Piece::none) {
                 moves.push_back({start_square, two_step});
