@@ -25,36 +25,30 @@ Board *Game::get_board() {
 }
 
 void Game::add_fen() {
-
+    fens.push_back(board->write_fen());
+    std::cout << board->write_fen() << std::endl;
 }
 
 void Game::run_game() {
     bool running = true;
-    int s_row, s_col, e_row, e_col;
-    int s_index, e_index;
+    Move move;
     bool move_made;
+    std::string pos;
 
     board->draw_board();
 
     while (running) {
+        add_fen();
         std::vector<Move> moves;
         moves = board->generate_legal_moves();
-
-        for (Move move : moves) {
-            std::cout << "{" << move.start_square << "," << move.end_square << "} ";
-        }
-        std::cout << std::endl;
 
         const char *player = board->get_turn() ? "White player's move: " : "Black player's move: ";
         std::cout << player << std::endl;
 
         do {
-            std::cin >> s_row >> s_col;
-            std::cin >> e_row >> e_col;
-            s_row--, s_col--, e_row--, e_col--;
-            s_index = s_row * 8 + s_col;
-            e_index = e_row * 8 + e_col;
-            move_made = make_move(moves, s_index, e_index);
+            std::cin >> pos;
+            move = board->convert_pos(pos);
+            move_made = make_move(moves, move.start_square, move.end_square);
         } while (!move_made);
 
         std::cout << "Move made!" << std::endl;

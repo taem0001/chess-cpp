@@ -14,6 +14,7 @@ class Board {
   private:
     unsigned char board[64];
     bool white_to_move;
+    bool black_castle_queen, black_castle_king, white_castle_queen, white_castle_king;
     int squares_to_edges[64][8];
 
     void precompute_squares_to_edges(int (*)[8]);
@@ -26,6 +27,7 @@ class Board {
     void setup_board();
     void load_pos(const char *);
     std::string write_fen();
+    Move convert_pos(const std::string &);
     void draw_board();
     std::vector<Move> generate_legal_moves();
     unsigned char *get_board();

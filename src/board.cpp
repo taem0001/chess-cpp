@@ -5,7 +5,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#define START_POS "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w"
+#define START_POS "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq"
 
 void Board::setup_board() {
     load_pos(START_POS);
@@ -60,20 +60,32 @@ void Board::load_pos(const char *fen) {
                 index++;
                 break;
             case 'b':
-                board[index] = Piece::make_piece(Piece::bishop, Piece::black);
-                index++;
+                if (spaces == 0) {
+                    board[index] = Piece::make_piece(Piece::bishop, Piece::black);
+                    index++;
+                } else if (spaces == 1) {
+                    load_player_turn(*fen, &white_to_move);
+                }
                 break;
             case 'r':
                 board[index] = Piece::make_piece(Piece::rook, Piece::black);
                 index++;
                 break;
             case 'q':
-                board[index] = Piece::make_piece(Piece::queen, Piece::black);
-                index++;
+                if (spaces == 0) {
+                    board[index] = Piece::make_piece(Piece::queen, Piece::black);
+                    index++;
+                } else if (spaces == 2) {
+                    black_castle_queen = true;
+                }
                 break;
             case 'k':
-                board[index] = Piece::make_piece(Piece::king, Piece::black);
-                index++;
+                if (spaces == 0) {
+                    board[index] = Piece::make_piece(Piece::king, Piece::black);
+                    index++;
+                } else if (spaces == 2) {
+                    black_castle_king = true;
+                }
                 break;
             case 'P':
                 piece = Piece::make_piece(Piece::pawn, Piece::white);
@@ -97,35 +109,45 @@ void Board::load_pos(const char *fen) {
                 index++;
                 break;
             case 'Q':
-                board[index] = Piece::make_piece(Piece::queen, Piece::white);
-                index++;
+                if (spaces == 0) {
+                    board[index] = Piece::make_piece(Piece::queen, Piece::white);
+                    index++;
+                } else if (spaces == 2) {
+                    white_castle_queen = true;
+                }
                 break;
             case 'K':
-                board[index] = Piece::make_piece(Piece::king, Piece::white);
-                index++;
+                if (spaces == 0) {
+                    board[index] = Piece::make_piece(Piece::king, Piece::white);
+                    index++;
+                } else if (spaces == 2) {
+                    white_castle_king = true;
+                }
                 break;
             case '/':
                 break;
             case '1' ... '8':
-                index += (*fen - '0');
+                index += *fen - '0';
                 break;
             case ' ':
-                if (spaces == 0) {
-                    ++fen;
-                    if (*fen == 'w') {
-                        white_to_move = true;
-                    } else if (*fen == 'b') {
-                        white_to_move = false;
-                    } else {
-                        std::cerr << "Invalid FEN character: " << *fen << std::endl;
-                    }
+                spaces++;
+                break;
+            case 'w':
+                if (spaces == 1) {
+                    load_player_turn(*fen, &white_to_move);
                 }
                 break;
+            case '-':
+                if (spaces == 2) {
+                    black_castle_king = false;
+                    black_castle_queen = false;
+                    white_castle_king = false;
+                    white_castle_queen = false;
+                }
             default:
                 std::cerr << "Invalid FEN character: " << *fen << std::endl;
                 return;
         }
-
         ++fen;
     }
 }
@@ -161,17 +183,65 @@ std::string Board::write_fen() {
 
     res += " ";
     res += white_to_move ? "w" : "b";
+    res += " ";
+
+    if (white_castle_king || white_castle_queen || black_castle_king || black_castle_queen) {
+        res += white_castle_king ? "K" : "";
+        res += white_castle_queen ? "Q" : "";
+        res += black_castle_king ? "k" : "";
+        res += black_castle_queen ? "q" : "";
+    } else {
+        res += "-";
+    }
 
     return res;
 }
 
-void Board::draw_board() {
-    for (int i = 0; i < 64; i++) {
-        std::cout << Piece::get_symbol(board[i]) << " ";
+Move Board::convert_pos(const std::string &pos) {
+    if (pos.length() != 4) {
+        std::cerr << "Invalid position length" << std::endl;
+        return {};
+    }
 
-        if (i % 8 == 7) {
-            std::cout << std::endl;
+    Move res;
+    int squares[2];
+    for (int i = 0; i < 2; i++) {
+        char file = pos[i * 2];     // 'a'-'h'
+        char rank = pos[i * 2 + 1]; // '1'-'8'
+
+        if (file < 'a' || file > 'h' || rank < '1' || rank > '8') {
+            std::cerr << "Invalid character in position" << std::endl;
+            return {};
         }
+
+        int col = file - 'a';
+        int row = 8 - (rank - '0');
+
+        squares[i] = row * 8 + col;
+    }
+
+    res.start_square = squares[0];
+    res.end_square = squares[1];
+    return res;
+}
+
+void Board::draw_board() {
+    char c;
+
+    for (int i = 0; i < 9; i++) {
+        for (int j = 0; j < 9; j++) {
+            if (i == 0 && j == 0) {
+                c = ' ';
+            } else if (j == 0) {
+                c = '8' - (i - 1);
+            } else if (i == 0) {
+                c = j + 96;
+            } else {
+                c = Piece::get_symbol(board[(i - 1) * 8 + (j - 1)]);
+            }
+            std::cout << c << ' ';
+        }
+        std::cout << std::endl;
     }
 }
 
@@ -322,6 +392,10 @@ void Board::generate_pawn_moves(int start_square, std::vector<Move> &moves) {
 // TODO: include castling
 void Board::generate_king_moves(int start_square, std::vector<Move> &moves) {
     unsigned char king = board[start_square];
+
+    if (!Piece::has_piece_moved(king)) {
+
+    }
 
     for (int i = 0; i < 8; i++) {
         int end_square = start_square + Piece::dir[i];
