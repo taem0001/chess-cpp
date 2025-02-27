@@ -144,6 +144,7 @@ void Board::load_pos(const char *fen) {
                     white_castle_king = false;
                     white_castle_queen = false;
                 }
+                break;
             default:
                 std::cerr << "Invalid FEN character: " << *fen << std::endl;
                 return;
@@ -245,9 +246,7 @@ void Board::draw_board() {
     }
 }
 
-unsigned char *Board::get_board() {
-    return board;
-}
+unsigned char *Board::get_board() { return board; }
 
 std::vector<Move> Board::generate_legal_moves() {
     std::vector<Move> moves;
@@ -294,13 +293,9 @@ void Board::move_piece(int s_square, int e_square) {
     board[s_square] = Piece::none;
 }
 
-void Board::change_turn() {
-    white_to_move = !white_to_move;
-}
+void Board::change_turn() { white_to_move = !white_to_move; }
 
-bool Board::get_turn() {
-    return white_to_move;
-}
+bool Board::get_turn() { return white_to_move; }
 
 // Private functions
 void Board::generate_sliding_moves(int start_square, std::vector<Move> &moves) {
@@ -394,7 +389,12 @@ void Board::generate_king_moves(int start_square, std::vector<Move> &moves) {
     unsigned char king = board[start_square];
 
     if (!Piece::has_piece_moved(king)) {
+        for (int i = start_square + 1; i < start_square + 3; i++) {
+            if (board[i] != Piece::none) {
+                break;
+            }
 
+        }
     }
 
     for (int i = 0; i < 8; i++) {

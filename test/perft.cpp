@@ -44,7 +44,7 @@ TEST_F(PerftTest, PerftInitPos) {
 }
 
 TEST_F(PerftTest, PerftPos2) {
-    game.get_board()->load_pos("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w");
+    game.get_board()->load_pos("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq");
     EXPECT_EQ(perft(1), 48);
     EXPECT_EQ(perft(2), 2039);
     EXPECT_EQ(perft(3), 97862);
