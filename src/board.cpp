@@ -388,15 +388,6 @@ void Board::generate_pawn_moves(int start_square, std::vector<Move> &moves) {
 void Board::generate_king_moves(int start_square, std::vector<Move> &moves) {
     unsigned char king = board[start_square];
 
-    if (!Piece::has_piece_moved(king)) {
-        for (int i = start_square + 1; i < start_square + 3; i++) {
-            if (board[i] != Piece::none) {
-                break;
-            }
-
-        }
-    }
-
     for (int i = 0; i < 8; i++) {
         int end_square = start_square + Piece::dir[i];
 
