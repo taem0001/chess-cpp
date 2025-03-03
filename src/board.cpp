@@ -3,12 +3,8 @@
 #include "../include/utils.h"
 #include <algorithm>
 #include <iostream>
-#include <string>
-#include <vector>
-#define START_POS "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq"
 
 void Board::setup_board() {
-    load_pos(START_POS);
     precompute_squares_to_edges(squares_to_edges);
 }
 
@@ -34,196 +30,8 @@ void Board::precompute_squares_to_edges(int (*arr)[8]) {
     }
 }
 
-// TODO: Finish implementing the entirety of the FEN-notation
-void Board::load_pos(const char *fen) {
-    int index = 0;
-    int spaces = 0;
-    unsigned char piece, temp;
-
-    for (int i = 0; i < 64; i++) {
-        board[i] = Piece::none;
-    }
-
-    while (*fen) {
-        switch (*fen) {
-            case 'p':
-                piece = Piece::make_piece(Piece::pawn, Piece::black);
-                if (index / 8 != 1) {
-                    temp = Piece::set_piece_first_move(piece);
-                    piece = temp;
-                }
-                board[index] = piece;
-                index++;
-                break;
-            case 'n':
-                board[index] = Piece::make_piece(Piece::knight, Piece::black);
-                index++;
-                break;
-            case 'b':
-                if (spaces == 0) {
-                    board[index] = Piece::make_piece(Piece::bishop, Piece::black);
-                    index++;
-                } else if (spaces == 1) {
-                    load_player_turn(*fen, &white_to_move);
-                }
-                break;
-            case 'r':
-                board[index] = Piece::make_piece(Piece::rook, Piece::black);
-                index++;
-                break;
-            case 'q':
-                if (spaces == 0) {
-                    board[index] = Piece::make_piece(Piece::queen, Piece::black);
-                    index++;
-                } else if (spaces == 2) {
-                    black_castle_queen = true;
-                }
-                break;
-            case 'k':
-                if (spaces == 0) {
-                    board[index] = Piece::make_piece(Piece::king, Piece::black);
-                    index++;
-                } else if (spaces == 2) {
-                    black_castle_king = true;
-                }
-                break;
-            case 'P':
-                piece = Piece::make_piece(Piece::pawn, Piece::white);
-                if (index / 8 != 6) {
-                    temp = Piece::set_piece_first_move(piece);
-                    piece = temp;
-                }
-                board[index] = piece;
-                index++;
-                break;
-            case 'N':
-                board[index] = Piece::make_piece(Piece::knight, Piece::white);
-                index++;
-                break;
-            case 'B':
-                board[index] = Piece::make_piece(Piece::bishop, Piece::white);
-                index++;
-                break;
-            case 'R':
-                board[index] = Piece::make_piece(Piece::rook, Piece::white);
-                index++;
-                break;
-            case 'Q':
-                if (spaces == 0) {
-                    board[index] = Piece::make_piece(Piece::queen, Piece::white);
-                    index++;
-                } else if (spaces == 2) {
-                    white_castle_queen = true;
-                }
-                break;
-            case 'K':
-                if (spaces == 0) {
-                    board[index] = Piece::make_piece(Piece::king, Piece::white);
-                    index++;
-                } else if (spaces == 2) {
-                    white_castle_king = true;
-                }
-                break;
-            case '/':
-                break;
-            case '1' ... '8':
-                index += *fen - '0';
-                break;
-            case ' ':
-                spaces++;
-                break;
-            case 'w':
-                if (spaces == 1) {
-                    load_player_turn(*fen, &white_to_move);
-                }
-                break;
-            case '-':
-                if (spaces == 2) {
-                    black_castle_king = false;
-                    black_castle_queen = false;
-                    white_castle_king = false;
-                    white_castle_queen = false;
-                }
-                break;
-            default:
-                std::cerr << "Invalid FEN character: " << *fen << std::endl;
-                return;
-        }
-        ++fen;
-    }
-}
-
-// TODO: Finish implementing the entirety of the FEN-notation
-std::string Board::write_fen() {
-    int index = 0;
-    int spacing = 0;
-    std::string res = "";
-
-    while (index < 64) {
-        if (board[index] == Piece::none) {
-            spacing++;
-        } else {
-            if (spacing > 0) {
-                res += std::to_string(spacing);
-                spacing = 0;
-            }
-            res += Piece::get_symbol(board[index]);
-        }
-
-        if (index % 8 == 7) {
-            if (spacing > 0) {
-                res += std::to_string(spacing);
-                spacing = 0;
-            }
-            if (index != 63)
-                res += "/";
-        }
-
-        index++;
-    }
-
-    res += " ";
-    res += white_to_move ? "w" : "b";
-    res += " ";
-
-    if (white_castle_king || white_castle_queen || black_castle_king || black_castle_queen) {
-        res += white_castle_king ? "K" : "";
-        res += white_castle_queen ? "Q" : "";
-        res += black_castle_king ? "k" : "";
-        res += black_castle_queen ? "q" : "";
-    } else {
-        res += "-";
-    }
-
-    return res;
-}
-
-Move Board::convert_pos(const std::string &pos) {
-    if (pos.length() != 4) {
-        std::cerr << "Invalid position length" << std::endl;
-        return {};
-    }
-
-    Move res;
-    int squares[2];
-    for (int i = 0; i < 2; i++) {
-        char file = pos[i * 2];     // 'a'-'h'
-        char rank = pos[i * 2 + 1]; // '1'-'8'
-
-        if (file < 'a' || file > 'h' || rank < '1' || rank > '8') {
-            std::cerr << "Invalid character in position" << std::endl;
-            return {};
-        }
-
-        int col = file - 'a';
-        int row = 8 - (rank - '0');
-
-        squares[i] = row * 8 + col;
-    }
-
-    res.start_square = squares[0];
-    res.end_square = squares[1];
-    return res;
+int (*Board::get_precomputed_distances())[8] {
+    return squares_to_edges;
 }
 
 void Board::draw_board() {
@@ -248,33 +56,6 @@ void Board::draw_board() {
 
 unsigned char *Board::get_board() { return board; }
 
-std::vector<Move> Board::generate_legal_moves() {
-    std::vector<Move> moves;
-
-    for (int i = 0; i < 64; i++) {
-        unsigned char piece = board[i];
-
-        if (piece == Piece::none) {
-            continue;
-        }
-
-        if ((Piece::is_piece_white(piece) && white_to_move) || (!Piece::is_piece_white(piece) && !white_to_move)) {
-            unsigned char type = Piece::get_type(piece);
-            if (type == Piece::queen || type == Piece::bishop || type == Piece::rook) {
-                generate_sliding_moves(i, moves);
-            } else if (type == Piece::knight) {
-                generate_knight_moves(i, moves);
-            } else if (type == Piece::pawn) {
-                generate_pawn_moves(i, moves);
-            } else {
-                generate_king_moves(i, moves);
-            }
-        }
-    }
-
-    return moves;
-}
-
 bool Board::is_move_legal(std::vector<Move> &moves, int s_square, int e_square) {
     for (Move move : moves) {
         if (move.start_square == s_square && move.end_square == e_square) {
@@ -295,112 +76,44 @@ void Board::move_piece(int s_square, int e_square) {
 
 void Board::change_turn() { white_to_move = !white_to_move; }
 
+void Board::set_turn(bool b) {
+    white_to_move = b;
+}
+
 bool Board::get_turn() { return white_to_move; }
 
-// Private functions
-void Board::generate_sliding_moves(int start_square, std::vector<Move> &moves) {
-    unsigned char piece = board[start_square];
-    int start_index = 0;
-    int end_index = 8;
-
-    if (Piece::get_type(piece) == Piece::bishop) {
-        start_index = 4;
-    }
-    if (Piece::get_type(piece) == Piece::rook) {
-        end_index = 4;
-    }
-
-    for (int i = start_index; i < end_index; i++) {
-        for (int j = 1; j <= squares_to_edges[start_square][i]; j++) {
-            int end_square = start_square + Piece::dir[i] * j;
-            unsigned char piece_on_end_square = board[end_square];
-
-            // Blocked by friendly piece
-            if (Piece::is_friendly(piece, piece_on_end_square)) {
-                break;
-            }
-            moves.push_back({start_square, end_square});
-
-            // Enemy piece on end square
-            if (!Piece::is_friendly(piece, piece_on_end_square) && piece_on_end_square != Piece::none) {
-                break;
-            }
-        }
-    }
+void Board::set_white_castle_king(bool b) {
+    white_castle_king = b;
 }
 
-void Board::generate_knight_moves(int start_square, std::vector<Move> &moves) {
-    unsigned char knight = board[start_square];
-
-    for (int i = 0; i < 8; i++) {
-        int end_square = start_square + Piece::knight_dir[i];
-
-        if (!in_bounds(end_square) || !knight_in_bounds(start_square, end_square)) {
-            continue;
-        }
-
-        unsigned char piece_on_end_square = board[end_square];
-
-        // Blocked by friendly piece
-        if (Piece::is_friendly(knight, piece_on_end_square)) {
-            continue;
-        }
-
-        moves.push_back({start_square, end_square});
-    }
+void Board::set_white_castle_queen(bool b) {
+    white_castle_queen = b;
 }
 
-// TODO: Implement en passant
-void Board::generate_pawn_moves(int start_square, std::vector<Move> &moves) {
-    unsigned char pawn = board[start_square];
-
-    int dir = Piece::is_piece_white(pawn) ? 1 : -1;
-
-    // Single step forward
-    int one_step = start_square + dir * Piece::pawn_dir[0];
-    if (in_bounds(one_step) && board[one_step] == Piece::none) {
-        moves.push_back({start_square, one_step});
-
-        // Double step forward (only if the single step was possible)
-        if (!Piece::has_piece_moved(pawn)) {
-            int two_step = start_square + dir * Piece::pawn_dir[3];
-            if (in_bounds(two_step) && board[two_step] == Piece::none) {
-                moves.push_back({start_square, two_step});
-            }
-        }
-    }
-
-    // Diagonal captures
-    for (int i = 1; i <= 2; i++) {
-        int capture_square = start_square + dir * Piece::pawn_dir[i];
-
-        if (in_bounds(capture_square)) {
-            unsigned char piece_on_target = board[capture_square];
-
-            if (!Piece::is_friendly(pawn, piece_on_target) && piece_on_target != Piece::none) {
-                moves.push_back({start_square, capture_square});
-            }
-        }
-    }
+void Board::set_black_castle_king(bool b) {
+    black_castle_king = b;
 }
 
-// TODO: include castling
-void Board::generate_king_moves(int start_square, std::vector<Move> &moves) {
-    unsigned char king = board[start_square];
+void Board::set_black_castle_queen(bool b) {
+    black_castle_queen = b;
+}
 
-    for (int i = 0; i < 8; i++) {
-        int end_square = start_square + Piece::dir[i];
+void Board::set_board_element(unsigned char piece, int index) {
+    board[index] = piece;
+}
 
-        if (!in_bounds(end_square)) {
-            continue;
-        }
+bool Board::get_black_castle_king() {
+    return black_castle_king;
+}
 
-        unsigned char piece_on_end_square = board[end_square];
+bool Board::get_white_castle_king() {
+    return white_castle_king;
+}
 
-        if (Piece::is_friendly(king, piece_on_end_square)) {
-            continue;
-        }
+bool Board::get_black_castle_queen() {
+    return black_castle_queen;
+}
 
-        moves.push_back({start_square, end_square});
-    }
+bool Board::get_white_castle_queen() {
+    return white_castle_queen;
 }

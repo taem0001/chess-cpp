@@ -4,17 +4,15 @@
 
 class Game {
   private:
-    Board *board;
+    const std::string start_pos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq";
+    Board board;
     std::vector<std::string> fens;
 
   public:
     Game();
-    ~Game();
     void run_game();
-    void add_fen();
     bool make_move(std::vector<Move> &, int, int);
-    bool unmake_move(Move &);
-    Board *get_board();
+    Board &get_board();
 };
 
 #endif // !GAME_H
