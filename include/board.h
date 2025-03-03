@@ -6,14 +6,14 @@
 #include <vector>
 
 class Board {
-  private:
+private:
     unsigned char board[64];
     int squares_to_edges[64][8];
     bool white_to_move;
     bool black_castle_queen, black_castle_king, white_castle_queen, white_castle_king;
     void precompute_squares_to_edges(int (*)[8]);
 
-  public:
+public:
     void setup_board();
     void draw_board();
     unsigned char *get_board();
