@@ -1,7 +1,7 @@
-#include "../include/game.h"
+#include "../include/interface.h"
 
 int main(void) {
-    Game game;
-    game.run_game();
+    Interface interface;
+    interface.run_game();
     return 0;
 }
