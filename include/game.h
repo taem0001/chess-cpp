@@ -3,12 +3,11 @@
 #include "../include/board.h"
 
 class Game {
-  private:
-    const std::string start_pos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq";
+private:
     Board board;
     std::vector<std::string> fens;
 
-  public:
+public:
     Game();
     void run_game();
     bool make_move(std::vector<Move> &, int, int);

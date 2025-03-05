@@ -1,33 +1,14 @@
 #include "../include/board.h"
 #include "../include/piece.h"
 #include "../include/utils.h"
-#include <algorithm>
+#include "../include/fen.h"
 #include <iostream>
+#include <regex>
+#define START_POS "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq"
 
 void Board::setup_board() {
+    FenHandler::load_position(*this, START_POS);
     precompute_squares_to_edges(squares_to_edges);
-}
-
-void Board::precompute_squares_to_edges(int (*arr)[8]) {
-    for (int row = 0; row < 8; row++) {
-        for (int col = 0; col < 8; col++) {
-            int dist_south = 7 - row;
-            int dist_north = row;
-            int dist_east = 7 - col;
-            int dist_west = col;
-
-            int index = row * 8 + col;
-
-            arr[index][0] = dist_south;
-            arr[index][1] = dist_north;
-            arr[index][2] = dist_west;
-            arr[index][3] = dist_east;
-            arr[index][4] = std::min(dist_west, dist_south);
-            arr[index][5] = std::min(dist_east, dist_north);
-            arr[index][6] = std::min(dist_east, dist_south);
-            arr[index][7] = std::min(dist_west, dist_north);
-        }
-    }
 }
 
 int (*Board::get_precomputed_distances())[8] {
@@ -58,7 +39,7 @@ unsigned char *Board::get_board() { return board; }
 
 bool Board::is_move_legal(std::vector<Move> &moves, int s_square, int e_square) {
     for (Move move : moves) {
-        if (move.start_square == s_square && move.end_square == e_square) {
+        if (move.start_square == s_square && move.end_square == e_square && white_to_move == move.white) {
             return true;
         }
     }
@@ -72,6 +53,18 @@ void Board::move_piece(int s_square, int e_square) {
     }
     board[e_square] = board[s_square];
     board[s_square] = Piece::none;
+}
+
+bool Board::is_in_check(std::vector<Move> &moves) {
+    unsigned char color = white_to_move ? Piece::white : Piece::black;
+    int king_square = find_king_pos(board, color);
+
+    for (Move move : moves) {
+        if (move.end_square == king_square && white_to_move != move.white) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void Board::change_turn() { white_to_move = !white_to_move; }

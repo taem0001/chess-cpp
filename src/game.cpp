@@ -5,7 +5,6 @@
 
 Game::Game() : board() {
     board.setup_board();
-    FenHandler::load_position(board, start_pos);
 }
 
 bool Game::make_move(std::vector<Move> &moves, int s, int e) {
@@ -37,6 +36,7 @@ void Game::run_game() {
 
         std::vector<Move> moves;
         moves = MoveGenerator::generate_legal_moves(board);
+        MoveGenerator::handle_check(board, moves);
 
         const std::string player = board.get_turn() ? "White player's move: " : "Black player's move: ";
         std::cout << player << std::endl;

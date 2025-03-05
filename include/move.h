@@ -6,6 +6,7 @@
 class MoveGenerator {
 public:
     static std::vector<Move> generate_legal_moves(Board &);
+    static void handle_check(Board &, std::vector<Move> &);
 
 private:
     static void generate_sliding_moves(Board &, int, std::vector<Move> &);

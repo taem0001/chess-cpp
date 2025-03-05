@@ -1,4 +1,5 @@
 #include "../include/utils.h"
+#include "../include/piece.h"
 #include <iostream>
 
 bool in_bounds(int square) {
@@ -43,4 +44,40 @@ Move convert_pos(const std::string &pos) {
     res.start_square = squares[0];
     res.end_square = squares[1];
     return res;
+}
+
+void precompute_squares_to_edges(int (*arr)[8]) {
+    for (int row = 0; row < 8; row++) {
+        for (int col = 0; col < 8; col++) {
+            int dist_south = 7 - row;
+            int dist_north = row;
+            int dist_east = 7 - col;
+            int dist_west = col;
+
+            int index = row * 8 + col;
+
+            arr[index][0] = dist_south;
+            arr[index][1] = dist_north;
+            arr[index][2] = dist_west;
+            arr[index][3] = dist_east;
+            arr[index][4] = std::min(dist_west, dist_south);
+            arr[index][5] = std::min(dist_east, dist_north);
+            arr[index][6] = std::min(dist_east, dist_south);
+            arr[index][7] = std::min(dist_west, dist_north);
+        }
+    }
+}
+
+int find_king_pos(unsigned char *board, unsigned char color) {
+    for (int i = 0; i < 64; i++) {
+        if (Piece::get_type(board[i]) == Piece::king) {
+            if (color == Piece::white && Piece::is_piece_white(board[i])) {
+                return i;
+            }
+            if (color == Piece::black && !Piece::is_piece_white(board[i])) {
+                return i;
+            }
+        }
+    }
+    return -1;
 }

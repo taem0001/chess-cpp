@@ -1,6 +1,9 @@
 #include "../include/move.h"
 #include "../include/piece.h"
 #include "../include/utils.h"
+#include <iostream>
+
+// TODO: Fix check detection
 
 std::vector<Move> MoveGenerator::generate_legal_moves(Board &board) {
     std::vector<Move> moves;
@@ -14,27 +17,33 @@ std::vector<Move> MoveGenerator::generate_legal_moves(Board &board) {
             continue;
         }
 
-        if ((Piece::is_piece_white(piece) && white_to_move) || (!Piece::is_piece_white(piece) && !white_to_move)) {
-            unsigned char type = Piece::get_type(piece);
-            if (type == Piece::queen || type == Piece::bishop || type == Piece::rook) {
-                generate_sliding_moves(board, i, moves);
-            } else if (type == Piece::knight) {
-                generate_knight_moves(board, i, moves);
-            } else if (type == Piece::pawn) {
-                generate_pawn_moves(board, i, moves);
-            } else {
-                generate_king_moves(board, i, moves);
-            }
+        unsigned char type = Piece::get_type(piece);
+        if (type == Piece::queen || type == Piece::bishop || type == Piece::rook) {
+            generate_sliding_moves(board, i, moves);
+        } else if (type == Piece::knight) {
+            generate_knight_moves(board, i, moves);
+        } else if (type == Piece::pawn) {
+            generate_pawn_moves(board, i, moves);
+        } else {
+            generate_king_moves(board, i, moves);
         }
     }
 
     return moves;
 }
 
+void MoveGenerator::handle_check(Board &board, std::vector<Move> &moves) {
+    if (board.is_in_check(moves)) {
+        std::string color = board.get_turn() ? "White " : "Black ";
+        std::cout << color << "king in check!" << std::endl;
+    }
+}
+
 void MoveGenerator::generate_sliding_moves(Board &board, int start_square, std::vector<Move> &moves) {
     unsigned char *chess_board = board.get_board();
-    int (*squares_to_edges)[8] = board.get_precomputed_distances();
+    int(*squares_to_edges)[8] = board.get_precomputed_distances();
     unsigned char piece = chess_board[start_square];
+    bool is_white = Piece::is_piece_white(piece);
     int start_index = 0;
     int end_index = 8;
 
@@ -54,7 +63,7 @@ void MoveGenerator::generate_sliding_moves(Board &board, int start_square, std::
             if (Piece::is_friendly(piece, piece_on_end_square)) {
                 break;
             }
-            moves.push_back({start_square, end_square});
+            moves.push_back({start_square, end_square, is_white});
 
             // Enemy piece on end square
             if (!Piece::is_friendly(piece, piece_on_end_square) && piece_on_end_square != Piece::none) {
@@ -67,6 +76,7 @@ void MoveGenerator::generate_sliding_moves(Board &board, int start_square, std::
 void MoveGenerator::generate_knight_moves(Board &board, int start_square, std::vector<Move> &moves) {
     unsigned char *chess_board = board.get_board();
     unsigned char knight = chess_board[start_square];
+    bool is_white = Piece::is_piece_white(knight);
 
     for (int i = 0; i < 8; i++) {
         int end_square = start_square + Piece::knight_dir[i];
@@ -82,7 +92,7 @@ void MoveGenerator::generate_knight_moves(Board &board, int start_square, std::v
             continue;
         }
 
-        moves.push_back({start_square, end_square});
+        moves.push_back({start_square, end_square, is_white});
     }
 }
 
@@ -90,19 +100,20 @@ void MoveGenerator::generate_knight_moves(Board &board, int start_square, std::v
 void MoveGenerator::generate_pawn_moves(Board &board, int start_square, std::vector<Move> &moves) {
     unsigned char *chess_board = board.get_board();
     unsigned char pawn = chess_board[start_square];
+    bool is_white = Piece::is_piece_white(pawn);
 
-    int dir = Piece::is_piece_white(pawn) ? 1 : -1;
+    int dir = is_white ? 1 : -1;
 
     // Single step forward
     int one_step = start_square + dir * Piece::pawn_dir[0];
     if (in_bounds(one_step) && chess_board[one_step] == Piece::none) {
-        moves.push_back({start_square, one_step});
+        moves.push_back({start_square, one_step, is_white});
 
         // Double step forward (only if the single step was possible)
         if (!Piece::has_piece_moved(pawn)) {
             int two_step = start_square + dir * Piece::pawn_dir[3];
             if (in_bounds(two_step) && chess_board[two_step] == Piece::none) {
-                moves.push_back({start_square, two_step});
+                moves.push_back({start_square, two_step, is_white});
             }
         }
     }
@@ -115,7 +126,7 @@ void MoveGenerator::generate_pawn_moves(Board &board, int start_square, std::vec
             unsigned char piece_on_target = chess_board[capture_square];
 
             if (!Piece::is_friendly(pawn, piece_on_target) && piece_on_target != Piece::none) {
-                moves.push_back({start_square, capture_square});
+                moves.push_back({start_square, capture_square, is_white});
             }
         }
     }
@@ -125,6 +136,7 @@ void MoveGenerator::generate_pawn_moves(Board &board, int start_square, std::vec
 void MoveGenerator::generate_king_moves(Board &board, int start_square, std::vector<Move> &moves) {
     unsigned char *chess_board = board.get_board();
     unsigned char king = chess_board[start_square];
+    bool is_white = Piece::is_piece_white(king);
 
     for (int i = 0; i < 8; i++) {
         int end_square = start_square + Piece::dir[i];
@@ -139,6 +151,6 @@ void MoveGenerator::generate_king_moves(Board &board, int start_square, std::vec
             continue;
         }
 
-        moves.push_back({start_square, end_square});
+        moves.push_back({start_square, end_square, is_white});
     }
 }
