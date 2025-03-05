@@ -1,13 +1,15 @@
 #include "../include/chessgame.h"
+#include "../include/fen.h"
 
 ChessGame::ChessGame() : board() {
-    board.init();
+    FenHandler::load_fen(board, STARTPOS);
 }
 
 void ChessGame::draw_game() {
     u64 *bitboards = board.get_bitboards();
     int square;
 
+    std::cout << "    a b c d e f g h" << std::endl;
     std::cout << "  +-----------------+" << std::endl;
     for (int rank = 0; rank < 8; rank++) {
         std::cout << 8 - rank << " | ";
@@ -15,7 +17,7 @@ void ChessGame::draw_game() {
             square = rank * 8 + file;
             std::cout << get_symbol(bitboards, square) << " ";
         }
-        std::cout << "|" << std::endl;
+        std::cout << "| " << 8 - rank << std::endl;
     }
     std::cout << "  +-----------------+" << std::endl;
     std::cout << "    a b c d e f g h" << std::endl;

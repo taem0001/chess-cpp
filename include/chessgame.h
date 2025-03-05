@@ -5,6 +5,7 @@
 class ChessGame {
 private:
     Board board;
+    bool white_to_move;
 
 public:
     ChessGame();

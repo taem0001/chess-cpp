@@ -64,7 +64,11 @@ void FenHandler::load_fen(Board &board, const std::string &fen) {
         s_index++;
     }
 
-    bitboards[WHITE] = bitboards[WHITE_PAWN] | bitboards[WHITE_ROOK] | bitboards[WHITE_BISHOP] | bitboards[WHITE_KNIGHT] | bitboards[WHITE_QUEEN] | bitboards[WHITE_KING];
-    bitboards[BLACK] = bitboards[BLACK_PAWN] | bitboards[BLACK_ROOK] | bitboards[BLACK_BISHOP] | bitboards[BLACK_KNIGHT] | bitboards[BLACK_QUEEN] | bitboards[BLACK_KING];
+    bitboards[WHITE] = bitboards[WHITE_PAWN] | bitboards[WHITE_ROOK] |
+                       bitboards[WHITE_BISHOP] | bitboards[WHITE_KNIGHT] |
+                       bitboards[WHITE_QUEEN] | bitboards[WHITE_KING];
+    bitboards[BLACK] = bitboards[BLACK_PAWN] | bitboards[BLACK_ROOK] |
+                       bitboards[BLACK_BISHOP] | bitboards[BLACK_KNIGHT] |
+                       bitboards[BLACK_QUEEN] | bitboards[BLACK_KING];
     bitboards[ALL] = bitboards[WHITE] | bitboards[BLACK];
 }

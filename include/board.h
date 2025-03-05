@@ -7,7 +7,6 @@ private:
     u64 bitboards[15];
 
 public:
-    void init();
     u64 *get_bitboards();
 };
 
