@@ -6,6 +6,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <cctype>
 
 #define STARTPOS "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w"
 
@@ -118,6 +119,8 @@ static const u64 mask_piece[] = {0x1,
 
 static const u64 not_a_file = 0xfefefefefefefefe;
 static const u64 not_h_file = 0x7f7f7f7f7f7f7f7f;
+static const u64 not_ab_file = 0xfcfcfcfcfcfcfcfc;
+static const u64 not_gh_file = 0x3f3f3f3f3f3f3f3f;
 
 int first_bit(u64);
 int last_bit(u64);

@@ -2,72 +2,58 @@
 
 void FenHandler::load_fen(ChessGame &game, const std::string &fen) {
     u64 *bitboards = game.get_board().get_bitboards();
-    int index = 63;
+    int index = 56;
     int s_index = 0;
     int empty_squares;
 
     while (s_index < fen.length()) {
-        if (index >= 0) {
-            switch (fen[s_index]) {
+        char c = fen[s_index];
+
+        if (isdigit(c)) {
+            index += (c - '0');
+        } else if (c == '/') {
+            index -= 16;
+        } else {
+            switch (c) {
                 case 'p':
                     bitboards[BLACK_PAWN] |= 1ULL << index;
-                    index--;
                     break;
                 case 'r':
                     bitboards[BLACK_ROOK] |= 1ULL << index;
-                    index--;
                     break;
                 case 'n':
                     bitboards[BLACK_KNIGHT] |= 1ULL << index;
-                    index--;
                     break;
                 case 'b':
                     bitboards[BLACK_BISHOP] |= 1ULL << index;
-                    index--;
                     break;
                 case 'q':
                     bitboards[BLACK_QUEEN] |= 1ULL << index;
-                    index--;
                     break;
                 case 'k':
                     bitboards[BLACK_KING] |= 1ULL << index;
-                    index--;
                     break;
                 case 'P':
                     bitboards[WHITE_PAWN] |= 1ULL << index;
-                    index--;
                     break;
                 case 'R':
                     bitboards[WHITE_ROOK] |= 1ULL << index;
-                    index--;
                     break;
                 case 'N':
                     bitboards[WHITE_KNIGHT] |= 1ULL << index;
-                    index--;
                     break;
                 case 'B':
                     bitboards[WHITE_BISHOP] |= 1ULL << index;
-                    index--;
                     break;
                 case 'Q':
                     bitboards[WHITE_QUEEN] |= 1ULL << index;
-                    index--;
                     break;
                 case 'K':
                     bitboards[WHITE_KING] |= 1ULL << index;
-                    index--;
-                    break;
-                case '1' ... '8':
-                    {
-                        empty_squares = fen[s_index] - '0';
-                        index -= empty_squares;
-                        break;
-                    }
-                case '/':
                     break;
             }
+            index++;
         }
-
         if (fen[s_index] == 'w') {
             game.set_turn(true);
         }

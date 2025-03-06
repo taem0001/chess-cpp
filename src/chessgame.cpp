@@ -1,5 +1,6 @@
 #include "../include/chessgame.h"
 #include "../include/fen.h"
+#include "../include/movegen.h"
 
 ChessGame::ChessGame() : board() { FenHandler::load_fen(*this, STARTPOS); }
 
