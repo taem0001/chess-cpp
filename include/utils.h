@@ -5,10 +5,12 @@
 #include <cstdint>
 #include <iostream>
 #include <string>
+#include <vector>
 
-#define STARTPOS "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
+#define STARTPOS "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w"
 
 typedef enum {
+    EMPTY,
     ALL,
     WHITE,
     BLACK,
@@ -27,19 +29,20 @@ typedef enum {
 } PieceType;
 
 typedef uint64_t u64;
+typedef uint16_t u16;
 typedef uint8_t u8;
 
 static const char symbols[] = {'P', 'R', 'N', 'B', 'Q', 'K',
                                'p', 'r', 'n', 'b', 'q', 'k'};
 
-static const u64 clear_rank[] = {0x00ffffffffffffff, 0xff00ffffffffffff,
-                                 0xffff00ffffffffff, 0xffffff00ffffffff,
-                                 0xffffffff00ffffff, 0xffffffffff00ffff,
-                                 0xffffffffffff00ff, 0xffffffffffffff00};
-static const u64 mask_rank[] = {0xff00000000000000, 0x00ff000000000000,
-                                0x0000ff0000000000, 0x000000ff00000000,
-                                0x00000000ff000000, 0x0000000000ff0000,
-                                0x000000000000ff00, 0x00000000000000ff};
+static const u64 clear_rank[] = {0xffffffffffffff00, 0xffffffffffff00ff,
+                                 0xffffffffff00ffff, 0xffffffff00ffffff,
+                                 0xffffff00ffffffff, 0xffff00ffffffffff,
+                                 0xff00ffffffffffff, 0x00ffffffffffffff};
+static const u64 mask_rank[] = {0x00000000000000ff, 0x000000000000ff00,
+                                0x0000000000ff0000, 0x00000000ff000000,
+                                0x000000ff00000000, 0x0000ff0000000000,
+                                0x00ff000000000000, 0xff00000000000000};
 static const u64 clear_file[] = {0xfefefefefefefefe, 0xfdfdfdfdfdfdfdfd,
                                  0xfbfbfbfbfbfbfbfb, 0xf7f7f7f7f7f7f7f7,
                                  0xefefefefefefefef, 0xdfdfdfdfdfdfdfdf,
@@ -113,8 +116,20 @@ static const u64 mask_piece[] = {0x1,
                                  0x4000000000000000,
                                  0x8000000000000000};
 
+static const u64 not_a_file = 0xfefefefefefefefe;
+static const u64 not_h_file = 0x7f7f7f7f7f7f7f7f;
+
 int first_bit(u64);
 int last_bit(u64);
 char get_symbol(u64 *, int);
+u64 shift_north(u64);
+u64 shift_south(u64);
+u64 shift_east(u64);
+u64 shift_west(u64);
+u64 shift_north_west(u64);
+u64 shift_north_east(u64);
+u64 shift_south_west(u64);
+u64 shift_south_east(u64);
+void print_bitboard(u64);
 
 #endif // !UTILS_H

@@ -4,7 +4,8 @@
 
 class Board {
 private:
-    u64 bitboards[15];
+    u64 bitboards[16];
+    bool white_turn;
 
 public:
     u64 *get_bitboards();
