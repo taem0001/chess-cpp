@@ -2,11 +2,18 @@
 #include "../include/fen.h"
 #include "../include/movegen.h"
 
-ChessGame::ChessGame() : board() { FenHandler::load_fen(*this, STARTPOS); }
+ChessGame::ChessGame() : board() {
+    FenHandler::load_fen(*this, STARTPOS);
+    MoveGenerator::init();
+}
 
 void ChessGame::draw_game() {
     u64 *bitboards = board.get_bitboards();
     int square;
+
+    for (int i = 0; i < 64; i++) {
+        print_bitboard(MoveGenerator::anti_diag_attacks[i]);
+    }
 
     std::cout << "    a b c d e f g h" << std::endl;
     std::cout << "  +-----------------+" << std::endl;
