@@ -11,6 +11,8 @@ void ChessGame::draw_game() {
     u64 *bitboards = board.get_bitboards();
     int square;
 
+    print_bitboard(MoveGenerator::generate_moves(*this));
+
     std::cout << "    a b c d e f g h" << std::endl;
     std::cout << "  +-----------------+" << std::endl;
     for (int rank = 7; rank >= 0; rank--) {

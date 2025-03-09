@@ -24,8 +24,8 @@ private:
     static u64 generate_black_king_moves(ChessGame &);
     static u64 generate_white_knight_moves(ChessGame &);
     static u64 generate_black_knight_moves(ChessGame &);
-    static u64 generate_white_bishop_moves(ChessGame &);
-    static u64 generate_black_bishop_moves(ChessGame &);
+    static u64 generate_white_bishop_attacks(ChessGame &);
+    static u64 generate_black_bishop_attacks(ChessGame &);
 };
 
 #endif // !MOVEGEN_H

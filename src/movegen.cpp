@@ -64,7 +64,9 @@ void MoveGenerator::init_sliding_attacks() {
     }
 }
 
-u64 MoveGenerator::generate_moves(ChessGame &game) {}
+u64 MoveGenerator::generate_moves(ChessGame &game) {
+    return generate_white_bishop_moves(game);
+}
 
 u64 MoveGenerator::generate_white_pawn_pushes(ChessGame &game) {
     u64 *bitboards = game.get_board().get_bitboards();
@@ -139,5 +141,31 @@ u64 MoveGenerator::generate_black_knight_moves(ChessGame &game) {
 
     u64 res = no_no_ea | no_ea_ea | so_ea_ea | so_so_ea | no_no_we | no_we_we |
               so_we_we | so_so_we;
+    return res;
+}
+
+u64 MoveGenerator::generate_white_bishop_attacks(ChessGame &game) {
+    u64 *bitboards = game.get_board().get_bitboards();
+    u64 bishops = bitboards[WHITE_BISHOP];
+    u64 res = 0;
+    while (bishops) {
+        int pos = first_bit(bishops);
+        res |= diag_attacks[pos] | anti_diag_attacks[pos];
+        bishops &= (bishops - 1);
+    }
+
+    return res;
+}
+
+u64 MoveGenerator::generate_black_bishop_attacks(ChessGame &game) {
+    u64 *bitboards = game.get_board().get_bitboards();
+    u64 bishops = bitboards[BLACK_BISHOP];
+    u64 res = 0;
+    while (bishops) {
+        int pos = first_bit(bishops);
+        res |= diag_attacks[pos] | anti_diag_attacks[pos];
+        bishops &= (bishops - 1);
+    }
+
     return res;
 }
