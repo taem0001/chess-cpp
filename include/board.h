@@ -5,10 +5,10 @@
 class Board {
 private:
     u64 bitboards[16];
-    bool white_turn;
 
 public:
     u64 *get_bitboards();
+    void draw_board();
 };
 
 #endif // !BOARD_H

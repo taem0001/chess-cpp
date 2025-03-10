@@ -57,15 +57,18 @@ void MoveGenerator::init_rays() {
 
 void MoveGenerator::init_sliding_attacks() {
     for (int i = 0; i < 64; i++) {
+        int new_r = 7 - (i / 8);
+        int new_c = i % 8;
         rank_attacks[i] = rays[EAST][i] | rays[WEST][i];
         file_attacks[i] = rays[NORTH][i] | rays[SOUTH][i];
         diag_attacks[i] = rays[NORTH_EAST][i] | rays[SOUTH_WEST][63 - i];
-        anti_diag_attacks[i] = rays[NORTH_WEST][i] | rays[SOUTH_EAST][63 - i];
+        anti_diag_attacks[new_r * 8 + new_c] =
+            rays[NORTH_WEST][63 - i] | rays[SOUTH_EAST][i];
     }
 }
 
 u64 MoveGenerator::generate_moves(ChessGame &game) {
-    return generate_white_bishop_moves(game);
+    return generate_black_queen_attacks(game);
 }
 
 u64 MoveGenerator::generate_white_pawn_pushes(ChessGame &game) {
@@ -165,6 +168,60 @@ u64 MoveGenerator::generate_black_bishop_attacks(ChessGame &game) {
         int pos = first_bit(bishops);
         res |= diag_attacks[pos] | anti_diag_attacks[pos];
         bishops &= (bishops - 1);
+    }
+
+    return res;
+}
+
+u64 MoveGenerator::generate_white_rook_attacks(ChessGame &game) {
+    u64 *bitboards = game.get_board().get_bitboards();
+    u64 rooks = bitboards[WHITE_ROOK];
+    u64 res = 0;
+    while (rooks) {
+        int pos = first_bit(rooks);
+        res |= file_attacks[pos] | rank_attacks[pos];
+        rooks &= (rooks - 1);
+    }
+
+    return res;
+}
+
+u64 MoveGenerator::generate_black_rook_attacks(ChessGame &game) {
+    u64 *bitboards = game.get_board().get_bitboards();
+    u64 rooks = bitboards[BLACK_ROOK];
+    u64 res = 0;
+    while (rooks) {
+        int pos = first_bit(rooks);
+        res |= file_attacks[pos] | rank_attacks[pos];
+        rooks &= (rooks - 1);
+    }
+
+    return res;
+}
+
+u64 MoveGenerator::generate_white_queen_attacks(ChessGame &game) {
+    u64 *bitboards = game.get_board().get_bitboards();
+    u64 queen = bitboards[WHITE_QUEEN];
+    u64 res = 0;
+    while (queen) {
+        int pos = first_bit(queen);
+        res |= rank_attacks[pos] | file_attacks[pos] | diag_attacks[pos] |
+               anti_diag_attacks[pos];
+        queen &= (queen - 1);
+    }
+
+    return res;
+}
+
+u64 MoveGenerator::generate_black_queen_attacks(ChessGame &game) {
+    u64 *bitboards = game.get_board().get_bitboards();
+    u64 queen = bitboards[BLACK_QUEEN];
+    u64 res = 0;
+    while (queen) {
+        int pos = first_bit(queen);
+        res |= rank_attacks[pos] | file_attacks[pos] | diag_attacks[pos] |
+               anti_diag_attacks[pos];
+        queen &= (queen - 1);
     }
 
     return res;

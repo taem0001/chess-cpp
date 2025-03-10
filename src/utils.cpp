@@ -1,17 +1,9 @@
 #include "../include/utils.h"
 
 int first_bit(u64 bitboard) {
-    if (bitboard == 0) {
-        return -1;
-    }
-    return __builtin_ctz(bitboard);
-}
-
-int last_bit(u64 bitboard) {
-    if (bitboard == 0) {
-        return -1;
-    }
-    return log2(bitboard);
+    u64 isolated_bit = bitboard & -bitboard;
+    u64 debruijn_index = (isolated_bit * 0x03f79d71b4cb0a89ULL) >> 58;
+    return deBruijn_lookup_table[debruijn_index];
 }
 
 char get_symbol(u64 *bitboards, int square) {
