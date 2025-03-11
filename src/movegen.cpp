@@ -33,25 +33,25 @@ void MoveGenerator::init_rays() {
     for (int f = 0; f < 8; f++, no_ea = shift_east(no_ea)) {
         u64 ne = no_ea;
         for (int r = 0; r < 8; r++, ne <<= 8) {
-            rays[NORTH_EAST][f + r * 8] = ne;
+            rays[NORTH_EAST][(r * 8) + f] = ne;
         }
     }
     for (int f = 0; f < 8; f++, no_we = shift_west(no_we)) {
         u64 nw = no_we;
         for (int r = 0; r < 8; r++, nw <<= 8) {
-            rays[NORTH_WEST][f + r * 8] = nw;
+            rays[NORTH_WEST][(r * 8) + f] = nw;
         }
     }
     for (int f = 0; f < 8; f++, so_ea = shift_east(so_ea)) {
         u64 se = so_ea;
         for (int r = 0; r < 8; r++, se >>= 8) {
-            rays[SOUTH_EAST][f + r * 8] = se;
+            rays[SOUTH_EAST][(r * 8) + f] = se;
         }
     }
     for (int f = 0; f < 8; f++, so_we = shift_west(so_we)) {
         u64 sw = so_we;
         for (int r = 0; r < 8; r++, sw >>= 8) {
-            rays[SOUTH_WEST][f + r * 8] = sw;
+            rays[SOUTH_WEST][(r * 8) + f] = sw;
         }
     }
 }
@@ -69,7 +69,7 @@ void MoveGenerator::init_sliding_attacks() {
 }
 
 u64 MoveGenerator::generate_moves(ChessGame &game) {
-    return generate_white_knight_moves(game);
+    return generate_white_bishop_attacks(game);
 }
 
 u64 MoveGenerator::generate_white_pawn_pushes(ChessGame &game) {
@@ -173,7 +173,6 @@ u64 MoveGenerator::generate_white_bishop_attacks(ChessGame &game) {
         res |= diag_attacks[pos] | anti_diag_attacks[pos];
         bishops &= (bishops - 1);
     }
-
     return res;
 }
 
@@ -186,7 +185,6 @@ u64 MoveGenerator::generate_black_bishop_attacks(ChessGame &game) {
         res |= diag_attacks[pos] | anti_diag_attacks[pos];
         bishops &= (bishops - 1);
     }
-
     return res;
 }
 

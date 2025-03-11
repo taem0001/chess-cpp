@@ -1,8 +1,25 @@
 #include "../include/utils.h"
 
 int first_bit(u64 bitboard) {
+    if (bitboard == 0) {
+        return -1;
+    }
     u64 isolated_bit = bitboard & -bitboard;
     u64 debruijn_index = (isolated_bit * 0x03f79d71b4cb0a89ULL) >> 58;
+    return deBruijn_lookup_table[debruijn_index];
+}
+
+int last_bit(u64 bitboard) {
+    if (bitboard == 0) {
+        return -1;
+    }
+    bitboard |= bitboard >> 1;
+    bitboard |= bitboard >> 2;
+    bitboard |= bitboard >> 4;
+    bitboard |= bitboard >> 8;
+    bitboard |= bitboard >> 16;
+    bitboard |= bitboard >> 32;
+    u64 debruijn_index = (bitboard * 0x03f79d71b4cb0a89ULL) >> 58;
     return deBruijn_lookup_table[debruijn_index];
 }
 
@@ -30,7 +47,8 @@ void print_bitboard(u64 bitboard) {
             int square = rank * 8 + file;
             std::cout << ((bitboard >> square) & 1) << " ";
         }
-        std::cout << std::endl;;
+        std::cout << std::endl;
+        ;
     }
     std::cout << std::endl;
 }

@@ -139,6 +139,7 @@ static const int deBruijn_lookup_table[] = {
     46, 26, 40, 15, 34, 20, 31, 10, 25, 14, 19, 9,  13, 8,  7,  6};
 
 int first_bit(u64);
+int last_bit(u64);
 char get_symbol(u64 *, int);
 u64 shift_north(u64);
 u64 shift_south(u64);
