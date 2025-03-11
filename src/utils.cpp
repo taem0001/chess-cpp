@@ -7,9 +7,9 @@ int first_bit(u64 bitboard) {
 }
 
 char get_symbol(u64 *bitboards, int square) {
-    for (int i = 4; i < 16; i++) {
+    for (int i = 3; i < 15; i++) {
         if (bitboards[i] & (1ULL << square)) {
-            return symbols[i - 4];
+            return symbols[i - 3];
         }
     }
     return '.';

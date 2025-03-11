@@ -1,7 +1,8 @@
 #include "../include/movegen.h"
 
-// TODO: Implement captures and en passant for pawns
+// TODO: Implement en passant for pawns
 // TODO: Impement castling for king
+// TODO: Implement blocking for sliding pieces
 
 u64 MoveGenerator::rays[8][64];
 u64 MoveGenerator::rank_attacks[64];
@@ -68,31 +69,43 @@ void MoveGenerator::init_sliding_attacks() {
 }
 
 u64 MoveGenerator::generate_moves(ChessGame &game) {
-    return generate_black_queen_attacks(game);
+    return generate_white_knight_moves(game);
 }
 
 u64 MoveGenerator::generate_white_pawn_pushes(ChessGame &game) {
     u64 *bitboards = game.get_board().get_bitboards();
     u64 white_pawns = bitboards[WHITE_PAWN];
-    u64 empty = bitboards[EMPTY];
+    u64 empty = ~bitboards[ALL];
 
     u64 single_push = shift_north(white_pawns) & empty;
     u64 double_push = shift_north(single_push) & empty & mask_rank[3];
     u64 all_pushes = single_push | double_push;
 
-    return all_pushes;
+    // Captures
+    u64 nw_pawns = shift_north_west(white_pawns);
+    u64 ne_pawns = shift_north_east(white_pawns);
+    nw_pawns &= bitboards[BLACK];
+    ne_pawns &= bitboards[BLACK];
+
+    return all_pushes | nw_pawns | ne_pawns;
 }
 
 u64 MoveGenerator::generate_black_pawn_pushes(ChessGame &game) {
     u64 *bitboards = game.get_board().get_bitboards();
     u64 black_pawns = bitboards[BLACK_PAWN];
-    u64 empty = bitboards[EMPTY];
+    u64 empty = ~bitboards[ALL];
 
     u64 single_push = shift_south(black_pawns) & empty;
     u64 double_push = shift_south(single_push) & empty & mask_rank[4];
     u64 all_pushes = single_push | double_push;
 
-    return all_pushes;
+    // Captures
+    u64 sw_pawns = shift_south_west(black_pawns);
+    u64 se_pawns = shift_south_east(black_pawns);
+    sw_pawns &= bitboards[WHITE];
+    se_pawns &= bitboards[WHITE];
+
+    return all_pushes | sw_pawns | se_pawns;
 }
 
 u64 MoveGenerator::generate_white_king_moves(ChessGame &game) {
@@ -101,6 +114,7 @@ u64 MoveGenerator::generate_white_king_moves(ChessGame &game) {
     u64 moves = shift_east(white_king) | shift_west(white_king);
     white_king |= moves;
     moves |= shift_north(white_king) | shift_south(white_king);
+    moves &= ~bitboards[ALL] | bitboards[BLACK];
     return moves;
 }
 
@@ -110,6 +124,7 @@ u64 MoveGenerator::generate_black_king_moves(ChessGame &game) {
     u64 moves = shift_east(black_king) | shift_west(black_king);
     black_king |= moves;
     moves |= shift_north(black_king) | shift_south(black_king);
+    moves &= ~bitboards[ALL] | bitboards[WHITE];
     return moves;
 }
 
@@ -127,6 +142,7 @@ u64 MoveGenerator::generate_white_knight_moves(ChessGame &game) {
 
     u64 res = no_no_ea | no_ea_ea | so_ea_ea | so_so_ea | no_no_we | no_we_we |
               so_we_we | so_so_we;
+    res &= ~bitboards[ALL] | bitboards[BLACK];
     return res;
 }
 
@@ -144,6 +160,7 @@ u64 MoveGenerator::generate_black_knight_moves(ChessGame &game) {
 
     u64 res = no_no_ea | no_ea_ea | so_ea_ea | so_so_ea | no_no_we | no_we_we |
               so_we_we | so_so_we;
+    res &= ~bitboards[ALL] | bitboards[WHITE];
     return res;
 }
 

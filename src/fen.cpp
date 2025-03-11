@@ -71,5 +71,4 @@ void FenHandler::load_fen(ChessGame &game, const std::string &fen) {
                        bitboards[BLACK_BISHOP] | bitboards[BLACK_KNIGHT] |
                        bitboards[BLACK_QUEEN] | bitboards[BLACK_KING];
     bitboards[ALL] = bitboards[WHITE] | bitboards[BLACK];
-    bitboards[EMPTY] = ~bitboards[ALL];
 }
