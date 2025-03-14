@@ -80,10 +80,9 @@ u64 MoveGenerator::file_attacks(u64 occ, unsigned long sq) {
 }
 
 u64 MoveGenerator::generate_moves(ChessGame &game) {
-    return generate_black_queen_attacks(game);
 }
 
-u64 MoveGenerator::generate_white_pawn_pushes(ChessGame &game) {
+u64 MoveGenerator::generate_white_pawn_bitboard(ChessGame &game) {
     u64 *bitboards = game.get_board().get_bitboards();
     u64 white_pawns = bitboards[WHITE_PAWN];
     u64 empty = ~bitboards[ALL];
@@ -101,7 +100,7 @@ u64 MoveGenerator::generate_white_pawn_pushes(ChessGame &game) {
     return all_pushes | nw_pawns | ne_pawns;
 }
 
-u64 MoveGenerator::generate_black_pawn_pushes(ChessGame &game) {
+u64 MoveGenerator::generate_black_pawn_bitboard(ChessGame &game) {
     u64 *bitboards = game.get_board().get_bitboards();
     u64 black_pawns = bitboards[BLACK_PAWN];
     u64 empty = ~bitboards[ALL];
@@ -119,7 +118,7 @@ u64 MoveGenerator::generate_black_pawn_pushes(ChessGame &game) {
     return all_pushes | sw_pawns | se_pawns;
 }
 
-u64 MoveGenerator::generate_white_king_moves(ChessGame &game) {
+u64 MoveGenerator::generate_white_king_bitboard(ChessGame &game) {
     u64 *bitboards = game.get_board().get_bitboards();
     u64 white_king = bitboards[WHITE_KING];
     u64 moves = shift_east(white_king) | shift_west(white_king);
@@ -129,7 +128,7 @@ u64 MoveGenerator::generate_white_king_moves(ChessGame &game) {
     return moves;
 }
 
-u64 MoveGenerator::generate_black_king_moves(ChessGame &game) {
+u64 MoveGenerator::generate_black_king_bitboard(ChessGame &game) {
     u64 *bitboards = game.get_board().get_bitboards();
     u64 black_king = bitboards[BLACK_KING];
     u64 moves = shift_east(black_king) | shift_west(black_king);
@@ -139,7 +138,7 @@ u64 MoveGenerator::generate_black_king_moves(ChessGame &game) {
     return moves;
 }
 
-u64 MoveGenerator::generate_white_knight_moves(ChessGame &game) {
+u64 MoveGenerator::generate_white_knight_bitboard(ChessGame &game) {
     u64 *bitboards = game.get_board().get_bitboards();
     u64 white_knight = bitboards[WHITE_KNIGHT];
     u64 no_no_ea = (white_knight << 17) & not_a_file;
@@ -157,7 +156,7 @@ u64 MoveGenerator::generate_white_knight_moves(ChessGame &game) {
     return res;
 }
 
-u64 MoveGenerator::generate_black_knight_moves(ChessGame &game) {
+u64 MoveGenerator::generate_black_knight_bitboard(ChessGame &game) {
     u64 *bitboards = game.get_board().get_bitboards();
     u64 black_knight = bitboards[BLACK_KNIGHT];
     u64 no_no_ea = (black_knight << 17) & not_a_file;
@@ -175,7 +174,7 @@ u64 MoveGenerator::generate_black_knight_moves(ChessGame &game) {
     return res;
 }
 
-u64 MoveGenerator::generate_white_bishop_attacks(ChessGame &game) {
+u64 MoveGenerator::generate_white_bishop_bitboard(ChessGame &game) {
     u64 *bitboards = game.get_board().get_bitboards();
     u64 bishops = bitboards[WHITE_BISHOP];
     u64 res = 0;
@@ -189,7 +188,7 @@ u64 MoveGenerator::generate_white_bishop_attacks(ChessGame &game) {
     return res;
 }
 
-u64 MoveGenerator::generate_black_bishop_attacks(ChessGame &game) {
+u64 MoveGenerator::generate_black_bishop_bitboard(ChessGame &game) {
     u64 *bitboards = game.get_board().get_bitboards();
     u64 bishops = bitboards[BLACK_BISHOP];
     u64 res = 0;
@@ -203,7 +202,7 @@ u64 MoveGenerator::generate_black_bishop_attacks(ChessGame &game) {
     return res;
 }
 
-u64 MoveGenerator::generate_white_rook_attacks(ChessGame &game) {
+u64 MoveGenerator::generate_white_rook_bitboard(ChessGame &game) {
     u64 *bitboards = game.get_board().get_bitboards();
     u64 rooks = bitboards[WHITE_ROOK];
     u64 res = 0;
@@ -217,7 +216,7 @@ u64 MoveGenerator::generate_white_rook_attacks(ChessGame &game) {
     return res;
 }
 
-u64 MoveGenerator::generate_black_rook_attacks(ChessGame &game) {
+u64 MoveGenerator::generate_black_rook_bitboard(ChessGame &game) {
     u64 *bitboards = game.get_board().get_bitboards();
     u64 rooks = bitboards[BLACK_ROOK];
     u64 res = 0;
@@ -231,7 +230,7 @@ u64 MoveGenerator::generate_black_rook_attacks(ChessGame &game) {
     return res;
 }
 
-u64 MoveGenerator::generate_white_queen_attacks(ChessGame &game) {
+u64 MoveGenerator::generate_white_queen_bitboard(ChessGame &game) {
     u64 *bitboards = game.get_board().get_bitboards();
     u64 queen = bitboards[WHITE_QUEEN];
     u64 res = 0;
@@ -246,7 +245,7 @@ u64 MoveGenerator::generate_white_queen_attacks(ChessGame &game) {
     return res;
 }
 
-u64 MoveGenerator::generate_black_queen_attacks(ChessGame &game) {
+u64 MoveGenerator::generate_black_queen_bitboard(ChessGame &game) {
     u64 *bitboards = game.get_board().get_bitboards();
     u64 queen = bitboards[BLACK_QUEEN];
     u64 res = 0;
