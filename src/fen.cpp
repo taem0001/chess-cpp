@@ -4,7 +4,6 @@ void FenHandler::load_fen(ChessGame &game, const std::string &fen) {
     u64 *bitboards = game.get_board().get_bitboards();
     int index = 56;
     int s_index = 0;
-    int empty_squares;
 
     while (s_index < fen.length()) {
         char c = fen[s_index];

@@ -2,20 +2,10 @@
 
 // TODO: Implement en passant for pawns
 // TODO: Impement castling for king
-// TODO: Implement blocking for sliding pieces
 
 u64 MoveGenerator::rays[8][64];
-u64 MoveGenerator::rank_attacks[64];
-u64 MoveGenerator::file_attacks[64];
-u64 MoveGenerator::diag_attacks[64];
-u64 MoveGenerator::anti_diag_attacks[64];
 
 void MoveGenerator::init() {
-    init_rays();
-    init_sliding_attacks();
-}
-
-void MoveGenerator::init_rays() {
     u64 north = 0x0101010101010100;
     u64 south = 0x0080808080808080;
     u64 no_ea = 0x8040201008040200;
@@ -36,7 +26,7 @@ void MoveGenerator::init_rays() {
             rays[NORTH_EAST][(r * 8) + f] = ne;
         }
     }
-    for (int f = 0; f < 8; f++, no_we = shift_west(no_we)) {
+    for (int f = 7; f >= 0; f--, no_we = shift_west(no_we)) {
         u64 nw = no_we;
         for (int r = 0; r < 8; r++, nw <<= 8) {
             rays[NORTH_WEST][(r * 8) + f] = nw;
@@ -44,32 +34,53 @@ void MoveGenerator::init_rays() {
     }
     for (int f = 0; f < 8; f++, so_ea = shift_east(so_ea)) {
         u64 se = so_ea;
-        for (int r = 0; r < 8; r++, se >>= 8) {
+        for (int r = 7; r >= 0; r--, se >>= 8) {
             rays[SOUTH_EAST][(r * 8) + f] = se;
         }
     }
-    for (int f = 0; f < 8; f++, so_we = shift_west(so_we)) {
+    for (int f = 7; f >= 0; f--, so_we = shift_west(so_we)) {
         u64 sw = so_we;
-        for (int r = 0; r < 8; r++, sw >>= 8) {
+        for (int r = 7; r >= 0; r--, sw >>= 8) {
             rays[SOUTH_WEST][(r * 8) + f] = sw;
         }
     }
 }
 
-void MoveGenerator::init_sliding_attacks() {
-    for (int i = 0; i < 64; i++) {
-        int new_r = 7 - (i / 8);
-        int new_c = i % 8;
-        rank_attacks[i] = rays[EAST][i] | rays[WEST][i];
-        file_attacks[i] = rays[NORTH][i] | rays[SOUTH][i];
-        diag_attacks[i] = rays[NORTH_EAST][i] | rays[SOUTH_WEST][63 - i];
-        anti_diag_attacks[new_r * 8 + new_c] =
-            rays[NORTH_WEST][63 - i] | rays[SOUTH_EAST][i];
-    }
+u64 MoveGenerator::get_positive_rays(u64 occ, Direction dir, unsigned long sq) {
+    u64 attacks = rays[dir][sq];
+    u64 blocker = attacks & occ;
+    sq = first_bit(blocker | (u64)0x8000000000000000);
+    return attacks ^ rays[dir][sq];
+}
+
+u64 MoveGenerator::get_negative_rays(u64 occ, Direction dir, unsigned long sq) {
+    u64 attacks = rays[dir][sq];
+    u64 blocker = attacks & occ;
+    sq = last_bit(blocker | 1ULL);
+    return attacks ^ rays[dir][sq];
+}
+
+u64 MoveGenerator::diag_attacks(u64 occ, unsigned long sq) {
+    return get_positive_rays(occ, NORTH_EAST, sq) |
+           get_negative_rays(occ, SOUTH_WEST, sq);
+}
+
+u64 MoveGenerator::anti_diag_attacks(u64 occ, unsigned long sq) {
+    return get_positive_rays(occ, NORTH_WEST, sq) |
+           get_negative_rays(occ, SOUTH_EAST, sq);
+}
+
+u64 MoveGenerator::rank_attacks(u64 occ, unsigned long sq) {
+    return get_positive_rays(occ, EAST, sq) | get_negative_rays(occ, WEST, sq);
+}
+
+u64 MoveGenerator::file_attacks(u64 occ, unsigned long sq) {
+    return get_positive_rays(occ, NORTH, sq) |
+           get_negative_rays(occ, SOUTH, sq);
 }
 
 u64 MoveGenerator::generate_moves(ChessGame &game) {
-    return generate_white_bishop_attacks(game);
+    return generate_black_queen_attacks(game);
 }
 
 u64 MoveGenerator::generate_white_pawn_pushes(ChessGame &game) {
@@ -170,9 +181,11 @@ u64 MoveGenerator::generate_white_bishop_attacks(ChessGame &game) {
     u64 res = 0;
     while (bishops) {
         int pos = first_bit(bishops);
-        res |= diag_attacks[pos] | anti_diag_attacks[pos];
+        res |= diag_attacks(bitboards[ALL], (unsigned long)pos) |
+               anti_diag_attacks(bitboards[ALL], (unsigned long)pos);
         bishops &= (bishops - 1);
     }
+    res &= ~bitboards[ALL] | bitboards[BLACK];
     return res;
 }
 
@@ -182,9 +195,11 @@ u64 MoveGenerator::generate_black_bishop_attacks(ChessGame &game) {
     u64 res = 0;
     while (bishops) {
         int pos = first_bit(bishops);
-        res |= diag_attacks[pos] | anti_diag_attacks[pos];
+        res |= diag_attacks(bitboards[ALL], (unsigned long)pos) |
+               anti_diag_attacks(bitboards[ALL], (unsigned long)pos);
         bishops &= (bishops - 1);
     }
+    res &= ~bitboards[ALL] | bitboards[WHITE];
     return res;
 }
 
@@ -194,10 +209,11 @@ u64 MoveGenerator::generate_white_rook_attacks(ChessGame &game) {
     u64 res = 0;
     while (rooks) {
         int pos = first_bit(rooks);
-        res |= file_attacks[pos] | rank_attacks[pos];
+        res |= rank_attacks(bitboards[ALL], (unsigned long)pos) |
+               file_attacks(bitboards[ALL], (unsigned long)pos);
         rooks &= (rooks - 1);
     }
-
+    res &= ~bitboards[ALL] | bitboards[BLACK];
     return res;
 }
 
@@ -207,10 +223,11 @@ u64 MoveGenerator::generate_black_rook_attacks(ChessGame &game) {
     u64 res = 0;
     while (rooks) {
         int pos = first_bit(rooks);
-        res |= file_attacks[pos] | rank_attacks[pos];
+        res |= rank_attacks(bitboards[ALL], (unsigned long)pos) |
+               file_attacks(bitboards[ALL], (unsigned long)pos);
         rooks &= (rooks - 1);
     }
-
+    res &= ~bitboards[ALL] | bitboards[WHITE];
     return res;
 }
 
@@ -218,13 +235,14 @@ u64 MoveGenerator::generate_white_queen_attacks(ChessGame &game) {
     u64 *bitboards = game.get_board().get_bitboards();
     u64 queen = bitboards[WHITE_QUEEN];
     u64 res = 0;
-    while (queen) {
+    if (queen) {
         int pos = first_bit(queen);
-        res |= rank_attacks[pos] | file_attacks[pos] | diag_attacks[pos] |
-               anti_diag_attacks[pos];
-        queen &= (queen - 1);
+        res = diag_attacks(bitboards[ALL], (unsigned long)pos) |
+              anti_diag_attacks(bitboards[ALL], (unsigned long)pos) |
+              rank_attacks(bitboards[ALL], (unsigned long)pos) |
+              file_attacks(bitboards[ALL], (unsigned long)pos);
     }
-
+    res &= ~bitboards[ALL] | bitboards[BLACK];
     return res;
 }
 
@@ -232,12 +250,13 @@ u64 MoveGenerator::generate_black_queen_attacks(ChessGame &game) {
     u64 *bitboards = game.get_board().get_bitboards();
     u64 queen = bitboards[BLACK_QUEEN];
     u64 res = 0;
-    while (queen) {
+    if (queen) {
         int pos = first_bit(queen);
-        res |= rank_attacks[pos] | file_attacks[pos] | diag_attacks[pos] |
-               anti_diag_attacks[pos];
-        queen &= (queen - 1);
+        res = diag_attacks(bitboards[ALL], (unsigned long)pos) |
+              anti_diag_attacks(bitboards[ALL], (unsigned long)pos) |
+              rank_attacks(bitboards[ALL], (unsigned long)pos) |
+              file_attacks(bitboards[ALL], (unsigned long)pos);
     }
-
+    res &= ~bitboards[ALL] | bitboards[WHITE];
     return res;
 }

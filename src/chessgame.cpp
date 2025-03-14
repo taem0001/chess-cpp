@@ -9,7 +9,6 @@ ChessGame::ChessGame() : board() {
 
 void ChessGame::draw_game() {
     print_bitboard(MoveGenerator::generate_moves(*this));
-
     board.draw_board();
 }
 

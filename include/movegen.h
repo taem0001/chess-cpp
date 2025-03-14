@@ -1,22 +1,22 @@
 #ifndef MOVEGEN_H
 #define MOVEGEN_H
-#include "utils.h"
 #include "chessgame.h"
+#include "utils.h"
 
 class MoveGenerator {
 public:
     static u64 rays[8][64];
-    static u64 rank_attacks[64];
-    static u64 file_attacks[64];
-    static u64 diag_attacks[64];
-    static u64 anti_diag_attacks[64];
 
-    static u64 generate_moves(ChessGame &);;
+    static u64 generate_moves(ChessGame &);
     static void init();
 
 private:
-    static void init_rays();
-    static void init_sliding_attacks();
+    static u64 get_positive_rays(u64, Direction, unsigned long);
+    static u64 get_negative_rays(u64, Direction, unsigned long);
+    static u64 diag_attacks(u64, unsigned long);
+    static u64 anti_diag_attacks(u64, unsigned long);
+    static u64 rank_attacks(u64, unsigned long);
+    static u64 file_attacks(u64, unsigned long);
 
     static u64 generate_white_pawn_pushes(ChessGame &);
     static u64 generate_black_pawn_pushes(ChessGame &);

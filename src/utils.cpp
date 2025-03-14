@@ -13,14 +13,7 @@ int last_bit(u64 bitboard) {
     if (bitboard == 0) {
         return -1;
     }
-    bitboard |= bitboard >> 1;
-    bitboard |= bitboard >> 2;
-    bitboard |= bitboard >> 4;
-    bitboard |= bitboard >> 8;
-    bitboard |= bitboard >> 16;
-    bitboard |= bitboard >> 32;
-    u64 debruijn_index = (bitboard * 0x03f79d71b4cb0a89ULL) >> 58;
-    return deBruijn_lookup_table[debruijn_index];
+    return 63 - __builtin_clzll(bitboard);
 }
 
 char get_symbol(u64 *bitboards, int square) {
