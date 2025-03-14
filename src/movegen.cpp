@@ -79,8 +79,7 @@ u64 MoveGenerator::file_attacks(u64 occ, unsigned long sq) {
            get_negative_rays(occ, SOUTH, sq);
 }
 
-u64 MoveGenerator::generate_moves(ChessGame &game) {
-}
+u64 MoveGenerator::generate_moves(ChessGame &game) {}
 
 u64 MoveGenerator::generate_white_pawn_bitboard(ChessGame &game) {
     u64 *bitboards = game.get_board().get_bitboards();

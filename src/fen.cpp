@@ -85,7 +85,16 @@ void FenHandler::load_fen(ChessGame &game, const std::string &fen) {
             game.set_bk_castle(false);
             game.set_bq_castle(false);
         }
-
+        if (c == '-' && spaces == 3) {
+            game.set_en_passant_sq(-1);
+        }
+        if (c >= 'a' && c <= 'h' && spaces == 3) {
+            int col = c - 'a';
+            if (s_index + 1 < fen.length() && isdigit(fen[s_index + 1])) {
+                int row = fen[++s_index] - '1';
+                game.set_en_passant_sq(col + row * 8);
+            }
+        }
         s_index++;
     }
 

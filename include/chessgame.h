@@ -7,6 +7,7 @@ private:
     Board board;
     bool white_turn;
     bool wk_castle, wq_castle, bk_castle, bq_castle;
+    int en_passant_square;
 
 public:
     ChessGame();
@@ -23,6 +24,8 @@ public:
     void set_wq_castle(bool);
     void set_bk_castle(bool);
     void set_bq_castle(bool);
+    int get_en_passant_sq();
+    void set_en_passant_sq(int);
 };
 
 #endif // !CHESSGAME_H

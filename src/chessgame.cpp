@@ -20,3 +20,5 @@ void ChessGame::set_wk_castle(bool b) { wk_castle = b; }
 void ChessGame::set_wq_castle(bool b) { wq_castle = b; }
 void ChessGame::set_bk_castle(bool b) { bk_castle = b; }
 void ChessGame::set_bq_castle(bool b) { bq_castle = b; }
+int ChessGame::get_en_passant_sq() { return en_passant_square; }
+void ChessGame::set_en_passant_sq(int sq) { en_passant_square = sq; }

@@ -41,7 +41,6 @@ void print_bitboard(u64 bitboard) {
             std::cout << ((bitboard >> square) & 1) << " ";
         }
         std::cout << std::endl;
-        ;
     }
     std::cout << std::endl;
 }
