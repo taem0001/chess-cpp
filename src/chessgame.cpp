@@ -1,13 +1,17 @@
 #include "../include/chessgame.h"
 #include "../include/fen.h"
-#include "../include/movegen.h"
+#include "../include/bitboard.h"
 
 ChessGame::ChessGame() : board() {
     FenHandler::load_fen(*this, STARTPOS);
-    MoveGenerator::init();
+    BitBoardGenerator::init();
 }
 
-void ChessGame::draw_game() { board.draw_board(); }
+void ChessGame::draw_game() {
+    print_bitboard(BitBoardGenerator::all_moves_bitboard(*this));
+    board.draw_board();
+}
+
 Board &ChessGame::get_board() { return board; }
 void ChessGame::change_turn() { white_turn = !white_turn; }
 void ChessGame::set_turn(bool b) { white_turn = b; }

@@ -3,11 +3,11 @@
 #include "chessgame.h"
 #include "utils.h"
 
-class MoveGenerator {
+class BitBoardGenerator {
 public:
     static u64 rays[8][64];
 
-    static u64 generate_moves(ChessGame &);
+    static u64 all_moves_bitboard(ChessGame &);
     static void init();
 
 private:
@@ -17,6 +17,8 @@ private:
     static u64 anti_diag_attacks(u64, unsigned long);
     static u64 rank_attacks(u64, unsigned long);
     static u64 file_attacks(u64, unsigned long);
+
+    static u64 generate_attacks_bitboard(ChessGame &, bool);
 
     static u64 generate_white_pawn_bitboard(ChessGame &);
     static u64 generate_black_pawn_bitboard(ChessGame &);
@@ -30,6 +32,9 @@ private:
     static u64 generate_black_rook_bitboard(ChessGame &);
     static u64 generate_white_queen_bitboard(ChessGame &);
     static u64 generate_black_queen_bitboard(ChessGame &);
+
+    static u64 generate_white_castle_bitboard(ChessGame &);
+    static u64 generate_black_castle_bitboard(ChessGame &);
 };
 
 #endif // !MOVEGEN_H

@@ -6,6 +6,11 @@ void FenHandler::load_fen(ChessGame &game, const std::string &fen) {
     int s_index = 0;
     int spaces = 0;
 
+    game.set_wk_castle(false);
+    game.set_wq_castle(false);
+    game.set_bk_castle(false);
+    game.set_bq_castle(false);
+
     while (s_index < fen.length()) {
         char c = fen[s_index];
 

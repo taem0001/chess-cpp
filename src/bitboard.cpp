@@ -1,11 +1,17 @@
-#include "../include/movegen.h"
+#include "../include/bitboard.h"
 
 // TODO: Implement en passant for pawns
-// TODO: Impement castling for king
 
-u64 MoveGenerator::rays[8][64];
+u64 BitBoardGenerator::rays[8][64];
 
-void MoveGenerator::init() {
+u64 BitBoardGenerator::all_moves_bitboard(ChessGame &game) {
+    bool turn = game.get_turn();
+    return generate_attacks_bitboard(game, turn) |
+           (turn ? generate_white_castle_bitboard(game)
+                 : generate_black_castle_bitboard(game));
+}
+
+void BitBoardGenerator::init() {
     u64 north = 0x0101010101010100;
     u64 south = 0x0080808080808080;
     u64 no_ea = 0x8040201008040200;
@@ -46,42 +52,61 @@ void MoveGenerator::init() {
     }
 }
 
-u64 MoveGenerator::get_positive_rays(u64 occ, Direction dir, unsigned long sq) {
+u64 BitBoardGenerator::get_positive_rays(u64 occ, Direction dir, unsigned long sq) {
     u64 attacks = rays[dir][sq];
     u64 blocker = attacks & occ;
     sq = first_bit(blocker | (u64)0x8000000000000000);
     return attacks ^ rays[dir][sq];
 }
 
-u64 MoveGenerator::get_negative_rays(u64 occ, Direction dir, unsigned long sq) {
+u64 BitBoardGenerator::get_negative_rays(u64 occ, Direction dir, unsigned long sq) {
     u64 attacks = rays[dir][sq];
     u64 blocker = attacks & occ;
     sq = last_bit(blocker | 1ULL);
     return attacks ^ rays[dir][sq];
 }
 
-u64 MoveGenerator::diag_attacks(u64 occ, unsigned long sq) {
+u64 BitBoardGenerator::diag_attacks(u64 occ, unsigned long sq) {
     return get_positive_rays(occ, NORTH_EAST, sq) |
            get_negative_rays(occ, SOUTH_WEST, sq);
 }
 
-u64 MoveGenerator::anti_diag_attacks(u64 occ, unsigned long sq) {
+u64 BitBoardGenerator::anti_diag_attacks(u64 occ, unsigned long sq) {
     return get_positive_rays(occ, NORTH_WEST, sq) |
            get_negative_rays(occ, SOUTH_EAST, sq);
 }
 
-u64 MoveGenerator::rank_attacks(u64 occ, unsigned long sq) {
+u64 BitBoardGenerator::rank_attacks(u64 occ, unsigned long sq) {
     return get_positive_rays(occ, EAST, sq) | get_negative_rays(occ, WEST, sq);
 }
 
-u64 MoveGenerator::file_attacks(u64 occ, unsigned long sq) {
+u64 BitBoardGenerator::file_attacks(u64 occ, unsigned long sq) {
     return get_positive_rays(occ, NORTH, sq) |
            get_negative_rays(occ, SOUTH, sq);
 }
 
-u64 MoveGenerator::generate_moves(ChessGame &game) {}
+u64 BitBoardGenerator::generate_attacks_bitboard(ChessGame &game, bool turn) {
+    u64 all_attacks;
 
-u64 MoveGenerator::generate_white_pawn_bitboard(ChessGame &game) {
+    if (turn) {
+        all_attacks = generate_white_pawn_bitboard(game) |
+                      generate_white_bishop_bitboard(game) |
+                      generate_white_king_bitboard(game) |
+                      generate_white_knight_bitboard(game) |
+                      generate_white_queen_bitboard(game) |
+                      generate_white_rook_bitboard(game);
+    } else {
+        all_attacks = generate_black_pawn_bitboard(game) |
+                      generate_black_bishop_bitboard(game) |
+                      generate_black_king_bitboard(game) |
+                      generate_black_knight_bitboard(game) |
+                      generate_black_queen_bitboard(game) |
+                      generate_black_rook_bitboard(game);
+    }
+    return all_attacks;
+}
+
+u64 BitBoardGenerator::generate_white_pawn_bitboard(ChessGame &game) {
     u64 *bitboards = game.get_board().get_bitboards();
     u64 white_pawns = bitboards[WHITE_PAWN];
     u64 empty = ~bitboards[ALL];
@@ -99,7 +124,7 @@ u64 MoveGenerator::generate_white_pawn_bitboard(ChessGame &game) {
     return all_pushes | nw_pawns | ne_pawns;
 }
 
-u64 MoveGenerator::generate_black_pawn_bitboard(ChessGame &game) {
+u64 BitBoardGenerator::generate_black_pawn_bitboard(ChessGame &game) {
     u64 *bitboards = game.get_board().get_bitboards();
     u64 black_pawns = bitboards[BLACK_PAWN];
     u64 empty = ~bitboards[ALL];
@@ -117,7 +142,7 @@ u64 MoveGenerator::generate_black_pawn_bitboard(ChessGame &game) {
     return all_pushes | sw_pawns | se_pawns;
 }
 
-u64 MoveGenerator::generate_white_king_bitboard(ChessGame &game) {
+u64 BitBoardGenerator::generate_white_king_bitboard(ChessGame &game) {
     u64 *bitboards = game.get_board().get_bitboards();
     u64 white_king = bitboards[WHITE_KING];
     u64 moves = shift_east(white_king) | shift_west(white_king);
@@ -127,7 +152,7 @@ u64 MoveGenerator::generate_white_king_bitboard(ChessGame &game) {
     return moves;
 }
 
-u64 MoveGenerator::generate_black_king_bitboard(ChessGame &game) {
+u64 BitBoardGenerator::generate_black_king_bitboard(ChessGame &game) {
     u64 *bitboards = game.get_board().get_bitboards();
     u64 black_king = bitboards[BLACK_KING];
     u64 moves = shift_east(black_king) | shift_west(black_king);
@@ -137,7 +162,7 @@ u64 MoveGenerator::generate_black_king_bitboard(ChessGame &game) {
     return moves;
 }
 
-u64 MoveGenerator::generate_white_knight_bitboard(ChessGame &game) {
+u64 BitBoardGenerator::generate_white_knight_bitboard(ChessGame &game) {
     u64 *bitboards = game.get_board().get_bitboards();
     u64 white_knight = bitboards[WHITE_KNIGHT];
     u64 no_no_ea = (white_knight << 17) & not_a_file;
@@ -155,7 +180,7 @@ u64 MoveGenerator::generate_white_knight_bitboard(ChessGame &game) {
     return res;
 }
 
-u64 MoveGenerator::generate_black_knight_bitboard(ChessGame &game) {
+u64 BitBoardGenerator::generate_black_knight_bitboard(ChessGame &game) {
     u64 *bitboards = game.get_board().get_bitboards();
     u64 black_knight = bitboards[BLACK_KNIGHT];
     u64 no_no_ea = (black_knight << 17) & not_a_file;
@@ -173,7 +198,7 @@ u64 MoveGenerator::generate_black_knight_bitboard(ChessGame &game) {
     return res;
 }
 
-u64 MoveGenerator::generate_white_bishop_bitboard(ChessGame &game) {
+u64 BitBoardGenerator::generate_white_bishop_bitboard(ChessGame &game) {
     u64 *bitboards = game.get_board().get_bitboards();
     u64 bishops = bitboards[WHITE_BISHOP];
     u64 res = 0;
@@ -187,7 +212,7 @@ u64 MoveGenerator::generate_white_bishop_bitboard(ChessGame &game) {
     return res;
 }
 
-u64 MoveGenerator::generate_black_bishop_bitboard(ChessGame &game) {
+u64 BitBoardGenerator::generate_black_bishop_bitboard(ChessGame &game) {
     u64 *bitboards = game.get_board().get_bitboards();
     u64 bishops = bitboards[BLACK_BISHOP];
     u64 res = 0;
@@ -201,7 +226,7 @@ u64 MoveGenerator::generate_black_bishop_bitboard(ChessGame &game) {
     return res;
 }
 
-u64 MoveGenerator::generate_white_rook_bitboard(ChessGame &game) {
+u64 BitBoardGenerator::generate_white_rook_bitboard(ChessGame &game) {
     u64 *bitboards = game.get_board().get_bitboards();
     u64 rooks = bitboards[WHITE_ROOK];
     u64 res = 0;
@@ -215,7 +240,7 @@ u64 MoveGenerator::generate_white_rook_bitboard(ChessGame &game) {
     return res;
 }
 
-u64 MoveGenerator::generate_black_rook_bitboard(ChessGame &game) {
+u64 BitBoardGenerator::generate_black_rook_bitboard(ChessGame &game) {
     u64 *bitboards = game.get_board().get_bitboards();
     u64 rooks = bitboards[BLACK_ROOK];
     u64 res = 0;
@@ -229,7 +254,7 @@ u64 MoveGenerator::generate_black_rook_bitboard(ChessGame &game) {
     return res;
 }
 
-u64 MoveGenerator::generate_white_queen_bitboard(ChessGame &game) {
+u64 BitBoardGenerator::generate_white_queen_bitboard(ChessGame &game) {
     u64 *bitboards = game.get_board().get_bitboards();
     u64 queen = bitboards[WHITE_QUEEN];
     u64 res = 0;
@@ -244,7 +269,7 @@ u64 MoveGenerator::generate_white_queen_bitboard(ChessGame &game) {
     return res;
 }
 
-u64 MoveGenerator::generate_black_queen_bitboard(ChessGame &game) {
+u64 BitBoardGenerator::generate_black_queen_bitboard(ChessGame &game) {
     u64 *bitboards = game.get_board().get_bitboards();
     u64 queen = bitboards[BLACK_QUEEN];
     u64 res = 0;
@@ -256,5 +281,35 @@ u64 MoveGenerator::generate_black_queen_bitboard(ChessGame &game) {
               file_attacks(bitboards[ALL], (unsigned long)pos);
     }
     res &= ~bitboards[ALL] | bitboards[WHITE];
+    return res;
+}
+
+u64 BitBoardGenerator::generate_white_castle_bitboard(ChessGame &game) {
+    u64 attacks = generate_attacks_bitboard(game, false);
+    u64 occ = game.get_board().get_bitboards()[ALL];
+    u64 res = 0;
+    if (game.get_wk_castle() && (attacks & wk_castle_mask) == 0 &&
+        (occ & wk_castle_mask) == 0) {
+        res |= 0x40ULL;
+    }
+    if (game.get_wq_castle() && (attacks & wq_castle_mask) == 0 &&
+        (occ & wq_castle_mask) == 0) {
+        res |= 0x4ULL;
+    }
+    return res;
+}
+
+u64 BitBoardGenerator::generate_black_castle_bitboard(ChessGame &game) {
+    u64 attacks = generate_attacks_bitboard(game, true);
+    u64 occ = game.get_board().get_bitboards()[ALL];
+    u64 res = 0;
+    if (game.get_bk_castle() && (attacks & bk_castle_mask) == 0 &&
+        (occ & bk_castle_mask) == 0) {
+        res |= 0x40ULL << 56;
+    }
+    if (game.get_bq_castle() && (attacks & bq_castle_mask) == 0 &&
+        (occ & bq_castle_mask) == 0) {
+        res |= 0x4ULL << 56;
+    }
     return res;
 }

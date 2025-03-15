@@ -131,6 +131,10 @@ static const u64 not_a_file = 0xfefefefefefefefe;
 static const u64 not_h_file = 0x7f7f7f7f7f7f7f7f;
 static const u64 not_ab_file = 0xfcfcfcfcfcfcfcfc;
 static const u64 not_gh_file = 0x3f3f3f3f3f3f3f3f;
+static const u64 wk_castle_mask = 0x60;
+static const u64 wq_castle_mask = 0xe;
+static const u64 bk_castle_mask = wk_castle_mask << 56;
+static const u64 bq_castle_mask = wq_castle_mask << 56;
 
 static const int deBruijn_lookup_table[] = {
     0,  1,  48, 2,  57, 49, 28, 3,  61, 58, 50, 42, 38, 29, 17, 4,
