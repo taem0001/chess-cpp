@@ -134,6 +134,21 @@ static const u64 wq_castle_mask = 0xe;
 static const u64 bk_castle_mask = wk_castle_mask << 56;
 static const u64 bq_castle_mask = wq_castle_mask << 56;
 
+static const u16 quiet_move = 0x0;
+static const u16 double_pawn_push = 0x1;
+static const u16 king_castle = 0x2;
+static const u16 queen_castle = 0x3;
+static const u16 capture = 0x4;
+static const u16 ep_capture = 0x5;
+static const u16 knight_promotion = 0x8;
+static const u16 bishop_promotion = 0x9;
+static const u16 rook_promotion = 0xa;
+static const u16 queen_promotion = 0xb;
+static const u16 knight_promo_capture = 0xc;
+static const u16 bishop_promo_capture = 0xd;
+static const u16 rook_promo_capture = 0xe;
+static const u16 queen_promo_capture = 0xf;
+
 static const int deBruijn_lookup_table[] = {
     0,  1,  48, 2,  57, 49, 28, 3,  61, 58, 50, 42, 38, 29, 17, 4,
     62, 55, 59, 36, 53, 51, 43, 22, 45, 39, 33, 30, 24, 18, 12, 5,
@@ -151,6 +166,10 @@ u64 shift_north_west(u64);
 u64 shift_north_east(u64);
 u64 shift_south_west(u64);
 u64 shift_south_east(u64);
+u16 define_move(u16, u16, u16);
+u16 get_from(u16);
+u16 get_to(u16);
+u16 get_flag(u16);
 void print_bitboard(u64);
 
 #endif // !UTILS_H

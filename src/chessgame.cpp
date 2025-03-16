@@ -1,14 +1,20 @@
 #include "../include/chessgame.h"
 #include "../include/fen.h"
-#include "../include/bitboard.h"
+#include "../include/movegen.h"
 
 ChessGame::ChessGame() : board() {
     FenHandler::load_fen(*this, STARTPOS);
-    BitBoardGenerator::init();
+    MoveGenerator::init();
 }
 
 void ChessGame::draw_game() {
-    print_bitboard(BitBoardGenerator::all_moves_bitboard(*this));
+    std::vector<u16> moves = MoveGenerator::generate_pseudolegal_moves(*this);
+
+    for (u16 move : moves) {
+        std::cout << "{" << get_from(move) << ";" << get_to(move) << "} ";
+    }
+    std::cout << std::endl;
+
     board.draw_board();
 }
 

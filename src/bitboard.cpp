@@ -89,14 +89,14 @@ u64 BitBoardGenerator::generate_attacks_bitboard(ChessGame &game, bool turn) {
     u64 all_attacks;
 
     if (turn) {
-        all_attacks = generate_white_pawn_bitboard(game) |
+        all_attacks = generate_white_pawn_captures_bitboard(game) |
                       generate_white_bishop_bitboard(game) |
                       generate_white_king_bitboard(game) |
                       generate_white_knight_bitboard(game) |
                       generate_white_queen_bitboard(game) |
                       generate_white_rook_bitboard(game);
     } else {
-        all_attacks = generate_black_pawn_bitboard(game) |
+        all_attacks = generate_black_pawn_captures_bitboard(game) |
                       generate_black_bishop_bitboard(game) |
                       generate_black_king_bitboard(game) |
                       generate_black_knight_bitboard(game) |
@@ -110,13 +110,31 @@ u64 BitBoardGenerator::generate_white_pawn_bitboard(ChessGame &game) {
     u64 *bitboards = game.get_board().get_bitboards();
     u64 white_pawns = bitboards[WHITE_PAWN];
     u64 empty = ~bitboards[ALL];
-    u64 en_passant_pos = 1ULL << game.get_en_passant_sq();
 
     u64 single_push = shift_north(white_pawns) & empty;
     u64 double_push = shift_north(single_push) & empty & mask_rank[3];
     u64 all_pushes = single_push | double_push;
 
-    // Captures
+    return all_pushes;
+}
+
+u64 BitBoardGenerator::generate_black_pawn_bitboard(ChessGame &game) {
+    u64 *bitboards = game.get_board().get_bitboards();
+    u64 black_pawns = bitboards[BLACK_PAWN];
+    u64 empty = ~bitboards[ALL];
+
+    u64 single_push = shift_south(black_pawns) & empty;
+    u64 double_push = shift_south(single_push) & empty & mask_rank[4];
+    u64 all_pushes = single_push | double_push;
+
+    return all_pushes;
+}
+
+u64 BitBoardGenerator::generate_white_pawn_captures_bitboard(ChessGame &game) {
+    u64 *bitboards = game.get_board().get_bitboards();
+    u64 white_pawns = bitboards[WHITE_PAWN];
+    u64 en_passant_pos = 1ULL << game.get_en_passant_sq();
+
     u64 nw_pawns = shift_north_west(white_pawns);
     u64 ne_pawns = shift_north_east(white_pawns);
     u64 nw_enp = nw_pawns & en_passant_pos;
@@ -124,20 +142,14 @@ u64 BitBoardGenerator::generate_white_pawn_bitboard(ChessGame &game) {
     nw_pawns &= bitboards[BLACK];
     ne_pawns &= bitboards[BLACK];
 
-    return all_pushes | nw_pawns | ne_pawns | nw_enp | ne_enp;
+    return nw_pawns | ne_pawns | nw_enp | ne_enp;
 }
 
-u64 BitBoardGenerator::generate_black_pawn_bitboard(ChessGame &game) {
+u64 BitBoardGenerator::generate_black_pawn_captures_bitboard(ChessGame &game) {
     u64 *bitboards = game.get_board().get_bitboards();
     u64 black_pawns = bitboards[BLACK_PAWN];
-    u64 empty = ~bitboards[ALL];
     u64 en_passant_pos = 1ULL << game.get_en_passant_sq();
 
-    u64 single_push = shift_south(black_pawns) & empty;
-    u64 double_push = shift_south(single_push) & empty & mask_rank[4];
-    u64 all_pushes = single_push | double_push;
-
-    // Captures
     u64 sw_pawns = shift_south_west(black_pawns);
     u64 se_pawns = shift_south_east(black_pawns);
     u64 sw_enp = sw_pawns & en_passant_pos;
@@ -145,7 +157,7 @@ u64 BitBoardGenerator::generate_black_pawn_bitboard(ChessGame &game) {
     sw_pawns &= bitboards[WHITE];
     se_pawns &= bitboards[WHITE];
 
-    return all_pushes | sw_pawns | se_pawns | sw_enp | se_enp;
+    return sw_pawns | se_pawns | sw_enp | se_enp;
 }
 
 u64 BitBoardGenerator::generate_white_king_bitboard(ChessGame &game) {

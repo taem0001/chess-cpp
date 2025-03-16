@@ -34,6 +34,14 @@ u64 shift_north_west(u64 b) { return (b << 7ULL) & clear_file[7]; }
 u64 shift_south_east(u64 b) { return (b >> 7ULL) & clear_file[7]; }
 u64 shift_south_west(u64 b) { return (b >> 9ULL) & clear_file[0]; }
 
+u16 define_move(u16 from, u16 to, u16 flag) {
+    return ((flag & 0xf) << 12) | ((to & 0x3f) << 6) | (from & 0x3f);
+}
+
+u16 get_from(u16 move) { return move & 0x3f; }
+u16 get_to(u16 move) { return (move >> 6) & 0x3f; }
+u16 get_flag(u16 move) { return (move >> 12) & 0xf; }
+
 void print_bitboard(u64 bitboard) {
     for (int rank = 7; rank >= 0; --rank) {
         for (int file = 0; file < 8; ++file) {
