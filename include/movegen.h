@@ -1,7 +1,7 @@
 #ifndef MOVEGEN_H
 #define MOVEGEN_H
-#include "utils.h"
 #include "bitboard.h"
+#include "utils.h"
 
 class MoveGenerator {
 public:
@@ -11,6 +11,7 @@ public:
 private:
     static void generate_pawn_moves(std::vector<u16> &, ChessGame &);
     static void generate_knight_moves(std::vector<u16> &, ChessGame &);
+    static void generate_king_moves(std::vector<u16> &, ChessGame &);
 };
 
 #endif // !MOVEGEN_H

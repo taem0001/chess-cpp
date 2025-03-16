@@ -1,4 +1,5 @@
 #include "../include/movegen.h"
+#include <vector>
 
 void MoveGenerator::init() { BitBoardGenerator::init(); }
 
@@ -6,6 +7,7 @@ std::vector<u16> MoveGenerator::generate_pseudolegal_moves(ChessGame &game) {
     std::vector<u16> moves;
     generate_pawn_moves(moves, game);
     generate_knight_moves(moves, game);
+    generate_king_moves(moves, game);
     return moves;
 }
 
@@ -79,5 +81,24 @@ void MoveGenerator::generate_knight_moves(std::vector<u16> &moves,
             attacks_t &= attacks_t - 1;
         }
         knights &= knights - 1;
+    }
+}
+
+void MoveGenerator::generate_king_moves(std::vector<u16> &moves,
+                                        ChessGame &game) {
+    bool turn = game.get_turn();
+    u64 *bitboards = game.get_board().get_bitboards();
+    u64 king = turn ? bitboards[WHITE_KING] : bitboards[BLACK_KING];
+    u64 enemy = turn ? bitboards[BLACK] : bitboards[WHITE];
+    u64 attacks = turn ? BitBoardGenerator::generate_white_king_bitboard(game)
+                       : BitBoardGenerator::generate_black_king_bitboard(game);
+    if (king) {
+        int from = first_bit(king);
+        while (attacks) {
+            int to = first_bit(attacks);
+            u16 flag = enemy & mask_piece[to] ? capture : quiet_move;
+            moves.push_back(define_move(from, to, flag));
+            attacks &= attacks - 1;
+        }
     }
 }
