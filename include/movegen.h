@@ -1,6 +1,7 @@
 #ifndef MOVEGEN_H
 #define MOVEGEN_H
 #include "bitboard.h"
+#include "chessgame.h"
 #include "utils.h"
 
 class MoveGenerator {
@@ -12,6 +13,7 @@ private:
     static void generate_pawn_moves(std::vector<u16> &, ChessGame &);
     static void generate_knight_moves(std::vector<u16> &, ChessGame &);
     static void generate_king_moves(std::vector<u16> &, ChessGame &);
+    static void generate_bishop_moves(std::vector<u16> &, ChessGame &);
 };
 
 #endif // !MOVEGEN_H

@@ -1,6 +1,8 @@
 #include "../include/movegen.h"
 #include <vector>
 
+// TOOD: Implement sliding pieces movegen
+
 void MoveGenerator::init() { BitBoardGenerator::init(); }
 
 std::vector<u16> MoveGenerator::generate_pseudolegal_moves(ChessGame &game) {
@@ -92,13 +94,38 @@ void MoveGenerator::generate_king_moves(std::vector<u16> &moves,
     u64 enemy = turn ? bitboards[BLACK] : bitboards[WHITE];
     u64 attacks = turn ? BitBoardGenerator::generate_white_king_bitboard(game)
                        : BitBoardGenerator::generate_black_king_bitboard(game);
+    u64 castle = turn ? BitBoardGenerator::generate_white_castle_bitboard(game)
+                      : BitBoardGenerator::generate_black_castle_bitboard(game);
+    int to;
+    u16 flag;
     if (king) {
         int from = first_bit(king);
         while (attacks) {
-            int to = first_bit(attacks);
-            u16 flag = enemy & mask_piece[to] ? capture : quiet_move;
+            to = first_bit(attacks);
+            flag = enemy & mask_piece[to] ? capture : quiet_move;
             moves.push_back(define_move(from, to, flag));
             attacks &= attacks - 1;
         }
+
+        while (castle) {
+            to = first_bit(castle);
+            flag = (to - from) > 0 ? king_castle : queen_castle;
+            moves.push_back(define_move(from, to, flag));
+            castle &= castle - 1;
+        }
     }
+}
+
+void MoveGenerator::generate_bishop_moves(std::vector<u16> &moves,
+                                          ChessGame &game) {
+    bool turn = game.get_turn();
+    u64 *bitboards = game.get_board().get_bitboards();
+    u64 bishops = turn ? bitboards[WHITE_BISHOP] : bitboards[BLACK_BISHOP];
+    u64 enemy = turn ? bitboards[BLACK] : bitboards[WHITE];
+    u64 attacks = turn
+                      ? BitBoardGenerator::generate_white_bishop_bitboard(game)
+                      : BitBoardGenerator::generate_black_bishop_bitboard(game);
+
+    int from, to;
+    u16 flag;
 }
