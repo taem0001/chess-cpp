@@ -10,6 +10,7 @@ public:
 
 private:
     static void generate_pawn_moves(std::vector<u16> &, ChessGame &);
+    static void generate_knight_moves(std::vector<u16> &, ChessGame &);
 };
 
 #endif // !MOVEGEN_H
