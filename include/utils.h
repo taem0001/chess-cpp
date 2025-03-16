@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-#define STARTPOS "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -"
+#define STARTPOS "rnbqkbnr/p1pppppp/8/1p6/P1P5/8/1P1PPPPP/RNBQKBNR w KQkq -"
 
 typedef enum {
     ALL,

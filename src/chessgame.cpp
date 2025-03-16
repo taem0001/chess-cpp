@@ -11,7 +11,7 @@ void ChessGame::draw_game() {
     std::vector<u16> moves = MoveGenerator::generate_pseudolegal_moves(*this);
 
     for (u16 move : moves) {
-        std::cout << "{" << get_from(move) << ";" << get_to(move) << "} ";
+        std::cout << "{" << get_from(move) << ";" << get_to(move) << ";" << get_flag(move) << "} ";
     }
     std::cout << std::endl;
 
