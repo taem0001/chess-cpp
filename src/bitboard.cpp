@@ -1,7 +1,5 @@
 #include "../include/bitboard.h"
 
-// TODO: Implement en passant for pawns
-
 u64 BitBoardGenerator::rays[8][64];
 
 u64 BitBoardGenerator::all_moves_bitboard(ChessGame &game) {
@@ -52,14 +50,16 @@ void BitBoardGenerator::init() {
     }
 }
 
-u64 BitBoardGenerator::get_positive_rays(u64 occ, Direction dir, unsigned long sq) {
+u64 BitBoardGenerator::get_positive_rays(u64 occ, Direction dir,
+                                         unsigned long sq) {
     u64 attacks = rays[dir][sq];
     u64 blocker = attacks & occ;
     sq = first_bit(blocker | (u64)0x8000000000000000);
     return attacks ^ rays[dir][sq];
 }
 
-u64 BitBoardGenerator::get_negative_rays(u64 occ, Direction dir, unsigned long sq) {
+u64 BitBoardGenerator::get_negative_rays(u64 occ, Direction dir,
+                                         unsigned long sq) {
     u64 attacks = rays[dir][sq];
     u64 blocker = attacks & occ;
     sq = last_bit(blocker | 1ULL);
@@ -110,6 +110,7 @@ u64 BitBoardGenerator::generate_white_pawn_bitboard(ChessGame &game) {
     u64 *bitboards = game.get_board().get_bitboards();
     u64 white_pawns = bitboards[WHITE_PAWN];
     u64 empty = ~bitboards[ALL];
+    u64 en_passant_pos = 1ULL << game.get_en_passant_sq();
 
     u64 single_push = shift_north(white_pawns) & empty;
     u64 double_push = shift_north(single_push) & empty & mask_rank[3];
@@ -118,16 +119,19 @@ u64 BitBoardGenerator::generate_white_pawn_bitboard(ChessGame &game) {
     // Captures
     u64 nw_pawns = shift_north_west(white_pawns);
     u64 ne_pawns = shift_north_east(white_pawns);
+    u64 nw_enp = nw_pawns & en_passant_pos;
+    u64 ne_enp = ne_pawns & en_passant_pos;
     nw_pawns &= bitboards[BLACK];
     ne_pawns &= bitboards[BLACK];
 
-    return all_pushes | nw_pawns | ne_pawns;
+    return all_pushes | nw_pawns | ne_pawns | nw_enp | ne_enp;
 }
 
 u64 BitBoardGenerator::generate_black_pawn_bitboard(ChessGame &game) {
     u64 *bitboards = game.get_board().get_bitboards();
     u64 black_pawns = bitboards[BLACK_PAWN];
     u64 empty = ~bitboards[ALL];
+    u64 en_passant_pos = 1ULL << game.get_en_passant_sq();
 
     u64 single_push = shift_south(black_pawns) & empty;
     u64 double_push = shift_south(single_push) & empty & mask_rank[4];
@@ -136,10 +140,12 @@ u64 BitBoardGenerator::generate_black_pawn_bitboard(ChessGame &game) {
     // Captures
     u64 sw_pawns = shift_south_west(black_pawns);
     u64 se_pawns = shift_south_east(black_pawns);
+    u64 sw_enp = sw_pawns & en_passant_pos;
+    u64 se_enp = se_pawns & en_passant_pos;
     sw_pawns &= bitboards[WHITE];
     se_pawns &= bitboards[WHITE];
 
-    return all_pushes | sw_pawns | se_pawns;
+    return all_pushes | sw_pawns | se_pawns | sw_enp | se_enp;
 }
 
 u64 BitBoardGenerator::generate_white_king_bitboard(ChessGame &game) {
@@ -165,14 +171,14 @@ u64 BitBoardGenerator::generate_black_king_bitboard(ChessGame &game) {
 u64 BitBoardGenerator::generate_white_knight_bitboard(ChessGame &game) {
     u64 *bitboards = game.get_board().get_bitboards();
     u64 white_knight = bitboards[WHITE_KNIGHT];
-    u64 no_no_ea = (white_knight << 17) & not_a_file;
+    u64 no_no_ea = (white_knight << 17) & clear_file[0];
     u64 no_ea_ea = (white_knight << 10) & not_ab_file;
     u64 so_ea_ea = (white_knight >> 6) & not_ab_file;
-    u64 so_so_ea = (white_knight >> 15) & not_a_file;
-    u64 no_no_we = (white_knight << 15) & not_h_file;
+    u64 so_so_ea = (white_knight >> 15) & clear_file[0];
+    u64 no_no_we = (white_knight << 15) & clear_file[7];
     u64 no_we_we = (white_knight << 6) & not_gh_file;
     u64 so_we_we = (white_knight >> 10) & not_gh_file;
-    u64 so_so_we = (white_knight >> 17) & not_h_file;
+    u64 so_so_we = (white_knight >> 17) & clear_file[7];
 
     u64 res = no_no_ea | no_ea_ea | so_ea_ea | so_so_ea | no_no_we | no_we_we |
               so_we_we | so_so_we;
@@ -183,14 +189,14 @@ u64 BitBoardGenerator::generate_white_knight_bitboard(ChessGame &game) {
 u64 BitBoardGenerator::generate_black_knight_bitboard(ChessGame &game) {
     u64 *bitboards = game.get_board().get_bitboards();
     u64 black_knight = bitboards[BLACK_KNIGHT];
-    u64 no_no_ea = (black_knight << 17) & not_a_file;
+    u64 no_no_ea = (black_knight << 17) & clear_file[0];
     u64 no_ea_ea = (black_knight << 10) & not_ab_file;
     u64 so_ea_ea = (black_knight >> 6) & not_ab_file;
-    u64 so_so_ea = (black_knight >> 15) & not_a_file;
-    u64 no_no_we = (black_knight << 15) & not_h_file;
+    u64 so_so_ea = (black_knight >> 15) & clear_file[0];
+    u64 no_no_we = (black_knight << 15) & clear_file[7];
     u64 no_we_we = (black_knight << 6) & not_gh_file;
     u64 so_we_we = (black_knight >> 10) & not_gh_file;
-    u64 so_so_we = (black_knight >> 17) & not_h_file;
+    u64 so_so_we = (black_knight >> 17) & clear_file[7];
 
     u64 res = no_no_ea | no_ea_ea | so_ea_ea | so_so_ea | no_no_we | no_we_we |
               so_we_we | so_so_we;

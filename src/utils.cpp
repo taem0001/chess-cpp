@@ -27,12 +27,12 @@ char get_symbol(u64 *bitboards, int square) {
 
 u64 shift_north(u64 b) { return b << 8ULL; }
 u64 shift_south(u64 b) { return b >> 8ULL; }
-u64 shift_east(u64 b) { return (b << 1ULL) & not_a_file; }
-u64 shift_west(u64 b) { return (b >> 1ULL) & not_h_file; }
-u64 shift_north_east(u64 b) { return (b << 9ULL) & not_a_file; }
-u64 shift_north_west(u64 b) { return (b << 7ULL) & not_h_file; }
-u64 shift_south_east(u64 b) { return (b >> 7ULL) & not_h_file; }
-u64 shift_south_west(u64 b) { return (b >> 9ULL) & not_a_file; }
+u64 shift_east(u64 b) { return (b << 1ULL) & clear_file[0]; }
+u64 shift_west(u64 b) { return (b >> 1ULL) & clear_file[7]; }
+u64 shift_north_east(u64 b) { return (b << 9ULL) & clear_file[0]; }
+u64 shift_north_west(u64 b) { return (b << 7ULL) & clear_file[7]; }
+u64 shift_south_east(u64 b) { return (b >> 7ULL) & clear_file[7]; }
+u64 shift_south_west(u64 b) { return (b >> 9ULL) & clear_file[0]; }
 
 void print_bitboard(u64 bitboard) {
     for (int rank = 7; rank >= 0; --rank) {
