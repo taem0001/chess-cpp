@@ -12,7 +12,8 @@ std::vector<u16> MoveGenerator::generate_pseudolegal_moves(ChessGame &game) {
     generate_king_moves(moves, game);
     generate_bishop_moves(moves, game);
     generate_rook_moves(moves, game);
-    generate_queen_moves(moves, game);;
+    generate_queen_moves(moves, game);
+    ;
     return moves;
 }
 
@@ -190,13 +191,18 @@ void MoveGenerator::generate_queen_moves(std::vector<u16> &moves,
 
     int from, to;
     u16 flag;
-    if (queen) {
+    while (queen) {
         from = first_bit(queen);
-        while (attacks) {
-            to = first_bit(attacks);
+        u64 mask = BitBoardGenerator::precomputed_bishop[from] |
+                   BitBoardGenerator::precomputed_rook[from];
+        u64 attacks_t = attacks & mask;
+
+        while (attacks_t) {
+            to = first_bit(attacks_t);
             flag = (enemy & mask_piece[to]) ? capture : quiet_move;
             moves.push_back(define_move(from, to, flag));
-            attacks &= attacks - 1;
+            attacks_t &= attacks_t - 1;
         }
+        queen &= queen - 1;
     }
 }

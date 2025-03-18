@@ -13,6 +13,7 @@ void Interface::run_game() {
     game.draw_game();
 
     while (true) {
+        std::cout << FenHandler::write_fen(game) << std::endl;
         std::vector<u16> moves =
             MoveGenerator::generate_pseudolegal_moves(game);
 

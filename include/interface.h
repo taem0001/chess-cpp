@@ -2,6 +2,7 @@
 #define INTERFACE_H
 #include "../include/chessgame.h"
 #include "../include/movegen.h"
+#include "../include/fen.h"
 
 class Interface {
 private:
