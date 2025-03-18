@@ -89,6 +89,7 @@ bool ChessGame::unmake_move(u16 move) {
         bk_castle = true;
     }
 
+    // TODO: Implement logic for rest of the flags
     // Handle move types
     int rook_sq;
     switch (flag) {

@@ -1,6 +1,7 @@
 #include "../include/movegen.h"
 
-// TOOD: Implement sliding pieces movegen
+// TODO: Implement promotions
+// TODO: Implement legal movegen
 
 void MoveGenerator::init() { BitBoardGenerator::init(); }
 
