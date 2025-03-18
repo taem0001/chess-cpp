@@ -13,6 +13,7 @@ public:
     ChessGame();
     void draw_game();
     bool make_move(u16);
+    bool unmake_move(u16);
     Board &get_board();
     void change_turn();
     void set_turn(bool);

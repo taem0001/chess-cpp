@@ -62,6 +62,59 @@ bool ChessGame::make_move(u16 move) {
     return true;
 }
 
+bool ChessGame::unmake_move(u16 move) {
+    u64 *bitboards = get_board().get_bitboards();
+    u16 from = get_from(move);
+    u16 to = get_to(move);
+    u16 flag = get_flag(move);
+
+    // Handle castling rights restoration based on move
+    if (bitboards[WHITE_KING] & mask_piece[to]) {
+        wk_castle = wq_castle = true;
+    }
+    if (bitboards[BLACK_KING] & mask_piece[to]) {
+        bk_castle = bq_castle = true;
+    }
+
+    if (from == 0 && bitboards[WHITE_ROOK] & mask_piece[to]) {
+        wq_castle = true;
+    }
+    if (from == 7 && bitboards[WHITE_ROOK] & mask_piece[to]) {
+        wk_castle = true;
+    }
+    if (from == 56 && bitboards[BLACK_ROOK] & mask_piece[to]) {
+        bq_castle = true;
+    }
+    if (from == 63 && bitboards[BLACK_ROOK] & mask_piece[to]) {
+        bk_castle = true;
+    }
+
+    // Handle move types
+    int rook_sq;
+    switch (flag) {
+        case quiet_move:
+            break;
+        case double_pawn_push:
+            en_passant_square = white_turn ? from + 8 : from - 8;
+            break;
+        case king_castle:
+            rook_sq = white_turn ? 7 : 63;
+            board.move_piece(to - 1, rook_sq);
+            break;
+        case queen_castle:
+            rook_sq = white_turn ? 0 : 56;
+            board.move_piece(to + 1, rook_sq);
+            break;
+        default:
+            break;
+    }
+
+    // Move piece back to original square
+    board.move_piece(to, from);
+
+    return true;
+}
+
 Board &ChessGame::get_board() { return board; }
 void ChessGame::change_turn() { white_turn = !white_turn; }
 void ChessGame::set_turn(bool b) { white_turn = b; }
