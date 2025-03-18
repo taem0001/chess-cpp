@@ -14,6 +14,8 @@ private:
     static void generate_knight_moves(std::vector<u16> &, ChessGame &);
     static void generate_king_moves(std::vector<u16> &, ChessGame &);
     static void generate_bishop_moves(std::vector<u16> &, ChessGame &);
+    static void generate_rook_moves(std::vector<u16> &, ChessGame &);
+    static void generate_queen_moves(std::vector <u16> &, ChessGame &);
 };
 
 #endif // !MOVEGEN_H

@@ -1,18 +1,65 @@
 #include "../include/chessgame.h"
 #include "../include/fen.h"
-#include "../include/movegen.h"
 
 ChessGame::ChessGame() : board() {
     FenHandler::load_fen(*this, STARTPOS);
-    MoveGenerator::init();
 }
 
 void ChessGame::draw_game() {
-    std::vector<u16> moves = MoveGenerator::generate_pseudolegal_moves(*this);
-
-    print_moves(moves);
-
     board.draw_board();
+}
+
+bool ChessGame::make_move(u16 move) {
+    u64 *bitboards = get_board().get_bitboards();
+    u16 from = get_from(move);
+    u16 to = get_to(move);
+    u16 flag = get_flag(move);
+
+    // Reset castling rights if the king moves
+    if (bitboards[WHITE_KING] & mask_piece[from]) {
+        wk_castle = wq_castle = false;
+    }
+    if (bitboards[BLACK_KING] & mask_piece[from]) {
+        bk_castle = bq_castle = false;
+    }
+
+    // Reset castling rights if rooks move from their original squares
+    if (from == 0 && bitboards[WHITE_ROOK] & mask_piece[from]) {
+        wq_castle = false;
+    }
+    if (from == 7 && bitboards[WHITE_ROOK] & mask_piece[from]) {
+        wk_castle = false;
+    }
+    if (from == 56 && bitboards[BLACK_ROOK] & mask_piece[from]) {
+        bq_castle = false;
+    }
+    if (from == 63 && bitboards[BLACK_ROOK] & mask_piece[from]) {
+        bk_castle = false;
+    }
+
+    // TODO: Implement logic for other flags later
+    // Handle move types
+    int rook_sq;
+    switch (flag) {
+        case quiet_move:
+            break;
+        case double_pawn_push:
+            en_passant_square = white_turn ? to - 8 : to + 8;
+            break;
+        case king_castle:
+            rook_sq = white_turn ? 7 : 63;
+            board.move_piece(rook_sq, to - 1);
+            break;
+        case queen_castle:
+            rook_sq = white_turn ? 0 : 56;
+            board.move_piece(rook_sq, to + 1);
+            break;
+        default:
+            break;
+    }
+
+    board.move_piece(from, to);
+    return true;
 }
 
 Board &ChessGame::get_board() { return board; }

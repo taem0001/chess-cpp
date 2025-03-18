@@ -1,6 +1,8 @@
 #include "../include/bitboard.h"
 
 u64 BitBoardGenerator::rays[8][64];
+u64 BitBoardGenerator::precomputed_bishop[64];
+u64 BitBoardGenerator::precomputed_rook[64];
 
 u64 BitBoardGenerator::all_moves_bitboard(ChessGame &game) {
     bool turn = game.get_turn();
@@ -49,6 +51,13 @@ void BitBoardGenerator::init() {
         for (int r = 7; r >= 0; r--, sw >>= 8) {
             rays[SOUTH_WEST][(r * 8) + f] = sw;
         }
+    }
+
+    for (int i = 0; i < 64; i++) {
+        precomputed_bishop[i] = diag_attacks(0, (unsigned long)i) |
+                                anti_diag_attacks(0, (unsigned long)i);
+        precomputed_rook[i] = rank_attacks(0, (unsigned long)i) |
+                              file_attacks(0, (unsigned long)i);
     }
 }
 
@@ -135,7 +144,8 @@ u64 BitBoardGenerator::generate_black_pawn_bitboard(ChessGame &game) {
 u64 BitBoardGenerator::generate_white_pawn_captures_bitboard(ChessGame &game) {
     u64 *bitboards = game.get_board().get_bitboards();
     u64 white_pawns = bitboards[WHITE_PAWN];
-    u64 en_passant_pos = 1ULL << game.get_en_passant_sq();
+    int en_passant_sq = game.get_en_passant_sq();
+    u64 en_passant_pos = en_passant_sq != -1 ? mask_piece[en_passant_sq] : 0;
 
     u64 nw_pawns = shift_north_west(white_pawns);
     u64 ne_pawns = shift_north_east(white_pawns);
@@ -150,7 +160,8 @@ u64 BitBoardGenerator::generate_white_pawn_captures_bitboard(ChessGame &game) {
 u64 BitBoardGenerator::generate_black_pawn_captures_bitboard(ChessGame &game) {
     u64 *bitboards = game.get_board().get_bitboards();
     u64 black_pawns = bitboards[BLACK_PAWN];
-    u64 en_passant_pos = 1ULL << game.get_en_passant_sq();
+    int en_passant_sq = game.get_en_passant_sq();
+    u64 en_passant_pos = en_passant_sq != -1 ? mask_piece[en_passant_sq] : 0;
 
     u64 sw_pawns = shift_south_west(black_pawns);
     u64 se_pawns = shift_south_east(black_pawns);

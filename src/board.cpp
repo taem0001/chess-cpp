@@ -18,3 +18,20 @@ void Board::draw_board() {
     std::cout << "  +-----------------+" << std::endl;
     std::cout << "    a b c d e f g h" << std::endl;
 }
+
+void Board::move_piece(int from, int to) {
+    for (int i = 3; i < 15; i++) {
+        if (bitboards[i] & mask_piece[from]) {
+            bitboards[i] &= ~mask_piece[from];
+            bitboards[i] |= mask_piece[to];
+        }
+    }
+
+    bitboards[WHITE] = bitboards[WHITE_PAWN] | bitboards[WHITE_ROOK] |
+                       bitboards[WHITE_BISHOP] | bitboards[WHITE_KNIGHT] |
+                       bitboards[WHITE_QUEEN] | bitboards[WHITE_KING];
+    bitboards[BLACK] = bitboards[BLACK_PAWN] | bitboards[BLACK_ROOK] |
+                       bitboards[BLACK_BISHOP] | bitboards[BLACK_KNIGHT] |
+                       bitboards[BLACK_QUEEN] | bitboards[BLACK_KING];
+    bitboards[ALL] = bitboards[WHITE] | bitboards[BLACK];
+}

@@ -16,10 +16,43 @@ int last_bit(u64 bitboard) {
     return 63 - __builtin_clzll(bitboard);
 }
 
-int get_pos(std::string &pos) {
+bool contains_move(std::vector<u16> &moves, int from, int to, u16 *move) {
+    for (u16 move_t : moves) {
+        int from_t = get_from(move_t);
+        int to_t = get_to(move_t);
+        if (from == from_t && to == to_t) {
+            u16 flag = get_flag(move_t);
+            *move = define_move(from, to, flag);
+            return true;
+        }
+    }
+    return false;
+}
+
+bool get_pos(std::string &pos, int *from, int *to) {
+    if (pos.length() != 4) {
+        return false;
+    }
+    if (pos[0] < 'a' || pos[0] > 'h') {
+        return false;
+    }
+    if (pos[2] < 'a' || pos[2] > 'h') {
+        return false;
+    }
+    if (pos[1] < '1' || pos[1] > '8') {
+        return false;
+    }
+    if (pos[3] < '1' || pos[3] > '8') {
+        return false;
+    }
+
     int file = pos[0] - 'a';
     int rank = pos[1] - '1';
-    return rank * 8 + file;
+    *from = rank * 8 + file;
+    file = pos[2] - 'a';
+    rank = pos[3] - '1';
+    *to = rank * 8 + file;
+    return true;
 }
 
 char get_symbol(u64 *bitboards, int square) {

@@ -181,7 +181,8 @@ static const u64 knight_attack_squares[] = {
 
 int first_bit(u64);
 int last_bit(u64);
-int get_pos(std::string &);
+bool contains_move(std::vector<u16> &, int, int, u16 *);
+bool get_pos(std::string &, int *, int *);
 char get_symbol(u64 *, int);
 u64 shift_north(u64);
 u64 shift_south(u64);

@@ -9,6 +9,7 @@ private:
 public:
     u64 *get_bitboards();
     void draw_board();
+    void move_piece(int, int);
 };
 
 #endif // !BOARD_H
