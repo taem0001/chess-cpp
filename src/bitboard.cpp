@@ -1,17 +1,9 @@
 #include "../include/bitboard.h"
+#include <filesystem>
 
 u64 BitBoardGenerator::rays[8][64];
 u64 BitBoardGenerator::precomputed_bishop[64];
 u64 BitBoardGenerator::precomputed_rook[64];
-
-u64 BitBoardGenerator::all_moves_bitboard(ChessGame &game) {
-    bool turn = game.get_turn();
-    return generate_attacks_bitboard(game, turn) |
-           (turn ? generate_white_castle_bitboard(game)
-                 : generate_black_castle_bitboard(game)) |
-           (turn ? generate_white_pawn_bitboard(game)
-                 : generate_black_pawn_bitboard(game));
-}
 
 void BitBoardGenerator::init() {
     u64 north = 0x0101010101010100;

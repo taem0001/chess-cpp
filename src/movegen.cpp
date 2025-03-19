@@ -1,6 +1,5 @@
 #include "../include/movegen.h"
 
-// TODO: Implement promotions
 // TODO: Implement legal movegen
 
 void MoveGenerator::init() { BitBoardGenerator::init(); }
@@ -12,7 +11,7 @@ std::vector<u16> MoveGenerator::generate_pseudolegal_moves(ChessGame &game) {
     generate_king_moves(moves, game);
     generate_bishop_moves(moves, game);
     generate_rook_moves(moves, game);
-    generate_queen_moves(moves, game);;
+    generate_queen_moves(moves, game);
     return moves;
 }
 
@@ -34,11 +33,20 @@ void MoveGenerator::generate_pawn_moves(std::vector<u16> &moves,
         from = first_bit(pawns);
         int file = from % 8;
         int rank = from / 8;
+
         u64 file_pushes = pushes & mask_file[file];
         while (file_pushes) {
             to = first_bit(file_pushes);
-            flag = abs(to - from) == 16 ? double_pawn_push : quiet_move;
-            moves.push_back(define_move(from, to, flag));
+            int to_rank = to / 8;
+            if ((turn && to_rank == 7) || (!turn && to_rank == 0)) {
+                moves.push_back(define_move(from, to, knight_promotion));
+                moves.push_back(define_move(from, to, bishop_promotion));
+                moves.push_back(define_move(from, to, rook_promotion));
+                moves.push_back(define_move(from, to, queen_promotion));
+            } else {
+                flag = abs(to - from) == 16 ? double_pawn_push : quiet_move;
+                moves.push_back(define_move(from, to, flag));
+            }
             file_pushes &= file_pushes - 1;
         }
 
@@ -190,13 +198,18 @@ void MoveGenerator::generate_queen_moves(std::vector<u16> &moves,
 
     int from, to;
     u16 flag;
-    if (queen) {
+    while (queen) {
         from = first_bit(queen);
-        while (attacks) {
-            to = first_bit(attacks);
+        u64 mask = BitBoardGenerator::precomputed_bishop[from] |
+                   BitBoardGenerator::precomputed_rook[from];
+        u64 attacks_t = attacks & mask;
+
+        while (attacks_t) {
+            to = first_bit(attacks_t);
             flag = (enemy & mask_piece[to]) ? capture : quiet_move;
             moves.push_back(define_move(from, to, flag));
-            attacks &= attacks - 1;
+            attacks_t &= attacks_t - 1;
         }
+        queen &= queen - 1;
     }
 }

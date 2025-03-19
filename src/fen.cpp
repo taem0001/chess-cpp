@@ -5,6 +5,8 @@ void FenHandler::load_fen(ChessGame &game, const std::string &fen) {
     int index = 56;
     int s_index = 0;
     int spaces = 0;
+    int half_m = 0;
+    int full_m = 0;
 
     game.set_wk_castle(false);
     game.set_wq_castle(false);
@@ -100,8 +102,16 @@ void FenHandler::load_fen(ChessGame &game, const std::string &fen) {
                 game.set_en_passant_sq(col + row * 8);
             }
         }
+        if (isdigit(c) && spaces == 4) {
+            half_m = half_m * 10 + (c - '0');
+        }
+        if (isdigit(c) && spaces == 5) {
+            full_m = full_m * 10 + (c - '0');
+        }
         s_index++;
     }
+    game.set_halfmoves(half_m);
+    game.set_fullmoves(full_m);
 
     bitboards[WHITE] = bitboards[WHITE_PAWN] | bitboards[WHITE_ROOK] |
                        bitboards[WHITE_BISHOP] | bitboards[WHITE_KNIGHT] |
@@ -110,4 +120,71 @@ void FenHandler::load_fen(ChessGame &game, const std::string &fen) {
                        bitboards[BLACK_BISHOP] | bitboards[BLACK_KNIGHT] |
                        bitboards[BLACK_QUEEN] | bitboards[BLACK_KING];
     bitboards[ALL] = bitboards[WHITE] | bitboards[BLACK];
+}
+
+std::string FenHandler::write_fen(ChessGame &game) {
+    std::string res = "";
+    u64 *bitboards = game.get_board().get_bitboards();
+
+    for (int rank = 7; rank >= 0; rank--) {
+        int empty_count = 0;
+        for (int file = 0; file < 8; file++) {
+            char piece = ' ';
+
+            for (int i = 3; i < 15; i++) {
+                if (bitboards[i] & mask_piece[rank * 8 + file]) {
+                    piece = symbols[i - 3];
+                    break;
+                }
+            }
+
+            if (piece == ' ') {
+                empty_count++;
+            } else {
+                if (empty_count > 0) {
+                    res += std::to_string(empty_count);
+                    empty_count = 0;
+                }
+                res += piece;
+            }
+        }
+        if (empty_count > 0) {
+            res += std::to_string(empty_count);
+        }
+        if (rank > 0) {
+            res += '/';
+        }
+    }
+
+    res += ' ';
+    res += game.get_turn() ? 'w' : 'b';
+    res += ' ';
+
+    if (!game.get_wk_castle() && !game.get_wq_castle() &&
+        !game.get_bk_castle() && !game.get_bq_castle()) {
+        res += '-';
+    }
+    if (game.get_wk_castle()) {
+        res += 'K';
+    }
+    if (game.get_wq_castle()) {
+        res += 'Q';
+    }
+    if (game.get_bk_castle()) {
+        res += 'k';
+    }
+    if (game.get_bq_castle()) {
+        res += 'q';
+    }
+
+    res += ' ';
+    res += game.get_en_passant_sq() != -1 ? print_pos(game.get_en_passant_sq())
+                                          : "-";
+
+    res += ' ';
+    res += std::to_string(game.get_halfmoves());
+    res += ' ';
+    res += std::to_string(game.get_fullmoves());
+
+    return res;
 }

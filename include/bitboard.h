@@ -9,7 +9,6 @@ public:
     static u64 precomputed_bishop[64];
     static u64 precomputed_rook[64];
 
-    static u64 all_moves_bitboard(ChessGame &);
     static void init();
 
     static u64 diag_attacks(u64, unsigned long);
@@ -18,6 +17,7 @@ public:
     static u64 file_attacks(u64, unsigned long);
 
     static u64 generate_attacks_bitboard(ChessGame &, bool);
+
     static u64 generate_white_pawn_bitboard(ChessGame &);
     static u64 generate_black_pawn_bitboard(ChessGame &);
     static u64 generate_white_pawn_captures_bitboard(ChessGame &);

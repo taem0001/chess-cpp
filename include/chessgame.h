@@ -8,6 +8,8 @@ private:
     bool white_turn;
     bool wk_castle, wq_castle, bk_castle, bq_castle;
     int en_passant_square;
+    int half_moves;
+    int full_moves;
 
 public:
     ChessGame();
@@ -28,6 +30,10 @@ public:
     void set_bq_castle(bool);
     int get_en_passant_sq();
     void set_en_passant_sq(int);
+    int get_halfmoves();
+    void set_halfmoves(int);
+    int get_fullmoves();
+    void set_fullmoves(int);
 };
 
 #endif // !CHESSGAME_H
