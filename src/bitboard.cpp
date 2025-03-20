@@ -88,7 +88,78 @@ u64 BitBoardGenerator::file_attacks(u64 occ, unsigned long sq) {
 }
 
 u64 BitBoardGenerator::pieces_attacking_square(ChessGame &game, int sq,
-                                               bool turn) {}
+                                               bool turn) {
+    u64 *bitboards = game.get_board().get_bitboards();
+    u64 res = 0;
+    u64 square_pos = mask_piece[sq];
+
+    // Check for pawns attacking the square
+    if (turn) {
+        res |= shift_south_west(square_pos) & bitboards[WHITE_PAWN];
+        res |= shift_south_east(square_pos) & bitboards[WHITE_PAWN];
+    } else {
+        res |= shift_north_west(square_pos) & bitboards[BLACK_PAWN];
+        res |= shift_north_east(square_pos) & bitboards[BLACK_PAWN];
+    }
+
+    // Check for knights attacking the square
+    PieceType knight_type = turn ? WHITE_KNIGHT : BLACK_KNIGHT;
+    res |= knight_attack_squares[sq] & bitboards[knight_type];
+
+    // Check for kings attacking the square
+    PieceType king_type = turn ? WHITE_KING : BLACK_KING;
+    u64 king_moves = shift_west(square_pos) | shift_east(square_pos);
+    u64 temp = square_pos;
+    temp |= king_moves;
+    king_moves |= shift_north(temp) | shift_south(temp);
+    king_moves &= ~square_pos;
+    res |= bitboards[king_type] & king_moves;
+
+    // Check for sliding pieces attacking the square
+    // Get the rays from the attacked square
+    u64 rays[8] = {
+        get_positive_rays(bitboards[ALL], NORTH, (unsigned long)sq),
+        get_negative_rays(bitboards[ALL], SOUTH, (unsigned long)sq),
+        get_positive_rays(bitboards[ALL], EAST, (unsigned long)sq),
+        get_negative_rays(bitboards[ALL], WEST, (unsigned long)sq),
+        get_positive_rays(bitboards[ALL], NORTH_EAST, (unsigned long)sq),
+        get_positive_rays(bitboards[ALL], NORTH_WEST, (unsigned long)sq),
+        get_negative_rays(bitboards[ALL], SOUTH_EAST, (unsigned long)sq),
+        get_negative_rays(bitboards[ALL], SOUTH_WEST, (unsigned long)sq)};
+
+    // Get the first or last piece in each direction
+    int blockers[8] = {
+        last_bit(rays[0]),  first_bit(rays[1]), // North / South
+        last_bit(rays[2]),  first_bit(rays[3]), // East / West
+        last_bit(rays[4]),  last_bit(rays[5]),  // NE / NW
+        first_bit(rays[6]), first_bit(rays[7])  // SE / SW
+    };
+
+    // Determine attacking pieces
+    PieceType rook = turn ? WHITE_ROOK : BLACK_ROOK;
+    PieceType bishop = turn ? WHITE_BISHOP : BLACK_BISHOP;
+    PieceType queen = turn ? WHITE_QUEEN : BLACK_QUEEN;
+
+    for (int i = 0; i < 4; i++) {
+        res |= (mask_piece[blockers[i]] & bitboards[rook]) |
+               (mask_piece[blockers[i]] & bitboards[queen]);
+    }
+    for (int i = 4; i < 8; i++) {
+        res |= (mask_piece[blockers[i]] & bitboards[bishop]) |
+               (mask_piece[blockers[i]] & bitboards[queen]);
+    }
+
+    return res;
+}
+
+u64 BitBoardGenerator::pieces_attacking_king(ChessGame &game, bool turn) {
+    u64 *bitboards = game.get_board().get_bitboards();
+    int king_pos = turn ? first_bit(bitboards[WHITE_KING])
+                        : first_bit(bitboards[BLACK_KING]);
+    u64 res = pieces_attacking_square(game, king_pos, !turn);
+    res &= turn ? ~bitboards[BLACK_KING] : ~bitboards[WHITE_KING];
+    return res;
+}
 
 u64 BitBoardGenerator::generate_attacks_bitboard(ChessGame &game, bool turn) {
     u64 *bitboards = game.get_board().get_bitboards();

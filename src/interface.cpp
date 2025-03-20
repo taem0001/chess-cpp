@@ -14,7 +14,7 @@ void Interface::run_game() {
 
     while (true) {
         std::vector<u16> moves =
-            MoveGenerator::generate_pseudolegal_moves(game);
+            MoveGenerator::generate_legal_moves(game);
 
         turn = game.get_turn();
 

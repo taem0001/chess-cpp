@@ -4,6 +4,11 @@
 
 void MoveGenerator::init() { BitBoardGenerator::init(); }
 
+std::vector<u16> MoveGenerator::generate_legal_moves(ChessGame &game) {
+    std::vector<u16> moves = generate_pseudolegal_moves(game);
+    return moves;
+}
+
 std::vector<u16> MoveGenerator::generate_pseudolegal_moves(ChessGame &game) {
     std::vector<u16> moves;
     generate_pawn_moves(moves, game);

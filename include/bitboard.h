@@ -16,6 +16,7 @@ public:
     static u64 rank_attacks(u64, unsigned long);
     static u64 file_attacks(u64, unsigned long);
     static u64 pieces_attacking_square(ChessGame &, int, bool);
+    static u64 pieces_attacking_king(ChessGame &, bool);
 
     static u64 generate_attacks_bitboard(ChessGame &, bool);
 
