@@ -33,6 +33,8 @@ public:
 private:
     static u64 get_positive_rays(u64, Direction, unsigned long);
     static u64 get_negative_rays(u64, Direction, unsigned long);
+    static u64 xray_rook_attacks(u64, u64, int);
+    static u64 xray_bishop_attacks(u64, u64, int);
 };
 
 #endif // !BITBOARD_H

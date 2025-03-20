@@ -73,6 +73,24 @@ u64 shift_west(u64 b) { return (b >> 1ULL) & clear_file[7]; }
 u64 shift_south_west(u64 b) { return (b >> 9ULL) & clear_file[7]; }
 u64 shift_north_west(u64 b) { return (b << 7ULL) & clear_file[7]; }
 
+u64 in_between(int sq1, int sq2) {
+    const u64 m1 = u64(-1);
+    const u64 a2a7 = 0x0001010101010100;
+    const u64 b2g7 = 0x0040201008040200;
+    const u64 h1b7 = 0x0002040810204080;
+    u64 btwn, line, rank, file;
+
+    btwn = (m1 << sq1) ^ (m1 << sq2);
+    file = (sq2 & 7) - (sq1 & 7);
+    rank = ((sq2 | 7) - sq1) >> 3;
+    line = ((file & 7) - 1) & a2a7;
+    line += 2 * (((rank & 7) - 1) >> 58);
+    line += (((rank - file) & 15) - 1) & b2g7;
+    line += (((rank + file) & 15) - 1) & h1b7;
+    line *= btwn & -btwn;
+    return line & btwn;
+}
+
 u16 define_move(u16 from, u16 to, u16 flag) {
     return ((flag & 0xf) << 12) | ((to & 0x3f) << 6) | (from & 0x3f);
 }

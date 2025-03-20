@@ -195,6 +195,7 @@ u64 shift_north_west(u64);
 u64 shift_north_east(u64);
 u64 shift_south_west(u64);
 u64 shift_south_east(u64);
+u64 in_between(int, int);
 u16 define_move(u16, u16, u16);
 u16 get_from(u16);
 u16 get_to(u16);
