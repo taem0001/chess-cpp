@@ -30,10 +30,10 @@ public:
     void set_bq_castle(bool);
     int get_en_passant_sq();
     void set_en_passant_sq(int);
-    int get_half_moves();
-    void set_half_moves(int);
-    int get_full_moves();
-    void set_full_moves(int);
+    int get_halfmoves();
+    void set_halfmoves(int);
+    int get_fullmoves();
+    void set_fullmoves(int);
 };
 
 #endif // !CHESSGAME_H

@@ -1,14 +1,12 @@
 #include "../include/fen.h"
-#include <algorithm>
-#include <string>
 
 void FenHandler::load_fen(ChessGame &game, const std::string &fen) {
     u64 *bitboards = game.get_board().get_bitboards();
     int index = 56;
     int s_index = 0;
     int spaces = 0;
-    int halfmove_clock;
-    int fullmove_number;
+    int half_m = 0;
+    int full_m = 0;
 
     game.set_wk_castle(false);
     game.set_wq_castle(false);
@@ -104,8 +102,16 @@ void FenHandler::load_fen(ChessGame &game, const std::string &fen) {
                 game.set_en_passant_sq(col + row * 8);
             }
         }
+        if (isdigit(c) && spaces == 4) {
+            half_m = half_m * 10 + (c - '0');
+        }
+        if (isdigit(c) && spaces == 5) {
+            full_m = full_m * 10 + (c - '0');
+        }
         s_index++;
     }
+    game.set_halfmoves(half_m);
+    game.set_fullmoves(full_m);
 
     bitboards[WHITE] = bitboards[WHITE_PAWN] | bitboards[WHITE_ROOK] |
                        bitboards[WHITE_BISHOP] | bitboards[WHITE_KNIGHT] |
@@ -176,9 +182,9 @@ std::string FenHandler::write_fen(ChessGame &game) {
                                           : "-";
 
     res += ' ';
-    res += std::to_string(game.get_half_moves());
+    res += std::to_string(game.get_halfmoves());
     res += ' ';
-    res += std::to_string(game.get_full_moves());
+    res += std::to_string(game.get_fullmoves());
 
     return res;
 }

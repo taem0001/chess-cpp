@@ -10,12 +10,7 @@ bool ChessGame::make_move(u16 move) {
     u16 from = get_from(move);
     u16 to = get_to(move);
     u16 flag = get_flag(move);
-
-    if (bitboards[WHITE_PAWN] & mask_piece[from] || bitboards[BLACK_PAWN] & mask_piece[from]) {
-        half_moves = 0;
-    } else {
-        half_moves++;
-    }
+    half_moves++;
 
     if (!white_turn) {
         full_moves++;
@@ -32,6 +27,11 @@ bool ChessGame::make_move(u16 move) {
     }
     if (bitboards[BLACK_KING] & mask_piece[from]) {
         bk_castle = bq_castle = false;
+    }
+
+    // Reset halfmove clock counter
+    if (bitboards[WHITE_PAWN] & mask_piece[from] || bitboards[BLACK_PAWN] & mask_piece[from]) {
+        half_moves = 0;
     }
 
     // Reset castling rights if rooks move from their original squares
@@ -51,6 +51,8 @@ bool ChessGame::make_move(u16 move) {
     // TODO: Implement logic for other flags later
     // Handle move types
     int rook_sq;
+    char promotion_piece;
+    bool promotion = false;
     switch (flag) {
         case quiet_move:
             break;
@@ -68,11 +70,27 @@ bool ChessGame::make_move(u16 move) {
         case capture:
             half_moves = 0;
             break;
+        case knight_promotion:
+        case bishop_promotion:
+        case rook_promotion:
+        case queen_promotion:
+            do {
+                std::cout << "Choose promotion piece: ";
+                std::cin >> promotion_piece;
+            } while (promotion_piece != 'n' && promotion_piece != 'N' &&
+                     promotion_piece != 'b' && promotion_piece != 'B' &&
+                     promotion_piece != 'r' && promotion_piece != 'R' &&
+                     promotion_piece != 'q' && promotion_piece != 'Q');
+            promotion = true;
+            break;
         default:
             break;
     }
 
     board.move_piece(from, to);
+    if (promotion) {
+        board.promote_piece(white_turn, promotion_piece, to);
+    }
     return true;
 }
 
@@ -90,7 +108,7 @@ void ChessGame::set_bk_castle(bool b) { bk_castle = b; }
 void ChessGame::set_bq_castle(bool b) { bq_castle = b; }
 int ChessGame::get_en_passant_sq() { return en_passant_square; }
 void ChessGame::set_en_passant_sq(int sq) { en_passant_square = sq; }
-int ChessGame::get_half_moves() { return half_moves; }
-void ChessGame::set_half_moves(int n) { half_moves = n; }
-int ChessGame::get_full_moves() { return full_moves; }
-void ChessGame::set_full_moves(int n) { full_moves = n; }
+int ChessGame::get_halfmoves() { return half_moves; }
+void ChessGame::set_halfmoves(int n) { half_moves = n; }
+int ChessGame::get_fullmoves() { return full_moves; }
+void ChessGame::set_fullmoves(int n) { full_moves = n; }

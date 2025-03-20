@@ -126,7 +126,8 @@ static const u64 mask_piece[] = {0x1,
                                  0x1000000000000000,
                                  0x2000000000000000,
                                  0x4000000000000000,
-                                 0x8000000000000000};
+                                 0x8000000000000000,
+                                 0x0};
 
 static const u64 not_ab_file = 0xfcfcfcfcfcfcfcfc;
 static const u64 not_gh_file = 0x3f3f3f3f3f3f3f3f;

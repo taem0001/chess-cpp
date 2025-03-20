@@ -2,7 +2,7 @@
 
 int first_bit(u64 bitboard) {
     if (bitboard == 0) {
-        return -1;
+        return 64;
     }
     u64 isolated_bit = bitboard & -bitboard;
     u64 debruijn_index = (isolated_bit * 0x03f79d71b4cb0a89ULL) >> 58;
@@ -11,7 +11,7 @@ int first_bit(u64 bitboard) {
 
 int last_bit(u64 bitboard) {
     if (bitboard == 0) {
-        return -1;
+        return 64;
     }
     return 63 - __builtin_clzll(bitboard);
 }
@@ -67,11 +67,11 @@ char get_symbol(u64 *bitboards, int square) {
 u64 shift_north(u64 b) { return b << 8ULL; }
 u64 shift_south(u64 b) { return b >> 8ULL; }
 u64 shift_east(u64 b) { return (b << 1ULL) & clear_file[0]; }
-u64 shift_west(u64 b) { return (b >> 1ULL) & clear_file[7]; }
 u64 shift_north_east(u64 b) { return (b << 9ULL) & clear_file[0]; }
+u64 shift_south_east(u64 b) { return (b >> 7ULL) & clear_file[0]; }
+u64 shift_west(u64 b) { return (b >> 1ULL) & clear_file[7]; }
+u64 shift_south_west(u64 b) { return (b >> 9ULL) & clear_file[7]; }
 u64 shift_north_west(u64 b) { return (b << 7ULL) & clear_file[7]; }
-u64 shift_south_east(u64 b) { return (b >> 7ULL) & clear_file[7]; }
-u64 shift_south_west(u64 b) { return (b >> 9ULL) & clear_file[0]; }
 
 u16 define_move(u16 from, u16 to, u16 flag) {
     return ((flag & 0xf) << 12) | ((to & 0x3f) << 6) | (from & 0x3f);
