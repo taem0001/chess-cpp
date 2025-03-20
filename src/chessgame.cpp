@@ -70,6 +70,9 @@ bool ChessGame::make_move(u16 move) {
         case capture:
             half_moves = 0;
             break;
+        case ep_capture:
+            half_moves = 0;
+            break;
         case knight_promotion:
         case bishop_promotion:
         case rook_promotion:
@@ -77,9 +80,8 @@ bool ChessGame::make_move(u16 move) {
             do {
                 std::cout << "Choose promotion piece: ";
                 std::cin >> promotion_piece;
-            } while (promotion_piece != 'n' && promotion_piece != 'N' &&
-                     promotion_piece != 'b' && promotion_piece != 'B' &&
-                     promotion_piece != 'r' && promotion_piece != 'R' &&
+            } while (promotion_piece != 'n' && promotion_piece != 'N' && promotion_piece != 'b' &&
+                     promotion_piece != 'B' && promotion_piece != 'r' && promotion_piece != 'R' &&
                      promotion_piece != 'q' && promotion_piece != 'Q');
             promotion = true;
             break;
@@ -112,3 +114,7 @@ int ChessGame::get_halfmoves() { return half_moves; }
 void ChessGame::set_halfmoves(int n) { half_moves = n; }
 int ChessGame::get_fullmoves() { return full_moves; }
 void ChessGame::set_fullmoves(int n) { full_moves = n; }
+bool ChessGame::get_singlecheck() { return single_check; }
+void ChessGame::set_singlecheck(bool b) { single_check = b; }
+bool ChessGame::get_doublecheck() { return double_check; }
+void ChessGame::set_doublecheck(bool b) { double_check = b; }

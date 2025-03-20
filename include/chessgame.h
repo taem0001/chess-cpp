@@ -7,6 +7,7 @@ private:
     Board board;
     bool white_turn;
     bool wk_castle, wq_castle, bk_castle, bq_castle;
+    bool single_check, double_check;
     int en_passant_square;
     int half_moves;
     int full_moves;
@@ -34,6 +35,10 @@ public:
     void set_halfmoves(int);
     int get_fullmoves();
     void set_fullmoves(int);
+    bool get_singlecheck();
+    void set_singlecheck(bool);
+    bool get_doublecheck();
+    void set_doublecheck(bool);
 };
 
 #endif // !CHESSGAME_H

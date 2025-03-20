@@ -21,13 +21,14 @@ public:
     static u64 generate_attacks_bitboard(ChessGame &, bool);
 
     static u64 generate_pawn_bitboard(u64 *, bool);
-    static u64 generate_king_bitboard(u64 *, bool);
     static u64 generate_knight_bitboard(u64 *, bool);
     static u64 generate_bishop_bitboard(u64 *, bool);
     static u64 generate_rook_bitboard(u64 *, bool);
     static u64 generate_queen_bitboard(u64 *, bool);
+    static u64 generate_king_bitboard(ChessGame &, bool);
     static u64 generate_castle_bitboard(ChessGame &, bool);
     static u64 generate_pawn_captures_bitboard(ChessGame &, bool);
+    static u64 generate_pinned_pieces_bitboard(u64 *, bool);
 
 private:
     static u64 get_positive_rays(u64, Direction, unsigned long);
