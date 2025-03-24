@@ -72,3 +72,17 @@ void Board::promote_piece(bool turn, char piece, int sq) {
                        bitboards[BLACK_QUEEN] | bitboards[BLACK_KING];
     bitboards[ALL] = bitboards[WHITE] | bitboards[BLACK];
 }
+
+void Board::remove_piece(int sq) {
+    for (int i = 3; i < 15; i++) {
+        bitboards[i] &= ~mask_piece[sq];
+    }
+
+    bitboards[WHITE] = bitboards[WHITE_PAWN] | bitboards[WHITE_ROOK] |
+                       bitboards[WHITE_BISHOP] | bitboards[WHITE_KNIGHT] |
+                       bitboards[WHITE_QUEEN] | bitboards[WHITE_KING];
+    bitboards[BLACK] = bitboards[BLACK_PAWN] | bitboards[BLACK_ROOK] |
+                       bitboards[BLACK_BISHOP] | bitboards[BLACK_KNIGHT] |
+                       bitboards[BLACK_QUEEN] | bitboards[BLACK_KING];
+    bitboards[ALL] = bitboards[WHITE] | bitboards[BLACK];
+}

@@ -16,11 +16,6 @@ bool ChessGame::make_move(u16 move) {
         full_moves++;
     }
 
-    // Reset en passant square
-    if (en_passant_square != -1) {
-        en_passant_square = -1;
-    }
-
     // Reset castling rights if the king moves
     if (bitboards[WHITE_KING] & mask_piece[from]) {
         wk_castle = wq_castle = false;
@@ -50,7 +45,7 @@ bool ChessGame::make_move(u16 move) {
 
     // TODO: Implement logic for other flags later
     // Handle move types
-    int rook_sq;
+    int rook_sq, en_passant_capture;
     char promotion_piece;
     bool promotion = false;
     switch (flag) {
@@ -72,6 +67,8 @@ bool ChessGame::make_move(u16 move) {
             break;
         case ep_capture:
             half_moves = 0;
+            en_passant_capture = white_turn ? en_passant_square - 8 : en_passant_square + 8;
+            board.remove_piece(en_passant_capture);
             break;
         case knight_promotion:
         case bishop_promotion:
@@ -87,6 +84,11 @@ bool ChessGame::make_move(u16 move) {
             break;
         default:
             break;
+    }
+
+    // Reset en passant square
+    if (en_passant_square != -1) {
+        en_passant_square = -1;
     }
 
     board.move_piece(from, to);

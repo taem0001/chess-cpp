@@ -10,7 +10,7 @@
 #include <map>
 #include <bit>
 
-#define STARTPOS "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+#define STARTPOS "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - d6 0 1"
 
 typedef enum {
     ALL,
