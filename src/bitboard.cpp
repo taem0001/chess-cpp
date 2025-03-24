@@ -1,9 +1,9 @@
 #include "../include/bitboard.h"
-#include <vector>
 
 u64 BitBoardGenerator::rays[8][64];
 u64 BitBoardGenerator::precomputed_bishop[64];
 u64 BitBoardGenerator::precomputed_rook[64];
+u64 BitBoardGenerator::precomputed_in_between[64][64];
 
 void BitBoardGenerator::init() {
     u64 north = 0x0101010101010100;
@@ -50,6 +50,9 @@ void BitBoardGenerator::init() {
                                 anti_diag_attacks(0, (unsigned long)i);
         precomputed_rook[i] = rank_attacks(0, (unsigned long)i) |
                               file_attacks(0, (unsigned long)i);
+        for (int j = 0; j < 64; j++) {
+            precomputed_in_between[i][j] = in_between(i, j);
+        }
     }
 }
 
@@ -348,13 +351,13 @@ u64 BitBoardGenerator::generate_pinned_pieces_bitboard(u64 *bitboards,
     u64 pinner = xray_rook_attacks(bitboards[ALL], own_pieces, king_sq) & op_rq;
     while (pinner) {
         int sq = first_bit(pinner);
-        pinned |= in_between(sq, king_sq) & own_pieces;
+        pinned |= precomputed_in_between[sq][king_sq] & own_pieces;
         pinner &= pinner - 1;
     }
     pinner = xray_bishop_attacks(bitboards[ALL], own_pieces, king_sq) & op_bq;
     while (pinner) {
         int sq = first_bit(pinner);
-        pinned |= in_between(sq, king_sq) & own_pieces;
+        pinned |= precomputed_in_between[sq][king_sq] & own_pieces;
         pinner &= pinner - 1;
     }
     return pinned;
@@ -376,4 +379,33 @@ u64 BitBoardGenerator::xray_bishop_attacks(u64 occ, u64 blockers, int sq) {
     u64 var = diag_attacks(occ ^ blockers, (unsigned long)sq) |
               anti_diag_attacks(occ ^ blockers, (unsigned long)sq);
     return attacks ^ var;
+}
+
+int BitBoardGenerator::get_pinning_piece_square(u64 *bitboards, int sq,
+                                                bool turn) {
+    u64 own_pieces = turn ? bitboards[WHITE] : bitboards[BLACK];
+    u64 op_rq = turn ? bitboards[BLACK_ROOK] | bitboards[BLACK_QUEEN]
+                     : bitboards[WHITE_ROOK] | bitboards[WHITE_QUEEN];
+    u64 op_bq = turn ? bitboards[BLACK_BISHOP] | bitboards[BLACK_QUEEN]
+                     : bitboards[WHITE_BISHOP] | bitboards[WHITE_QUEEN];
+    int king_sq = turn ? first_bit(bitboards[WHITE_KING])
+                       : first_bit(bitboards[BLACK_KING]);
+
+    u64 pinner = xray_rook_attacks(bitboards[ALL], own_pieces, king_sq) & op_rq;
+    while (pinner) {
+        int pinner_sq = first_bit(pinner);
+        if (precomputed_in_between[king_sq][pinner_sq] & mask_piece[sq]) {
+            return pinner_sq;
+        }
+        pinner &= pinner - 1;
+    }
+    pinner = xray_bishop_attacks(bitboards[ALL], own_pieces, king_sq) & op_bq;
+    while (pinner) {
+        int pinner_sq = first_bit(pinner);
+        if (precomputed_in_between[king_sq][pinner_sq] & mask_piece[sq]) {
+            return pinner_sq;
+        }
+        pinner &= pinner - 1;
+    }
+    return 64;
 }

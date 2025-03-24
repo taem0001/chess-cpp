@@ -8,6 +8,7 @@ public:
     static u64 rays[8][64];
     static u64 precomputed_bishop[64];
     static u64 precomputed_rook[64];
+    static u64 precomputed_in_between[64][64];
 
     static void init();
 
@@ -29,6 +30,8 @@ public:
     static u64 generate_castle_bitboard(ChessGame &, bool);
     static u64 generate_pawn_captures_bitboard(ChessGame &, bool);
     static u64 generate_pinned_pieces_bitboard(u64 *, bool);
+
+    static int get_pinning_piece_square(u64 *, int, bool);
 
 private:
     static u64 get_positive_rays(u64, Direction, unsigned long);
