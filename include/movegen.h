@@ -18,6 +18,7 @@ private:
     static void generate_queen_moves(std::vector <u16> &, ChessGame &);
 
     static void check_detection(ChessGame &);
+    static std::vector<u16> handle_single_check(std::vector<u16> &, ChessGame &);
 };
 
 #endif // !MOVEGEN_H

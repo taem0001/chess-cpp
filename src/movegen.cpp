@@ -18,6 +18,7 @@ std::vector<u16> MoveGenerator::generate_legal_moves(ChessGame &game) {
     generate_queen_moves(moves, game);
 
     if (game.get_singlecheck()) {
+        moves = handle_single_check(moves, game);
     }
 
     return moves;
@@ -305,4 +306,50 @@ void MoveGenerator::check_detection(ChessGame &game) {
     int check_count = std::__popcount(attacks_to_king);
     game.set_singlecheck(check_count == 1);
     game.set_doublecheck(check_count > 1);
+}
+
+std::vector<u16> MoveGenerator::handle_single_check(std::vector<u16> &moves,
+                                                    ChessGame &game) {
+    std::vector<u16> check_moves;
+    bool turn = game.get_turn();
+    u64 pieces_attacking_king =
+        BitBoardGenerator::pieces_attacking_king(game, turn);
+    int attacking_piece_sq = first_bit(pieces_attacking_king);
+    u64 *bitboards = game.get_board().get_bitboards();
+    int king_sq = turn ? first_bit(bitboards[WHITE_KING])
+                       : first_bit(bitboards[BLACK_KING]);
+    bool is_bishop = turn ? pieces_attacking_king & bitboards[BLACK_BISHOP] ||
+                                pieces_attacking_king & bitboards[BLACK_QUEEN]
+                          : pieces_attacking_king & bitboards[WHITE_BISHOP] ||
+                                pieces_attacking_king & bitboards[WHITE_QUEEN];
+    bool is_rook = turn ? pieces_attacking_king & bitboards[BLACK_ROOK] ||
+                              pieces_attacking_king & bitboards[BLACK_QUEEN]
+                        : pieces_attacking_king & bitboards[WHITE_ROOK] ||
+                              pieces_attacking_king & bitboards[WHITE_QUEEN];
+    if (is_bishop || is_rook) {
+        u64 ray = BitBoardGenerator::precomputed_in_between[king_sq]
+                                                           [attacking_piece_sq];
+        while (ray) {
+            int pos = first_bit(ray);
+            for (u16 move : moves) {
+                int to = (int)get_to(move);
+                if (to == pos) {
+                    check_moves.push_back(move);
+                }
+            }
+            ray &= ray - 1;
+        }
+    }
+    for (u16 move : moves) {
+        int from = (int)get_from(move);
+        int to = (int)get_to(move);
+        if (from == king_sq) {
+            check_moves.push_back(move);
+        }
+        if (to == attacking_piece_sq) {
+            check_moves.push_back(move);
+        }
+    }
+
+    return check_moves;
 }
