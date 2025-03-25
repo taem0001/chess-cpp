@@ -20,6 +20,7 @@ public:
     static u64 pieces_attacking_king(ChessGame &, bool);
 
     static u64 generate_attacks_bitboard(ChessGame &, bool);
+    static u64 generate_sliding_piece_rays(u64 *, bool);
 
     static u64 generate_pawn_bitboard(u64 *, bool);
     static u64 generate_knight_bitboard(u64 *, bool);

@@ -4,6 +4,7 @@
 
 class ChessGame {
 private:
+    std::vector<std::string> fens;
     Board board;
     bool white_turn;
     bool wk_castle, wq_castle, bk_castle, bq_castle;
@@ -16,7 +17,7 @@ public:
     ChessGame();
     void draw_game();
     bool make_move(u16);
-    bool unmake_move(u16);
+    bool unmake_move();
     Board &get_board();
     void change_turn();
     void set_turn(bool);

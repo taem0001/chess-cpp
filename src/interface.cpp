@@ -13,12 +13,16 @@ void Interface::run_game() {
     game.draw_game();
 
     while (true) {
+        turn = game.get_turn();
         std::vector<u16> moves =
             MoveGenerator::generate_legal_moves(game);
 
+        if (moves.size() == 0) {
+            break;
+        }
+
         print_moves(moves);
 
-        turn = game.get_turn();
 
         do {
             player = turn ? "White player's move: " : "Black player's move: ";
@@ -32,4 +36,6 @@ void Interface::run_game() {
         game.draw_game();
         game.change_turn();
     }
+    player = turn ? "White player in checkmate" : "Black player in checkmate";
+    std::cout << player << std::endl;
 }

@@ -6,6 +6,7 @@ ChessGame::ChessGame() : board() { FenHandler::load_fen(*this, STARTPOS); }
 void ChessGame::draw_game() { board.draw_board(); }
 
 bool ChessGame::make_move(u16 move) {
+    fens.push_back(FenHandler::write_fen(*this));
     u64 *bitboards = get_board().get_bitboards();
     u16 from = get_from(move);
     u16 to = get_to(move);
@@ -43,7 +44,6 @@ bool ChessGame::make_move(u16 move) {
         bk_castle = false;
     }
 
-    // TODO: Implement logic for other flags later
     // Handle move types
     int rook_sq, en_passant_capture;
     char promotion_piece;
@@ -95,6 +95,14 @@ bool ChessGame::make_move(u16 move) {
     if (promotion) {
         board.promote_piece(white_turn, promotion_piece, to);
     }
+    return true;
+}
+
+bool ChessGame::unmake_move() {
+    std::string last_fen = fens.back();
+    std::cout << last_fen << std::endl;
+    fens.pop_back();
+    FenHandler::load_fen(*this, last_fen);
     return true;
 }
 
