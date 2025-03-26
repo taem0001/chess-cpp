@@ -1,6 +1,5 @@
 #include "../include/bitboard.h"
 #include <csignal>
-#include <type_traits>
 
 u64 BitBoardGenerator::rays[8][64];
 u64 BitBoardGenerator::precomputed_bishop[64];
@@ -202,28 +201,22 @@ u64 BitBoardGenerator::generate_pawn_bitboard(u64 *bitboards, bool turn) {
 u64 BitBoardGenerator::generate_pawn_captures_bitboard(ChessGame &game, bool turn) {
     u64 *bitboards = game.get_board().get_bitboards();
     u64 pawns = turn ? bitboards[WHITE_PAWN] : bitboards[BLACK_PAWN];
-    int en_passant_sq = game.get_en_passant_sq();
-    u64 en_passant_pos = en_passant_sq != -1 ? mask_piece[en_passant_sq] : 0;
     u64 res = 0;
 
-    u64 nw_pawns, ne_pawns, nw_enp, ne_enp;
-    u64 sw_pawns, se_pawns, sw_enp, se_enp;
+    u64 nw_pawns, ne_pawns;
+    u64 sw_pawns, se_pawns;
     if (turn) {
         nw_pawns = shift_north_west(pawns);
         ne_pawns = shift_north_east(pawns);
-        nw_enp = nw_pawns & en_passant_pos;
-        ne_enp = ne_pawns & en_passant_pos;
         nw_pawns &= bitboards[BLACK];
         ne_pawns &= bitboards[BLACK];
-        res = nw_pawns | ne_pawns | nw_enp | ne_enp;
+        res = nw_pawns | ne_pawns;
     } else {
         sw_pawns = shift_south_west(pawns);
         se_pawns = shift_south_east(pawns);
-        sw_enp = sw_pawns & en_passant_pos;
-        se_enp = se_pawns & en_passant_pos;
         sw_pawns &= bitboards[WHITE];
         se_pawns &= bitboards[WHITE];
-        res = sw_pawns | se_pawns | sw_enp | se_enp;
+        res = sw_pawns | se_pawns;
     }
 
     return res;
@@ -298,10 +291,11 @@ u64 BitBoardGenerator::generate_rook_bitboard(u64 *bitboards, bool turn) {
 u64 BitBoardGenerator::generate_queen_bitboard(u64 *bitboards, bool turn) {
     u64 queen = turn ? bitboards[WHITE_QUEEN] : bitboards[BLACK_QUEEN];
     u64 res = 0;
-    if (queen) {
+    while (queen) {
         int pos = first_bit(queen);
         res = diag_attacks(bitboards[ALL], (unsigned long)pos) | anti_diag_attacks(bitboards[ALL], (unsigned long)pos) |
               rank_attacks(bitboards[ALL], (unsigned long)pos) | file_attacks(bitboards[ALL], (unsigned long)pos);
+        queen &= queen - 1;
     }
     if (turn) {
         res &= ~bitboards[WHITE];

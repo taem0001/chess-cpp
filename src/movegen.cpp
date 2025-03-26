@@ -9,7 +9,8 @@ std::vector<u16> MoveGenerator::generate_legal_moves(ChessGame &game) {
     if (game.get_doublecheck()) {
         return moves;
     }
-    generate_pawn_moves(moves, game);
+    generate_pawn_pushes(moves, game);
+    generate_pawn_captures(moves, game);
     generate_knight_moves(moves, game);
     generate_bishop_moves(moves, game);
     generate_rook_moves(moves, game);
@@ -21,44 +22,71 @@ std::vector<u16> MoveGenerator::generate_legal_moves(ChessGame &game) {
 
     return moves;
 }
-void MoveGenerator::generate_pawn_moves(std::vector<u16> &moves, ChessGame &game) {
+
+void MoveGenerator::generate_pawn_pushes(std::vector<u16> &moves, ChessGame &game) {
     bool turn = game.get_turn();
     u64 *bitboards = game.get_board().get_bitboards();
     u64 pawns = turn ? bitboards[WHITE_PAWN] : bitboards[BLACK_PAWN];
     u64 pushes = BitBoardGenerator::generate_pawn_bitboard(bitboards, turn);
-    u64 captures = BitBoardGenerator::generate_pawn_captures_bitboard(game, turn);
     u64 pinned_pawns = pawns & BitBoardGenerator::generate_pinned_pieces_bitboard(bitboards, turn);
-    u64 occ = bitboards[ALL];
-    int en_passant_sq = game.get_en_passant_sq();
     int king_sq = turn ? first_bit(bitboards[WHITE_KING]) : first_bit(bitboards[BLACK_KING]);
     int from, to;
-    u16 flag;
     u64 pin_ray;
+
     while (pawns) {
         from = first_bit(pawns);
-
         int file = from % 8;
-        int rank = from / 8;
 
-        u64 file_pushes = pushes & mask_file[file];
+        u64 file_pushes = mask_file[file] & pushes;
         if (pinned_pawns & mask_piece[from]) {
             int pinner_sq = BitBoardGenerator::get_pinning_piece_square(bitboards, from, turn);
             pin_ray = BitBoardGenerator::precomputed_in_between[king_sq][pinner_sq] | mask_piece[pinner_sq];
             file_pushes &= pin_ray;
         }
+
         while (file_pushes) {
             to = first_bit(file_pushes);
             int to_rank = to / 8;
+
             if ((turn && to_rank == 7) || (!turn && to_rank == 0)) {
                 moves.push_back(define_move(from, to, knight_promotion));
                 moves.push_back(define_move(from, to, bishop_promotion));
                 moves.push_back(define_move(from, to, rook_promotion));
                 moves.push_back(define_move(from, to, queen_promotion));
             } else {
-                flag = abs(to - from) == 16 ? double_pawn_push : quiet_move;
-                moves.push_back(define_move(from, to, flag));
+                if (abs(to - from) == 16) {
+                    moves.push_back(define_move(from, to, double_pawn_push));
+                } else {
+                    moves.push_back(define_move(from, to, quiet_move));
+                }
             }
+
             file_pushes &= file_pushes - 1;
+        }
+
+        pawns &= pawns - 1;
+    }
+}
+
+void MoveGenerator::generate_pawn_captures(std::vector<u16> &moves, ChessGame &game) {
+    bool turn = game.get_turn();
+    u64 *bitboards = game.get_board().get_bitboards();
+    u64 pawns = turn ? bitboards[WHITE_PAWN] : bitboards[BLACK_PAWN];
+    u64 captures = BitBoardGenerator::generate_pawn_captures_bitboard(game, turn);
+    u64 pinned_pawns = pawns & BitBoardGenerator::generate_pinned_pieces_bitboard(bitboards, turn);
+    int king_sq = turn ? first_bit(bitboards[WHITE_KING]) : first_bit(bitboards[BLACK_KING]);
+    int en_passant_sq = game.get_en_passant_sq();
+    int from, to;
+    u64 pin_ray = 0xffffffffffffffff;
+
+    while (pawns) {
+        from = first_bit(pawns);
+        int file = from % 8;
+        int rank = from / 8;
+
+        if (pinned_pawns & mask_piece[from]) {
+            int pinner_sq = BitBoardGenerator::get_pinning_piece_square(bitboards, from, turn);
+            pin_ray = BitBoardGenerator::precomputed_in_between[king_sq][pinner_sq] | mask_piece[pinner_sq];
         }
 
         u64 rank_mask;
@@ -67,19 +95,19 @@ void MoveGenerator::generate_pawn_moves(std::vector<u16> &moves, ChessGame &game
         } else {
             rank_mask = rank > 0 ? mask_rank[rank - 1] : 0;
         }
+
         if (file > 0) {
-            u64 left_captures = captures & mask_file[file - 1] & rank_mask;
-            if (pinned_pawns & mask_piece[from]) {
-                left_captures &= pin_ray;
-            }
+            u64 left_captures = captures & mask_file[file - 1] & rank_mask & pin_ray;
+
             while (left_captures) {
                 to = first_bit(left_captures);
-                if (to == en_passant_sq) {
-                    u64 op_rq = turn ? bitboards[BLACK_ROOK] | bitboards[BLACK_QUEEN]
-                                     : bitboards[WHITE_ROOK] | bitboards[WHITE_QUEEN];
-                    if (!(mask_rank[rank] & op_rq) || king_sq / 8 != rank) {
-                        moves.push_back(define_move(from, to, ep_capture));
-                    }
+                int to_rank = to / 8;
+
+                if ((turn && to_rank == 7) || (!turn && to_rank == 0)) {
+                    moves.push_back(define_move(from, to, knight_promo_capture));
+                    moves.push_back(define_move(from, to, bishop_promo_capture));
+                    moves.push_back(define_move(from, to, rook_promo_capture));
+                    moves.push_back(define_move(from, to, queen_promo_capture));
                 } else {
                     moves.push_back(define_move(from, to, capture));
                 }
@@ -88,24 +116,33 @@ void MoveGenerator::generate_pawn_moves(std::vector<u16> &moves, ChessGame &game
         }
 
         if (file < 7) {
-            u64 right_captures = captures & mask_file[file + 1] & rank_mask;
-            if (pinned_pawns & mask_piece[from]) {
-                right_captures &= pin_ray;
-            }
+            u64 right_captures = captures & mask_file[file + 1] & rank_mask & pin_ray;
+
             while (right_captures) {
                 to = first_bit(right_captures);
-                if (to == en_passant_sq) {
-                    u64 op_rq = turn ? bitboards[BLACK_ROOK] | bitboards[BLACK_QUEEN]
-                                     : bitboards[WHITE_ROOK] | bitboards[WHITE_QUEEN];
-                    if (!(mask_rank[rank] & op_rq) || king_sq / 8 != rank) {
-                        moves.push_back(define_move(from, to, ep_capture));
-                    }
+                int to_rank = to / 8;
+
+                if ((turn && to_rank == 7) || (!turn && to_rank == 0)) {
+                    moves.push_back(define_move(from, to, knight_promo_capture));
+                    moves.push_back(define_move(from, to, bishop_promo_capture));
+                    moves.push_back(define_move(from, to, rook_promo_capture));
+                    moves.push_back(define_move(from, to, queen_promo_capture));
                 } else {
                     moves.push_back(define_move(from, to, capture));
                 }
                 right_captures &= right_captures - 1;
             }
         }
+
+//        if (en_passant_sq != -1) {
+//            u64 enp_mask = turn ? shift_north_west(mask_piece[from]) | shift_north_east(mask_piece[from])
+//                                : shift_south_west(mask_piece[from]) | shift_south_east(mask_piece[from]);
+//            if (mask_piece[en_passant_sq] & enp_mask) {
+//                to = first_bit(mask_piece[en_passant_sq]);
+//
+//            }
+//        }
+
         pawns &= pawns - 1;
     }
 }
@@ -276,6 +313,8 @@ std::vector<u16> MoveGenerator::handle_single_check(std::vector<u16> &moves, Che
     int attacking_piece_sq = first_bit(pieces_attacking_king);
     u64 *bitboards = game.get_board().get_bitboards();
     int king_sq = turn ? first_bit(bitboards[WHITE_KING]) : first_bit(bitboards[BLACK_KING]);
+    int en_passant_sq = game.get_en_passant_sq();
+    int en_passant_piece_sq = turn ? en_passant_sq + 8 : en_passant_sq - 8;
     bool is_bishop =
         turn ? pieces_attacking_king & bitboards[BLACK_BISHOP] || pieces_attacking_king & bitboards[BLACK_QUEEN]
              : pieces_attacking_king & bitboards[WHITE_BISHOP] || pieces_attacking_king & bitboards[WHITE_QUEEN];
@@ -299,6 +338,11 @@ std::vector<u16> MoveGenerator::handle_single_check(std::vector<u16> &moves, Che
         }
 
         if (to == attacking_piece_sq) {
+            check_moves.push_back(move);
+            continue;
+        }
+
+        if (to == en_passant_sq && en_passant_piece_sq == attacking_piece_sq) {
             check_moves.push_back(move);
             continue;
         }

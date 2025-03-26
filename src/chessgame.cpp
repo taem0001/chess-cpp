@@ -46,8 +46,6 @@ bool ChessGame::make_move(u16 move) {
 
     // Handle move types
     int rook_sq, en_passant_capture;
-    char promotion_piece;
-    bool promotion = false;
     switch (flag) {
         case quiet_move:
             break;
@@ -64,6 +62,7 @@ bool ChessGame::make_move(u16 move) {
             break;
         case capture:
             half_moves = 0;
+            board.remove_piece(to);
             break;
         case ep_capture:
             half_moves = 0;
@@ -71,16 +70,32 @@ bool ChessGame::make_move(u16 move) {
             board.remove_piece(en_passant_capture);
             break;
         case knight_promotion:
+            board.promote_piece(white_turn, 'n', to);
+            break;
         case bishop_promotion:
+            board.promote_piece(white_turn, 'b', to);
+            break;
         case rook_promotion:
+            board.promote_piece(white_turn, 'r', to);
+            break;
         case queen_promotion:
-            do {
-                std::cout << "Choose promotion piece: ";
-                std::cin >> promotion_piece;
-            } while (promotion_piece != 'n' && promotion_piece != 'N' && promotion_piece != 'b' &&
-                     promotion_piece != 'B' && promotion_piece != 'r' && promotion_piece != 'R' &&
-                     promotion_piece != 'q' && promotion_piece != 'Q');
-            promotion = true;
+            board.promote_piece(white_turn, 'q', to);
+            break;
+        case knight_promo_capture:
+            board.remove_piece(to);
+            board.promote_piece(white_turn, 'n', to);
+            break;
+        case bishop_promo_capture:
+            board.remove_piece(to);
+            board.promote_piece(white_turn, 'b', to);
+            break;
+        case rook_promo_capture:
+            board.remove_piece(to);
+            board.promote_piece(white_turn, 'r', to);
+            break;
+        case queen_promo_capture:
+            board.remove_piece(to);
+            board.promote_piece(white_turn, 'q', to);
             break;
         default:
             break;
@@ -92,15 +107,11 @@ bool ChessGame::make_move(u16 move) {
     }
 
     board.move_piece(from, to);
-    if (promotion) {
-        board.promote_piece(white_turn, promotion_piece, to);
-    }
     return true;
 }
 
 bool ChessGame::unmake_move() {
     std::string last_fen = fens.back();
-    std::cout << last_fen << std::endl;
     fens.pop_back();
     FenHandler::load_fen(*this, last_fen);
     return true;

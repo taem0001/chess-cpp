@@ -2,6 +2,11 @@
 
 void FenHandler::load_fen(ChessGame &game, const std::string &fen) {
     u64 *bitboards = game.get_board().get_bitboards();
+
+    for (int i = 0; i < 15; i++) {
+        bitboards[i] = 0;
+    }
+
     int index = 56;
     int s_index = 0;
     int spaces = 0;
