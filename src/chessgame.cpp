@@ -6,7 +6,7 @@ ChessGame::ChessGame() : board() { FenHandler::load_fen(*this, STARTPOS); }
 void ChessGame::draw_game() { board.draw_board(); }
 
 bool ChessGame::make_move(u16 move) {
-    fens.push_back(FenHandler::write_fen(*this));
+    fens[move] = FenHandler::write_fen(*this);
     u64 *bitboards = get_board().get_bitboards();
     u16 from = get_from(move);
     u16 to = get_to(move);
@@ -110,10 +110,9 @@ bool ChessGame::make_move(u16 move) {
     return true;
 }
 
-bool ChessGame::unmake_move() {
-    std::string last_fen = fens.back();
-    fens.pop_back();
-    FenHandler::load_fen(*this, last_fen);
+bool ChessGame::unmake_move(u16 move) {
+    std::string pos = fens[move];
+    FenHandler::load_fen(*this, pos);
     return true;
 }
 
@@ -139,3 +138,4 @@ bool ChessGame::get_singlecheck() { return single_check; }
 void ChessGame::set_singlecheck(bool b) { single_check = b; }
 bool ChessGame::get_doublecheck() { return double_check; }
 void ChessGame::set_doublecheck(bool b) { double_check = b; }
+std::map<u16, std::string> ChessGame::get_fens() { return fens; }

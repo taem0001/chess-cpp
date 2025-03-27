@@ -85,8 +85,7 @@ u64 BitBoardGenerator::file_attacks(u64 occ, unsigned long sq) {
     return get_positive_rays(occ, NORTH, sq) | get_negative_rays(occ, SOUTH, sq);
 }
 
-u64 BitBoardGenerator::pieces_attacking_square(ChessGame &game, int sq, bool turn) {
-    u64 *bitboards = game.get_board().get_bitboards();
+u64 BitBoardGenerator::pieces_attacking_square(u64 *bitboards, int sq, bool turn) {
     u64 res = 0;
     u64 square_pos = mask_piece[sq];
 
@@ -146,10 +145,9 @@ u64 BitBoardGenerator::pieces_attacking_square(ChessGame &game, int sq, bool tur
     return res;
 }
 
-u64 BitBoardGenerator::pieces_attacking_king(ChessGame &game, bool turn) {
-    u64 *bitboards = game.get_board().get_bitboards();
+u64 BitBoardGenerator::pieces_attacking_king(u64 *bitboards, bool turn) {
     int king_pos = turn ? first_bit(bitboards[WHITE_KING]) : first_bit(bitboards[BLACK_KING]);
-    u64 res = pieces_attacking_square(game, king_pos, !turn);
+    u64 res = pieces_attacking_square(bitboards, king_pos, !turn);
     res &= turn ? ~bitboards[BLACK_KING] : ~bitboards[WHITE_KING];
     return res;
 }
@@ -162,19 +160,26 @@ u64 BitBoardGenerator::generate_attacks_bitboard(ChessGame &game, bool turn) {
     return all_attacks;
 }
 
-u64 BitBoardGenerator::generate_sliding_piece_rays(u64 *bitboards, bool turn) {
+u64 BitBoardGenerator::generate_bishop_rays(u64 *bitboards, bool turn) {
     u64 bq = turn ? bitboards[WHITE_BISHOP] | bitboards[WHITE_QUEEN] : bitboards[BLACK_BISHOP] | bitboards[BLACK_QUEEN];
-    u64 rq = turn ? bitboards[WHITE_ROOK] | bitboards[WHITE_QUEEN] : bitboards[BLACK_ROOK] | bitboards[BLACK_QUEEN];
 
     u64 res = 0;
     while (bq) {
         int pos = first_bit(bq);
-        res |= diag_attacks(0, (unsigned long)pos) | anti_diag_attacks(0, (unsigned long)pos);
+        res |= precomputed_bishop[pos];
         bq &= bq - 1;
     }
+
+    return res;
+}
+
+u64 BitBoardGenerator::generate_rook_rays(u64 *bitboards, bool turn) {
+    u64 rq = turn ? bitboards[WHITE_ROOK] | bitboards[WHITE_QUEEN] : bitboards[BLACK_ROOK] | bitboards[BLACK_QUEEN];
+
+    u64 res = 0;
     while (rq) {
         int pos = first_bit(rq);
-        res |= file_attacks(0, (unsigned long)pos) | rank_attacks(0, (unsigned long)pos);
+        res |= precomputed_rook[pos];
         rq &= rq - 1;
     }
 
@@ -307,8 +312,12 @@ u64 BitBoardGenerator::generate_queen_bitboard(u64 *bitboards, bool turn) {
 
 u64 BitBoardGenerator::generate_castle_bitboard(ChessGame &game, bool turn) {
     u64 attacks = generate_attacks_bitboard(game, !turn);
+    u64 king_attacks = pieces_attacking_king(game.get_board().get_bitboards(), turn);
     u64 occ = game.get_board().get_bitboards()[ALL];
     u64 res = 0;
+    if (king_attacks) {
+        return res;
+    }
     if (turn) {
         if (game.get_wk_castle() && (attacks & wk_castle_mask) == 0 && (occ & wk_castle_mask) == 0) {
             res |= 0x40ULL;
