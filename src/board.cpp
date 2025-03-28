@@ -20,6 +20,14 @@ void Board::draw_board() {
 }
 
 void Board::move_piece(int from, int to) {
+    // Remove captured piece
+    for (int i = 3; i < 15; i++) {
+        if (bitboards[i] & mask_piece[to]) {
+            bitboards[i] &= ~mask_piece[to];
+        }
+    }
+
+    // Move piece from the from square to the to square
     for (int i = 3; i < 15; i++) {
         if (bitboards[i] & mask_piece[from]) {
             bitboards[i] &= ~mask_piece[from];

@@ -5,17 +5,14 @@
 
 class PerftTest : public testing::Test {
 protected:
-    ChessGame game;
-
     void SetUp() override { MoveGenerator::init(); }
 
 public:
     u64 perft(ChessGame &game, int depth) {
-        std::vector<u16> moves;
-        moves = MoveGenerator::generate_legal_moves(game);
+        std::vector<u16> moves = MoveGenerator::generate_legal_moves(game);
 
-        if (depth == 1) {
-            return moves.size();
+        if (depth == 0) {
+            return 1;
         }
 
         u64 nodes = 0;
@@ -26,8 +23,8 @@ public:
             nodes += move_nodes;
 
             game.unmake_move(move);
-            std::cout << print_pos((int)get_from(move)) << print_pos((int)get_to(move)) << ": " << move_nodes
-                      << std::endl;
+//            std::cout << print_pos((int)get_from(move)) << print_pos((int)get_to(move)) << ": " << move_nodes
+//                      << std::endl;
         }
 
         return nodes;
@@ -35,6 +32,9 @@ public:
 };
 
 TEST_F(PerftTest, InitPos) {
+    ChessGame game;
+    game.load_pos("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+
     //    EXPECT_EQ(perft(game, 1), 20);
     EXPECT_EQ(perft(game, 2), 400);
     //    EXPECT_EQ(perft(game, 3), 8902);

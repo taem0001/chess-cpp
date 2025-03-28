@@ -1,7 +1,11 @@
 #include "../include/chessgame.h"
 #include "../include/fen.h"
 
-ChessGame::ChessGame() : board() { FenHandler::load_fen(*this, STARTPOS); }
+ChessGame::ChessGame() : board() { load_pos(STARTPOS); }
+
+void ChessGame::load_pos(const std::string &fen) {
+    FenHandler::load_fen(*this, fen);
+}
 
 void ChessGame::draw_game() { board.draw_board(); }
 
@@ -44,6 +48,13 @@ bool ChessGame::make_move(u16 move) {
         bk_castle = false;
     }
 
+    // Reset en passant square
+    if (en_passant_square != -1) {
+        en_passant_square = -1;
+    }
+
+    board.move_piece(from, to);
+
     // Handle move types
     int rook_sq, en_passant_capture;
     switch (flag) {
@@ -62,7 +73,6 @@ bool ChessGame::make_move(u16 move) {
             break;
         case capture:
             half_moves = 0;
-            board.remove_piece(to);
             break;
         case ep_capture:
             half_moves = 0;
@@ -100,13 +110,6 @@ bool ChessGame::make_move(u16 move) {
         default:
             break;
     }
-
-    // Reset en passant square
-    if (en_passant_square != -1) {
-        en_passant_square = -1;
-    }
-
-    board.move_piece(from, to);
     return true;
 }
 

@@ -29,40 +29,40 @@ void FenHandler::load_fen(ChessGame &game, const std::string &fen) {
             } else {
                 switch (c) {
                     case 'p':
-                        bitboards[BLACK_PAWN] |= 1ULL << index;
+                        bitboards[BLACK_PAWN] |= mask_piece[index];
                         break;
                     case 'r':
-                        bitboards[BLACK_ROOK] |= 1ULL << index;
+                        bitboards[BLACK_ROOK] |= mask_piece[index];
                         break;
                     case 'n':
-                        bitboards[BLACK_KNIGHT] |= 1ULL << index;
+                        bitboards[BLACK_KNIGHT] |= mask_piece[index];
                         break;
                     case 'b':
-                        bitboards[BLACK_BISHOP] |= 1ULL << index;
+                        bitboards[BLACK_BISHOP] |= mask_piece[index];
                         break;
                     case 'q':
-                        bitboards[BLACK_QUEEN] |= 1ULL << index;
+                        bitboards[BLACK_QUEEN] |= mask_piece[index];
                         break;
                     case 'k':
-                        bitboards[BLACK_KING] |= 1ULL << index;
+                        bitboards[BLACK_KING] |= mask_piece[index];
                         break;
                     case 'P':
-                        bitboards[WHITE_PAWN] |= 1ULL << index;
+                        bitboards[WHITE_PAWN] |= mask_piece[index];
                         break;
                     case 'R':
-                        bitboards[WHITE_ROOK] |= 1ULL << index;
+                        bitboards[WHITE_ROOK] |= mask_piece[index];
                         break;
                     case 'N':
-                        bitboards[WHITE_KNIGHT] |= 1ULL << index;
+                        bitboards[WHITE_KNIGHT] |= mask_piece[index];
                         break;
                     case 'B':
-                        bitboards[WHITE_BISHOP] |= 1ULL << index;
+                        bitboards[WHITE_BISHOP] |= mask_piece[index];
                         break;
                     case 'Q':
-                        bitboards[WHITE_QUEEN] |= 1ULL << index;
+                        bitboards[WHITE_QUEEN] |= mask_piece[index];
                         break;
                     case 'K':
-                        bitboards[WHITE_KING] |= 1ULL << index;
+                        bitboards[WHITE_KING] |= mask_piece[index];
                         break;
                     default:
                         break;

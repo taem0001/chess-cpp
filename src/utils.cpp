@@ -91,9 +91,7 @@ u64 in_between(int sq1, int sq2) {
     return line & btwn;
 }
 
-u16 define_move(u16 from, u16 to, u16 flag) {
-    return ((flag & 0xf) << 12) | ((to & 0x3f) << 6) | (from & 0x3f);
-}
+u16 define_move(u16 from, u16 to, u16 flag) { return ((flag & 0xf) << 12) | ((to & 0x3f) << 6) | (from & 0x3f); }
 
 u16 get_from(u16 move) { return move & 0x3f; }
 u16 get_to(u16 move) { return (move >> 6) & 0x3f; }
@@ -112,9 +110,7 @@ void print_bitboard(u64 bitboard) {
 
 void print_moves(std::vector<u16> &moves) {
     for (u16 move : moves) {
-        std::cout << "{" << print_pos((int)get_from(move))
-                  << print_pos((int)get_to(move)) << ";" << get_flag(move)
-                  << "} ";
+        std::cout << print_pos((int)get_from(move)) << print_pos((int)get_to(move)) << std::endl;
     }
     std::cout << std::endl;
 }

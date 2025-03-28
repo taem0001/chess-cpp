@@ -15,6 +15,7 @@ private:
 
 public:
     ChessGame();
+    void load_pos(const std::string &);
     void draw_game();
     bool make_move(u16);
     bool unmake_move(u16);

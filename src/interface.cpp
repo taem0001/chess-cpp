@@ -21,6 +21,7 @@ void Interface::run_game() {
         }
 
         print_moves(moves);
+        std::cout << moves.size() << std::endl;
 
         do {
             player = turn ? "White player's move: " : "Black player's move: ";

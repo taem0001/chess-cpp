@@ -19,6 +19,7 @@ private:
     static void generate_queen_moves(std::vector <u16> &, ChessGame &);
 
     static void check_detection(u64 *, bool *, bool *, bool);
+    static bool simulate_check(u64 *, PieceType, bool, int, int);
     static std::vector<u16> handle_single_check(std::vector<u16> &, ChessGame &);
 };
 
