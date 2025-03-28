@@ -1,5 +1,7 @@
 /build/
+/.vscode/
 /*.o
 /*.exe
 *.sh
 *.py
+*.ps1
