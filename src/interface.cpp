@@ -20,8 +20,8 @@ void Interface::run_game() {
             break;
         }
 
-        print_moves(moves);
-        std::cout << moves.size() << std::endl;
+        // print_moves(moves);
+        // std::cout << moves.size() << std::endl;
 
         do {
             player = turn ? "White player's move: " : "Black player's move: ";
@@ -33,11 +33,6 @@ void Interface::run_game() {
 
         game.make_move(move);
         game.draw_game();
-
-        std::map<u16, std::string> fens = game.get_fens();
-        for (const auto& pair : fens) {
-            std::cout << print_pos((int)get_from(pair.first)) << print_pos((int)get_to(pair.first)) << ": " << pair.second << std::endl;
-        }
     }
     player = turn ? "White player in checkmate" : "Black player in checkmate";
     std::cout << player << std::endl;
