@@ -33,7 +33,6 @@ void Interface::run_game() {
 
         game.make_move(move);
         game.draw_game();
-        game.change_turn();
 
         std::map<u16, std::string> fens = game.get_fens();
         for (const auto& pair : fens) {

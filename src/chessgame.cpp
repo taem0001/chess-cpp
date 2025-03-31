@@ -109,6 +109,7 @@ bool ChessGame::make_move(u16 move) {
         default:
             break;
     }
+    change_turn();
     return true;
 }
 

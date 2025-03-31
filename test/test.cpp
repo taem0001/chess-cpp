@@ -23,8 +23,6 @@ public:
             nodes += move_nodes;
 
             game.unmake_move(move);
-            std::cout << print_pos((int)get_from(move)) << print_pos((int)get_to(move)) << ": " << move_nodes
-                      << std::endl;
         }
 
         return nodes;
@@ -35,10 +33,10 @@ TEST_F(PerftTest, InitPos) {
     ChessGame game;
     game.load_pos("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
-    //    EXPECT_EQ(perft(game, 1), 20);
+    EXPECT_EQ(perft(game, 1), 20);
     EXPECT_EQ(perft(game, 2), 400);
-    //    EXPECT_EQ(perft(game, 3), 8902);
-    //    EXPECT_EQ(perft(game, 4), 197281);
+    EXPECT_EQ(perft(game, 3), 8902);
+    EXPECT_EQ(perft(game, 4), 197281);
     //    EXPECT_EQ(perft(game, 5), 4865609);
     //    EXPECT_EQ(perft(game, 6), 119060324);
     //    EXPECT_EQ(perft(game, 7), 3195901860);
