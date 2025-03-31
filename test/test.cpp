@@ -23,8 +23,8 @@ public:
             nodes += move_nodes;
 
             game.unmake_move(move);
-//            std::cout << print_pos((int)get_from(move)) << print_pos((int)get_to(move)) << ": " << move_nodes
-//                      << std::endl;
+            std::cout << print_pos((int)get_from(move)) << print_pos((int)get_to(move)) << ": " << move_nodes
+                      << std::endl;
         }
 
         return nodes;

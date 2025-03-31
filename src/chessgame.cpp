@@ -3,9 +3,7 @@
 
 ChessGame::ChessGame() : board() { load_pos(STARTPOS); }
 
-void ChessGame::load_pos(const std::string &fen) {
-    FenHandler::load_fen(*this, fen);
-}
+void ChessGame::load_pos(const std::string &fen) { FenHandler::load_fen(*this, fen); }
 
 void ChessGame::draw_game() { board.draw_board(); }
 
@@ -30,21 +28,21 @@ bool ChessGame::make_move(u16 move) {
     }
 
     // Reset halfmove clock counter
-    if (bitboards[WHITE_PAWN] & mask_piece[from] || bitboards[BLACK_PAWN] & mask_piece[from]) {
+    if ((bitboards[WHITE_PAWN] & mask_piece[from]) || (bitboards[BLACK_PAWN] & mask_piece[from])) {
         half_moves = 0;
     }
 
     // Reset castling rights if rooks move from their original squares
-    if (from == 0 && bitboards[WHITE_ROOK] & mask_piece[from]) {
+    if (from == 0 && (bitboards[WHITE_ROOK] & mask_piece[from])) {
         wq_castle = false;
     }
-    if (from == 7 && bitboards[WHITE_ROOK] & mask_piece[from]) {
+    if (from == 7 && (bitboards[WHITE_ROOK] & mask_piece[from])) {
         wk_castle = false;
     }
-    if (from == 56 && bitboards[BLACK_ROOK] & mask_piece[from]) {
+    if (from == 56 && (bitboards[BLACK_ROOK] & mask_piece[from])) {
         bq_castle = false;
     }
-    if (from == 63 && bitboards[BLACK_ROOK] & mask_piece[from]) {
+    if (from == 63 && (bitboards[BLACK_ROOK] & mask_piece[from])) {
         bk_castle = false;
     }
 
@@ -73,6 +71,7 @@ bool ChessGame::make_move(u16 move) {
             break;
         case capture:
             half_moves = 0;
+            board.remove_piece((int)to);
             break;
         case ep_capture:
             half_moves = 0;
@@ -92,19 +91,19 @@ bool ChessGame::make_move(u16 move) {
             board.promote_piece(white_turn, 'q', to);
             break;
         case knight_promo_capture:
-            board.remove_piece(to);
+            board.remove_piece((int)to);
             board.promote_piece(white_turn, 'n', to);
             break;
         case bishop_promo_capture:
-            board.remove_piece(to);
+            board.remove_piece((int)to);
             board.promote_piece(white_turn, 'b', to);
             break;
         case rook_promo_capture:
-            board.remove_piece(to);
+            board.remove_piece((int)to);
             board.promote_piece(white_turn, 'r', to);
             break;
         case queen_promo_capture:
-            board.remove_piece(to);
+            board.remove_piece((int)to);
             board.promote_piece(white_turn, 'q', to);
             break;
         default:
@@ -115,7 +114,7 @@ bool ChessGame::make_move(u16 move) {
 
 bool ChessGame::unmake_move(u16 move) {
     std::string pos = fens[move];
-    FenHandler::load_fen(*this, pos);
+    load_pos(pos);
     return true;
 }
 
