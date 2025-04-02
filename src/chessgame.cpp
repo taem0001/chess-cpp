@@ -47,9 +47,8 @@ bool ChessGame::make_move(u16 move) {
     }
 
     // Reset en passant square
-    if (en_passant_square != -1) {
-        en_passant_square = -1;
-    }
+    int ep_temp = en_passant_square;
+    en_passant_square = -1;
 
     board.move_piece(from, to);
 
@@ -71,11 +70,10 @@ bool ChessGame::make_move(u16 move) {
             break;
         case capture:
             half_moves = 0;
-            board.remove_piece((int)to);
             break;
         case ep_capture:
             half_moves = 0;
-            en_passant_capture = white_turn ? en_passant_square - 8 : en_passant_square + 8;
+            en_passant_capture = white_turn ? ep_temp - 8 : ep_temp + 8;
             board.remove_piece(en_passant_capture);
             break;
         case knight_promotion:
@@ -91,19 +89,19 @@ bool ChessGame::make_move(u16 move) {
             board.promote_piece(white_turn, 'q', to);
             break;
         case knight_promo_capture:
-            board.remove_piece((int)to);
+            half_moves = 0;
             board.promote_piece(white_turn, 'n', to);
             break;
         case bishop_promo_capture:
-            board.remove_piece((int)to);
+            half_moves = 0;
             board.promote_piece(white_turn, 'b', to);
             break;
         case rook_promo_capture:
-            board.remove_piece((int)to);
+            half_moves = 0;
             board.promote_piece(white_turn, 'r', to);
             break;
         case queen_promo_capture:
-            board.remove_piece((int)to);
+            half_moves = 0;
             board.promote_piece(white_turn, 'q', to);
             break;
         default:
