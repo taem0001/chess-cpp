@@ -59,7 +59,7 @@ void MoveGenerator::generate_pawn_pushes(std::vector<u16> &moves, ChessGame &gam
                 moves.push_back(define_move(from, to, rook_promotion));
                 moves.push_back(define_move(from, to, queen_promotion));
             } else {
-                if (abs(to - from) == 16) {
+                if ((turn && to - from == 16) || (!turn && from - to == 16)) {
                     moves.push_back(define_move(from, to, double_pawn_push));
                 } else {
                     moves.push_back(define_move(from, to, quiet_move));

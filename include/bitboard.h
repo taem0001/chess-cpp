@@ -38,6 +38,7 @@ private:
     static u64 xray_rook_attacks(u64, u64, int);
     static u64 xray_bishop_attacks(u64, u64, int);
     static u64 generate_knight_bitboard(u64 *, bool);
+    static bool square_attacked_by_pawn_or_knight(int, u64 *, bool);
 };
 
 #endif // !BITBOARD_H

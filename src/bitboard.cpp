@@ -141,9 +141,7 @@ u64 BitBoardGenerator::pieces_attacking_square(u64 *bitboards, int sq, bool turn
 
 u64 BitBoardGenerator::pieces_attacking_king(u64 *bitboards, bool turn) {
     int king_pos = turn ? first_bit(bitboards[WHITE_KING]) : first_bit(bitboards[BLACK_KING]);
-    u64 res = pieces_attacking_square(bitboards, king_pos, !turn);
-    res &= turn ? ~bitboards[WHITE_KING] : ~bitboards[BLACK_KING];
-    return res;
+    return pieces_attacking_square(bitboards, king_pos, !turn);
 }
 
 u64 BitBoardGenerator::generate_attacks_bitboard(ChessGame &game, bool turn) {
@@ -151,8 +149,8 @@ u64 BitBoardGenerator::generate_attacks_bitboard(ChessGame &game, bool turn) {
     u64 bishops = turn ? bitboards[WHITE_BISHOP] : bitboards[BLACK_BISHOP];
     u64 rooks = turn ? bitboards[WHITE_ROOK] : bitboards[BLACK_ROOK];
     u64 queens = turn ? bitboards[WHITE_QUEEN] : bitboards[BLACK_QUEEN];
-    u64 all_attacks = generate_pawn_captures_bitboard(game, turn) | generate_knight_bitboard(bitboards, turn) |
-                      generate_king_bitboard(game, turn);
+    u64 all_attacks = 0;
+
     while (bishops) {
         int sq = first_bit(bishops);
         all_attacks |= generate_bishop_bitboard(bitboards, sq, turn);
@@ -167,6 +165,30 @@ u64 BitBoardGenerator::generate_attacks_bitboard(ChessGame &game, bool turn) {
         int sq = first_bit(queens);
         all_attacks |= generate_queen_bitboard(bitboards, sq, turn);
         queens &= queens - 1;
+    }
+    if (square_attacked_by_pawn_or_knight(6, bitboards, !turn)) {
+        all_attacks |= mask_piece[6];
+    }
+    if (square_attacked_by_pawn_or_knight(2, bitboards, !turn)) {
+        all_attacks |= mask_piece[2];
+    }
+    if (square_attacked_by_pawn_or_knight(5, bitboards, !turn)) {
+        all_attacks |= mask_piece[5];
+    }
+    if (square_attacked_by_pawn_or_knight(3, bitboards, !turn)) {
+        all_attacks |= mask_piece[3];
+    }
+    if (square_attacked_by_pawn_or_knight(58, bitboards, !turn)) {
+        all_attacks |= mask_piece[58];
+    }
+    if (square_attacked_by_pawn_or_knight(62, bitboards, !turn)) {
+        all_attacks |= mask_piece[62];
+    }
+    if (square_attacked_by_pawn_or_knight(59, bitboards, !turn)) {
+        all_attacks |= mask_piece[59];
+    }
+    if (square_attacked_by_pawn_or_knight(61, bitboards, !turn)) {
+        all_attacks |= mask_piece[61];
     }
     return all_attacks;
 }
@@ -216,6 +238,7 @@ u64 BitBoardGenerator::generate_king_bitboard(ChessGame &game, bool turn) {
     u64 king = turn ? bitboards[WHITE_KING] : bitboards[BLACK_KING];
     u64 mask = turn ? ~bitboards[WHITE] : ~bitboards[BLACK];
     int pos = first_bit(king);
+    // Pseudolegal king attacks
     u64 moves = king_attack_pattern[pos] & mask;
     return moves;
 }
@@ -282,17 +305,17 @@ u64 BitBoardGenerator::generate_castle_bitboard(ChessGame &game, bool turn) {
     }
     if (turn) {
         if (game.get_wk_castle() && (attacks & wk_castle_mask) == 0 && (occ & wk_castle_mask) == 0) {
-            res |= 0x40ULL;
+            res |= mask_piece[6];
         }
         if (game.get_wq_castle() && (attacks & wq_castle_mask) == 0 && (occ & wq_castle_mask) == 0) {
-            res |= 0x4ULL;
+            res |= mask_piece[2];
         }
     } else {
         if (game.get_bk_castle() && (attacks & bk_castle_mask) == 0 && (occ & bk_castle_mask) == 0) {
-            res |= 0x40ULL << 56;
+            res |= mask_piece[62];
         }
         if (game.get_bq_castle() && (attacks & bq_castle_mask) == 0 && (occ & bq_castle_mask) == 0) {
-            res |= 0x4ULL << 56;
+            res |= mask_piece[58];
         }
     }
     return res;
@@ -359,4 +382,23 @@ int BitBoardGenerator::get_pinning_piece_square(u64 *bitboards, int sq, bool tur
         pinner &= pinner - 1;
     }
     return 64;
+}
+
+bool BitBoardGenerator::square_attacked_by_pawn_or_knight(int square, u64 *bitboards, bool enemy_turn) {
+    // enemy_turn = the color of the potential attacker
+    u64 attackers = 0;
+
+    if (enemy_turn) {
+        // Black attackers
+        attackers |= shift_south_west(mask_piece[square]) & bitboards[BLACK_PAWN];
+        attackers |= shift_south_east(mask_piece[square]) & bitboards[BLACK_PAWN];
+        attackers |= knight_attack_squares[square] & bitboards[BLACK_KNIGHT];
+    } else {
+        // White attackers
+        attackers |= shift_north_west(mask_piece[square]) & bitboards[WHITE_PAWN];
+        attackers |= shift_north_east(mask_piece[square]) & bitboards[WHITE_PAWN];
+        attackers |= knight_attack_squares[square] & bitboards[WHITE_KNIGHT];
+    }
+
+    return attackers != 0;
 }
