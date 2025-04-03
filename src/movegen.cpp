@@ -41,11 +41,13 @@ void MoveGenerator::generate_pawn_pushes(std::vector<u16> &moves, ChessGame &gam
     while (pawns) {
         from = first_bit(pawns);
         u64 pushes = BitBoardGenerator::generate_pawn_bitboard(bitboards, mask_piece[from], turn);
+
+        pin_ray = 0xffffffffffffffff;
         if (mask_piece[from] & pinned_pawns) {
             int pinner_sq = BitBoardGenerator::get_pinning_piece_square(bitboards, from, turn);
             pin_ray = BitBoardGenerator::precomputed_in_between[king_sq][pinner_sq] | mask_piece[pinner_sq];
-            pushes &= pin_ray;
         }
+        pushes &= pin_ray;
 
         while (pushes) {
             to = first_bit(pushes);
@@ -79,13 +81,14 @@ void MoveGenerator::generate_pawn_captures(std::vector<u16> &moves, ChessGame &g
     int king_sq = turn ? first_bit(bitboards[WHITE_KING]) : first_bit(bitboards[BLACK_KING]);
     int en_passant_sq = game.get_en_passant_sq();
     int from, to;
-    u64 pin_ray = 0xffffffffffffffff;
+    u64 pin_ray;
 
     while (pawns) {
         from = first_bit(pawns);
         int file = from % 8;
         int rank = from / 8;
 
+        pin_ray = 0xffffffffffffffff;
         if (pinned_pawns & mask_piece[from]) {
             int pinner_sq = BitBoardGenerator::get_pinning_piece_square(bitboards, from, turn);
             pin_ray = BitBoardGenerator::precomputed_in_between[king_sq][pinner_sq] | mask_piece[pinner_sq];
@@ -144,7 +147,7 @@ void MoveGenerator::generate_pawn_captures(std::vector<u16> &moves, ChessGame &g
                 for (int i = 0; i < 15; i++) {
                     board_sim[i] = bitboards[i];
                 }
-                to = first_bit(mask_piece[en_passant_sq]);
+                to = en_passant_sq;
                 int capture_sq = turn ? en_passant_sq - 8 : en_passant_sq + 8;
                 for (int i = 3; i < 15; i++) {
                     if (mask_piece[from] & board_sim[i]) {
