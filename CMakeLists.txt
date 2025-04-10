@@ -23,9 +23,9 @@ FetchContent_MakeAvailable(googletest)
 add_executable(ChessProject
     src/main.cpp
     src/board.cpp
-    src/chessgame.cpp
+    src/chesslogic.cpp
     src/fen.cpp
-    src/interface.cpp
+    src/chessgame.cpp
     src/utils.cpp
     src/movegen.cpp
     src/bitboard.cpp
@@ -35,7 +35,7 @@ add_executable(ChessProject
 add_executable(runTests
     test/test.cpp
     src/board.cpp
-    src/chessgame.cpp
+    src/chesslogic.cpp
     src/fen.cpp
     src/utils.cpp
     src/movegen.cpp

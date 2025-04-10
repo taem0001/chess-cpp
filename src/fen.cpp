@@ -1,7 +1,7 @@
 #include "../include/fen.h"
 
-void FenHandler::load_fen(ChessGame &game, const std::string &fen) {
-    u64 *bitboards = game.get_board().get_bitboards();
+void FenHandler::load_fen(ChessLogic &logic, const std::string &fen) {
+    u64 *bitboards = logic.get_board().get_bitboards();
 
     for (int i = 0; i < 15; i++) {
         bitboards[i] = 0;
@@ -13,10 +13,10 @@ void FenHandler::load_fen(ChessGame &game, const std::string &fen) {
     int half_m = 0;
     int full_m = 0;
 
-    game.set_wk_castle(false);
-    game.set_wq_castle(false);
-    game.set_bk_castle(false);
-    game.set_bq_castle(false);
+    logic.set_wk_castle(false);
+    logic.set_wq_castle(false);
+    logic.set_bk_castle(false);
+    logic.set_bq_castle(false);
 
     while (s_index < fen.length()) {
         char c = fen[s_index];
@@ -74,37 +74,37 @@ void FenHandler::load_fen(ChessGame &game, const std::string &fen) {
             spaces++;
         }
         if (c == 'w' && spaces == 1) {
-            game.set_turn(true);
+            logic.set_turn(true);
         }
         if (c == 'b' && spaces == 1) {
-            game.set_turn(false);
+            logic.set_turn(false);
         }
         if (c == 'K' && spaces == 2) {
-            game.set_wk_castle(true);
+            logic.set_wk_castle(true);
         }
         if (c == 'Q' && spaces == 2) {
-            game.set_wq_castle(true);
+            logic.set_wq_castle(true);
         }
         if (c == 'k' && spaces == 2) {
-            game.set_bk_castle(true);
+            logic.set_bk_castle(true);
         }
         if (c == 'q' && spaces == 2) {
-            game.set_bq_castle(true);
+            logic.set_bq_castle(true);
         }
         if (c == '-' && spaces == 2) {
-            game.set_wk_castle(false);
-            game.set_wq_castle(false);
-            game.set_bk_castle(false);
-            game.set_bq_castle(false);
+            logic.set_wk_castle(false);
+            logic.set_wq_castle(false);
+            logic.set_bk_castle(false);
+            logic.set_bq_castle(false);
         }
         if (c == '-' && spaces == 3) {
-            game.set_en_passant_sq(-1);
+            logic.set_en_passant_sq(-1);
         }
         if (c >= 'a' && c <= 'h' && spaces == 3) {
             int col = c - 'a';
             if (s_index + 1 < fen.length() && isdigit(fen[s_index + 1])) {
                 int row = fen[++s_index] - '1';
-                game.set_en_passant_sq(col + row * 8);
+                logic.set_en_passant_sq(col + row * 8);
             }
         }
         if (isdigit(c) && spaces == 4) {
@@ -115,8 +115,8 @@ void FenHandler::load_fen(ChessGame &game, const std::string &fen) {
         }
         s_index++;
     }
-    game.set_halfmoves(half_m);
-    game.set_fullmoves(full_m);
+    logic.set_halfmoves(half_m);
+    logic.set_fullmoves(full_m);
 
     bitboards[WHITE] = bitboards[WHITE_PAWN] | bitboards[WHITE_ROOK] |
                        bitboards[WHITE_BISHOP] | bitboards[WHITE_KNIGHT] |
@@ -127,9 +127,9 @@ void FenHandler::load_fen(ChessGame &game, const std::string &fen) {
     bitboards[ALL] = bitboards[WHITE] | bitboards[BLACK];
 }
 
-std::string FenHandler::write_fen(ChessGame &game) {
+std::string FenHandler::write_fen(ChessLogic &logic) {
     std::string res = "";
-    u64 *bitboards = game.get_board().get_bitboards();
+    u64 *bitboards = logic.get_board().get_bitboards();
 
     for (int rank = 7; rank >= 0; rank--) {
         int empty_count = 0;
@@ -162,34 +162,34 @@ std::string FenHandler::write_fen(ChessGame &game) {
     }
 
     res += ' ';
-    res += game.get_turn() ? 'w' : 'b';
+    res += logic.get_turn() ? 'w' : 'b';
     res += ' ';
 
-    if (!game.get_wk_castle() && !game.get_wq_castle() &&
-        !game.get_bk_castle() && !game.get_bq_castle()) {
+    if (!logic.get_wk_castle() && !logic.get_wq_castle() &&
+        !logic.get_bk_castle() && !logic.get_bq_castle()) {
         res += '-';
     }
-    if (game.get_wk_castle()) {
+    if (logic.get_wk_castle()) {
         res += 'K';
     }
-    if (game.get_wq_castle()) {
+    if (logic.get_wq_castle()) {
         res += 'Q';
     }
-    if (game.get_bk_castle()) {
+    if (logic.get_bk_castle()) {
         res += 'k';
     }
-    if (game.get_bq_castle()) {
+    if (logic.get_bq_castle()) {
         res += 'q';
     }
 
     res += ' ';
-    res += game.get_en_passant_sq() != -1 ? print_pos(game.get_en_passant_sq())
+    res += logic.get_en_passant_sq() != -1 ? print_pos(logic.get_en_passant_sq())
                                           : "-";
 
     res += ' ';
-    res += std::to_string(game.get_halfmoves());
+    res += std::to_string(logic.get_halfmoves());
     res += ' ';
-    res += std::to_string(game.get_fullmoves());
+    res += std::to_string(logic.get_fullmoves());
 
     return res;
 }

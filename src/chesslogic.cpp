@@ -1,0 +1,165 @@
+#include "../include/chesslogic.h"
+
+#include "../include/fen.h"
+
+ChessLogic::ChessLogic() : board() {
+    load_pos(STARTPOS);
+    total_moves = 1;
+}
+
+void ChessLogic::load_pos(const std::string &fen) { FenHandler::load_fen(*this, fen); }
+
+void ChessLogic::draw_game() { board.draw_board(); }
+
+bool ChessLogic::make_move(u32 move) {
+    fens[move] = FenHandler::write_fen(*this);
+    u64 *bitboards = get_board().get_bitboards();
+    u32 from = get_from(move);
+    u32 to = get_to(move);
+    u32 flag = get_flag(move);
+    half_moves++;
+
+    if (!white_turn) {
+        full_moves++;
+    }
+
+    // Reset castling rights if the king moves
+    if (bitboards[WHITE_KING] & mask_piece[from]) {
+        wk_castle = wq_castle = false;
+    }
+    if (bitboards[BLACK_KING] & mask_piece[from]) {
+        bk_castle = bq_castle = false;
+    }
+
+    // Reset halfmove clock counter
+    if ((bitboards[WHITE_PAWN] & mask_piece[from]) || (bitboards[BLACK_PAWN] & mask_piece[from])) {
+        half_moves = 0;
+    }
+
+    // Reset castling rights if rooks move from their original squares
+    if (from == 0 && (bitboards[WHITE_ROOK] & mask_piece[from])) {
+        wq_castle = false;
+    }
+    if (from == 7 && (bitboards[WHITE_ROOK] & mask_piece[from])) {
+        wk_castle = false;
+    }
+    if (from == 56 && (bitboards[BLACK_ROOK] & mask_piece[from])) {
+        bq_castle = false;
+    }
+    if (from == 63 && (bitboards[BLACK_ROOK] & mask_piece[from])) {
+        bk_castle = false;
+    }
+
+    // Reset en passant square
+    int ep_temp = en_passant_square;
+    en_passant_square = -1;
+
+    board.move_piece(from, to);
+
+    // Handle move types
+    int rook_sq, en_passant_capture;
+    switch (flag) {
+        case quiet_move:
+            break;
+        case double_pawn_push:
+            en_passant_square = white_turn ? to - 8 : to + 8;
+            break;
+        case king_castle:
+            rook_sq = white_turn ? 7 : 63;
+            board.move_piece(rook_sq, to - 1);
+            break;
+        case queen_castle:
+            rook_sq = white_turn ? 0 : 56;
+            board.move_piece(rook_sq, to + 1);
+            break;
+        case capture:
+            half_moves = 0;
+            break;
+        case ep_capture:
+            half_moves = 0;
+            en_passant_capture = white_turn ? ep_temp - 8 : ep_temp + 8;
+            board.remove_piece(en_passant_capture);
+            break;
+        case knight_promotion:
+            board.promote_piece(white_turn, 'n', to);
+            break;
+        case bishop_promotion:
+            board.promote_piece(white_turn, 'b', to);
+            break;
+        case rook_promotion:
+            board.promote_piece(white_turn, 'r', to);
+            break;
+        case queen_promotion:
+            board.promote_piece(white_turn, 'q', to);
+            break;
+        case knight_promo_capture:
+            half_moves = 0;
+            board.promote_piece(white_turn, 'n', to);
+            break;
+        case bishop_promo_capture:
+            half_moves = 0;
+            board.promote_piece(white_turn, 'b', to);
+            break;
+        case rook_promo_capture:
+            half_moves = 0;
+            board.promote_piece(white_turn, 'r', to);
+            break;
+        case queen_promo_capture:
+            half_moves = 0;
+            board.promote_piece(white_turn, 'q', to);
+            break;
+        default:
+            break;
+    }
+    change_turn();
+    total_moves++;
+    return true;
+}
+
+bool ChessLogic::unmake_move(u32 move) {
+    std::string pos = fens[move];
+    load_pos(pos);
+    return true;
+}
+
+bool ChessLogic::fivefold_repitition() {
+    std::map<std::string, int> freq;
+
+    for (const auto &pair : fens) {
+        freq[pair.second]++;
+    }
+
+    for (const auto &pair : freq) {
+        if (pair.second == 5) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+Board &ChessLogic::get_board() { return board; }
+void ChessLogic::change_turn() { white_turn = !white_turn; }
+void ChessLogic::set_turn(bool b) { white_turn = b; }
+bool ChessLogic::get_turn() { return white_turn; }
+bool ChessLogic::get_wk_castle() { return wk_castle; }
+bool ChessLogic::get_wq_castle() { return wq_castle; }
+bool ChessLogic::get_bk_castle() { return bk_castle; }
+bool ChessLogic::get_bq_castle() { return bq_castle; }
+void ChessLogic::set_wk_castle(bool b) { wk_castle = b; }
+void ChessLogic::set_wq_castle(bool b) { wq_castle = b; }
+void ChessLogic::set_bk_castle(bool b) { bk_castle = b; }
+void ChessLogic::set_bq_castle(bool b) { bq_castle = b; }
+int ChessLogic::get_en_passant_sq() { return en_passant_square; }
+void ChessLogic::set_en_passant_sq(int sq) { en_passant_square = sq; }
+int ChessLogic::get_halfmoves() { return half_moves; }
+void ChessLogic::set_halfmoves(int n) { half_moves = n; }
+int ChessLogic::get_fullmoves() { return full_moves; }
+void ChessLogic::set_fullmoves(int n) { full_moves = n; }
+bool ChessLogic::get_singlecheck() { return single_check; }
+void ChessLogic::set_singlecheck(bool b) { single_check = b; }
+bool ChessLogic::get_doublecheck() { return double_check; }
+void ChessLogic::set_doublecheck(bool b) { double_check = b; }
+bool ChessLogic::fifty_move_rule() { return half_moves >= 100; }
+u32 ChessLogic::get_totalmoves() { return total_moves; }
+std::map<u32, std::string> ChessLogic::get_fens() { return fens; }
