@@ -23,13 +23,13 @@ int last_bit(u64 bitboard) {
 #endif
 }
 
-bool contains_move(std::vector<u16> &moves, int from, int to, u16 *move) {
-    for (u16 move_t : moves) {
-        int from_t = get_from(move_t);
-        int to_t = get_to(move_t);
+bool contains_move(std::vector<u32> &moves, int from, int to, u32 total_moves, u32 *move) {
+    for (u32 move_t : moves) {
+        int from_t = (int)get_from(move_t);
+        int to_t = (int)get_to(move_t);
         if (from == from_t && to == to_t) {
-            u16 flag = get_flag(move_t);
-            *move = define_move(from, to, flag);
+            u32 flag = get_flag(move_t);
+            *move = define_move((u32)from, (u32)to, flag, total_moves);
             return true;
         }
     }
@@ -98,13 +98,14 @@ u64 in_between(int sq1, int sq2) {
     return line & btwn;
 }
 
-u16 define_move(u16 from, u16 to, u16 flag) {
-    return ((flag & 0xf) << 12) | ((to & 0x3f) << 6) | (from & 0x3f);
+u32 define_move(u32 from, u32 to, u32 flag, u32 total_moves) {
+    return ((total_moves & 0xffff) << 16) | ((flag & 0xf) << 12) | ((to & 0x3f) << 6) | (from & 0x3f);
 }
 
-u16 get_from(u16 move) { return move & 0x3f; }
-u16 get_to(u16 move) { return (move >> 6) & 0x3f; }
-u16 get_flag(u16 move) { return (move >> 12) & 0xf; }
+u32 get_from(u32 move) { return move & 0x3f; }
+u32 get_to(u32 move) { return (move >> 6) & 0x3f; }
+u32 get_flag(u32 move) { return (move >> 12) & 0xf; }
+u32 get_totalmoves(u32 move) { return (move >> 16) & 0xffff; }
 
 void print_bitboard(u64 bitboard) {
     for (int rank = 7; rank >= 0; --rank) {
@@ -117,10 +118,9 @@ void print_bitboard(u64 bitboard) {
     std::cout << std::endl;
 }
 
-void print_moves(std::vector<u16> &moves) {
-    for (u16 move : moves) {
-        std::cout << print_pos((int)get_from(move))
-                  << print_pos((int)get_to(move)) << std::endl;
+void print_moves(std::vector<u32> &moves) {
+    for (u32 move : moves) {
+        std::cout << print_pos((int)get_from(move)) << print_pos((int)get_to(move)) << std::endl;
     }
     std::cout << std::endl;
 }

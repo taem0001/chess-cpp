@@ -2,8 +2,8 @@
 
 void MoveGenerator::init() { BitBoardGenerator::init(); }
 
-std::vector<u16> MoveGenerator::generate_legal_moves(ChessGame &game) {
-    std::vector<u16> moves;
+std::vector<u32> MoveGenerator::generate_legal_moves(ChessGame &game) {
+    std::vector<u32> moves;
 
     bool single_ = false;
     bool double_ = false;
@@ -29,7 +29,7 @@ std::vector<u16> MoveGenerator::generate_legal_moves(ChessGame &game) {
     return moves;
 }
 
-void MoveGenerator::generate_pawn_pushes(std::vector<u16> &moves, ChessGame &game) {
+void MoveGenerator::generate_pawn_pushes(std::vector<u32> &moves, ChessGame &game) {
     bool turn = game.get_turn();
     u64 *bitboards = game.get_board().get_bitboards();
     u64 pawns = turn ? bitboards[WHITE_PAWN] : bitboards[BLACK_PAWN];
@@ -54,15 +54,15 @@ void MoveGenerator::generate_pawn_pushes(std::vector<u16> &moves, ChessGame &gam
             int to_rank = to / 8;
 
             if ((turn && to_rank == 7) || (!turn && to_rank == 0)) {
-                moves.push_back(define_move(from, to, knight_promotion));
-                moves.push_back(define_move(from, to, bishop_promotion));
-                moves.push_back(define_move(from, to, rook_promotion));
-                moves.push_back(define_move(from, to, queen_promotion));
+                moves.push_back(define_move(from, to, knight_promotion, game.get_totalmoves()));
+                moves.push_back(define_move(from, to, bishop_promotion, game.get_totalmoves()));
+                moves.push_back(define_move(from, to, rook_promotion, game.get_totalmoves()));
+                moves.push_back(define_move(from, to, queen_promotion, game.get_totalmoves()));
             } else {
                 if ((turn && to - from == 16) || (!turn && from - to == 16)) {
-                    moves.push_back(define_move(from, to, double_pawn_push));
+                    moves.push_back(define_move(from, to, double_pawn_push, game.get_totalmoves()));
                 } else {
-                    moves.push_back(define_move(from, to, quiet_move));
+                    moves.push_back(define_move(from, to, quiet_move, game.get_totalmoves()));
                 }
             }
             pushes &= pushes - 1;
@@ -72,7 +72,7 @@ void MoveGenerator::generate_pawn_pushes(std::vector<u16> &moves, ChessGame &gam
     }
 }
 
-void MoveGenerator::generate_pawn_captures(std::vector<u16> &moves, ChessGame &game) {
+void MoveGenerator::generate_pawn_captures(std::vector<u32> &moves, ChessGame &game) {
     bool turn = game.get_turn();
     u64 *bitboards = game.get_board().get_bitboards();
     u64 pawns = turn ? bitboards[WHITE_PAWN] : bitboards[BLACK_PAWN];
@@ -109,12 +109,12 @@ void MoveGenerator::generate_pawn_captures(std::vector<u16> &moves, ChessGame &g
                 int to_rank = to / 8;
 
                 if ((turn && to_rank == 7) || (!turn && to_rank == 0)) {
-                    moves.push_back(define_move(from, to, knight_promo_capture));
-                    moves.push_back(define_move(from, to, bishop_promo_capture));
-                    moves.push_back(define_move(from, to, rook_promo_capture));
-                    moves.push_back(define_move(from, to, queen_promo_capture));
+                    moves.push_back(define_move(from, to, knight_promo_capture, game.get_totalmoves()));
+                    moves.push_back(define_move(from, to, bishop_promo_capture, game.get_totalmoves()));
+                    moves.push_back(define_move(from, to, rook_promo_capture, game.get_totalmoves()));
+                    moves.push_back(define_move(from, to, queen_promo_capture, game.get_totalmoves()));
                 } else {
-                    moves.push_back(define_move(from, to, capture));
+                    moves.push_back(define_move(from, to, capture, game.get_totalmoves()));
                 }
                 left_captures &= left_captures - 1;
             }
@@ -128,12 +128,12 @@ void MoveGenerator::generate_pawn_captures(std::vector<u16> &moves, ChessGame &g
                 int to_rank = to / 8;
 
                 if ((turn && to_rank == 7) || (!turn && to_rank == 0)) {
-                    moves.push_back(define_move(from, to, knight_promo_capture));
-                    moves.push_back(define_move(from, to, bishop_promo_capture));
-                    moves.push_back(define_move(from, to, rook_promo_capture));
-                    moves.push_back(define_move(from, to, queen_promo_capture));
+                    moves.push_back(define_move(from, to, knight_promo_capture, game.get_totalmoves()));
+                    moves.push_back(define_move(from, to, bishop_promo_capture, game.get_totalmoves()));
+                    moves.push_back(define_move(from, to, rook_promo_capture, game.get_totalmoves()));
+                    moves.push_back(define_move(from, to, queen_promo_capture, game.get_totalmoves()));
                 } else {
-                    moves.push_back(define_move(from, to, capture));
+                    moves.push_back(define_move(from, to, capture, game.get_totalmoves()));
                 }
                 right_captures &= right_captures - 1;
             }
@@ -165,7 +165,7 @@ void MoveGenerator::generate_pawn_captures(std::vector<u16> &moves, ChessGame &g
 
                 u64 king_check = BitBoardGenerator::pieces_attacking_king(board_sim, turn);
                 if (king_check == 0) {
-                    moves.push_back(define_move(from, to, ep_capture));
+                    moves.push_back(define_move(from, to, ep_capture, game.get_totalmoves()));
                 }
             }
         }
@@ -174,7 +174,7 @@ void MoveGenerator::generate_pawn_captures(std::vector<u16> &moves, ChessGame &g
     }
 }
 
-void MoveGenerator::generate_knight_moves(std::vector<u16> &moves, ChessGame &game) {
+void MoveGenerator::generate_knight_moves(std::vector<u32> &moves, ChessGame &game) {
     bool turn = game.get_turn();
     u64 *bitboards = game.get_board().get_bitboards();
     u64 knights = turn ? bitboards[WHITE_KNIGHT] : bitboards[BLACK_KNIGHT];
@@ -191,9 +191,9 @@ void MoveGenerator::generate_knight_moves(std::vector<u16> &moves, ChessGame &ga
         while (attacks) {
             to = first_bit(attacks);
             if (mask_piece[to] & enemy) {
-                moves.push_back(define_move(from, to, capture));
+                moves.push_back(define_move(from, to, capture, game.get_totalmoves()));
             } else {
-                moves.push_back(define_move(from, to, quiet_move));
+                moves.push_back(define_move(from, to, quiet_move, game.get_totalmoves()));
             }
             attacks &= attacks - 1;
         }
@@ -201,7 +201,7 @@ void MoveGenerator::generate_knight_moves(std::vector<u16> &moves, ChessGame &ga
     }
 }
 
-void MoveGenerator::generate_king_moves(std::vector<u16> &moves, ChessGame &game) {
+void MoveGenerator::generate_king_moves(std::vector<u32> &moves, ChessGame &game) {
     bool turn = game.get_turn();
     u64 *bitboards = game.get_board().get_bitboards();
     u64 king = turn ? bitboards[WHITE_KING] : bitboards[BLACK_KING];
@@ -210,14 +210,14 @@ void MoveGenerator::generate_king_moves(std::vector<u16> &moves, ChessGame &game
     u64 castle = BitBoardGenerator::generate_castle_bitboard(game, turn);
 
     int from, to;
-    u16 flag;
+    u32 flag;
     if (king) {
         from = first_bit(king);
         while (attacks) {
             to = first_bit(attacks);
             if (simulate_check(bitboards, turn ? WHITE_KING : BLACK_KING, turn, from, to)) {
                 flag = enemy & mask_piece[to] ? capture : quiet_move;
-                moves.push_back(define_move(from, to, flag));
+                moves.push_back(define_move(from, to, flag, game.get_totalmoves()));
             }
             attacks &= attacks - 1;
         }
@@ -225,13 +225,13 @@ void MoveGenerator::generate_king_moves(std::vector<u16> &moves, ChessGame &game
         while (castle) {
             to = first_bit(castle);
             flag = (to - from) > 0 ? king_castle : queen_castle;
-            moves.push_back(define_move(from, to, flag));
+            moves.push_back(define_move(from, to, flag, game.get_totalmoves()));
             castle &= castle - 1;
         }
     }
 }
 
-void MoveGenerator::generate_bishop_moves(std::vector<u16> &moves, ChessGame &game) {
+void MoveGenerator::generate_bishop_moves(std::vector<u32> &moves, ChessGame &game) {
     bool turn = game.get_turn();
     u64 *bitboards = game.get_board().get_bitboards();
     u64 bishops = turn ? bitboards[WHITE_BISHOP] : bitboards[BLACK_BISHOP];
@@ -240,7 +240,7 @@ void MoveGenerator::generate_bishop_moves(std::vector<u16> &moves, ChessGame &ga
     int king_sq = turn ? first_bit(bitboards[WHITE_KING]) : first_bit(bitboards[BLACK_KING]);
 
     int from, to;
-    u16 flag;
+    u32 flag;
     while (bishops) {
         from = first_bit(bishops);
         u64 attacks = BitBoardGenerator::generate_bishop_bitboard(bitboards, from, turn);
@@ -253,14 +253,14 @@ void MoveGenerator::generate_bishop_moves(std::vector<u16> &moves, ChessGame &ga
         while (attacks) {
             to = first_bit(attacks);
             flag = (enemy & mask_piece[to]) ? capture : quiet_move;
-            moves.push_back(define_move(from, to, flag));
+            moves.push_back(define_move(from, to, flag, game.get_totalmoves()));
             attacks &= attacks - 1;
         }
         bishops &= bishops - 1;
     }
 }
 
-void MoveGenerator::generate_rook_moves(std::vector<u16> &moves, ChessGame &game) {
+void MoveGenerator::generate_rook_moves(std::vector<u32> &moves, ChessGame &game) {
     bool turn = game.get_turn();
     u64 *bitboards = game.get_board().get_bitboards();
     u64 rooks = turn ? bitboards[WHITE_ROOK] : bitboards[BLACK_ROOK];
@@ -269,7 +269,7 @@ void MoveGenerator::generate_rook_moves(std::vector<u16> &moves, ChessGame &game
     int king_sq = turn ? first_bit(bitboards[WHITE_KING]) : first_bit(bitboards[BLACK_KING]);
 
     int from, to;
-    u16 flag;
+    u32 flag;
     while (rooks) {
         from = first_bit(rooks);
         u64 attacks = BitBoardGenerator::generate_rook_bitboard(bitboards, from, turn);
@@ -282,14 +282,14 @@ void MoveGenerator::generate_rook_moves(std::vector<u16> &moves, ChessGame &game
         while (attacks) {
             to = first_bit(attacks);
             flag = (enemy & mask_piece[to]) ? capture : quiet_move;
-            moves.push_back(define_move(from, to, flag));
+            moves.push_back(define_move(from, to, flag, game.get_totalmoves()));
             attacks &= attacks - 1;
         }
         rooks &= rooks - 1;
     }
 }
 
-void MoveGenerator::generate_queen_moves(std::vector<u16> &moves, ChessGame &game) {
+void MoveGenerator::generate_queen_moves(std::vector<u32> &moves, ChessGame &game) {
     bool turn = game.get_turn();
     u64 *bitboards = game.get_board().get_bitboards();
     u64 queen = turn ? bitboards[WHITE_QUEEN] : bitboards[BLACK_QUEEN];
@@ -298,7 +298,7 @@ void MoveGenerator::generate_queen_moves(std::vector<u16> &moves, ChessGame &gam
     int king_sq = turn ? first_bit(bitboards[WHITE_KING]) : first_bit(bitboards[BLACK_KING]);
 
     int from, to;
-    u16 flag;
+    u32 flag;
     while (queen) {
         from = first_bit(queen);
         u64 attacks = BitBoardGenerator::generate_queen_bitboard(bitboards, from, turn);
@@ -311,7 +311,7 @@ void MoveGenerator::generate_queen_moves(std::vector<u16> &moves, ChessGame &gam
         while (attacks) {
             to = first_bit(attacks);
             flag = (enemy & mask_piece[to]) ? capture : quiet_move;
-            moves.push_back(define_move(from, to, flag));
+            moves.push_back(define_move(from, to, flag, game.get_totalmoves()));
             attacks &= attacks - 1;
         }
         queen &= queen - 1;
@@ -325,8 +325,8 @@ void MoveGenerator::check_detection(u64 *bitboards, bool *single_check, bool *do
     *double_check = check_count > 1;
 }
 
-std::vector<u16> MoveGenerator::handle_single_check(std::vector<u16> &moves, ChessGame &game) {
-    std::vector<u16> check_moves;
+std::vector<u32> MoveGenerator::handle_single_check(std::vector<u32> &moves, ChessGame &game) {
+    std::vector<u32> check_moves;
     bool turn = game.get_turn();
     u64 *bitboards = game.get_board().get_bitboards();
 
@@ -345,7 +345,7 @@ std::vector<u16> MoveGenerator::handle_single_check(std::vector<u16> &moves, Che
 
     u64 in_between = BitBoardGenerator::precomputed_in_between[king_sq][attacking_piece_sq];
 
-    for (u16 move : moves) {
+    for (u32 move : moves) {
         int from = (int)get_from(move);
         int to = (int)get_to(move);
 

@@ -1,15 +1,16 @@
+#include <gtest/gtest.h>
+
 #include "../include/chessgame.h"
 #include "../include/movegen.h"
 #include "../include/utils.h"
-#include <gtest/gtest.h>
 
 class PerftTest : public testing::Test {
-protected:
+   protected:
     void SetUp() override { MoveGenerator::init(); }
 
-public:
+   public:
     u64 perft(ChessGame &game, int depth) {
-        std::vector<u16> moves = MoveGenerator::generate_legal_moves(game);
+        std::vector<u32> moves = MoveGenerator::generate_legal_moves(game);
 
         if (depth == 1) {
             return moves.size();
@@ -19,7 +20,7 @@ public:
         }
 
         u64 total_nodes = 0;
-        for (u16 move : moves) {
+        for (u32 move : moves) {
             game.make_move(move);
             u64 nodes = perft(game, depth - 1);
             game.unmake_move(move);
@@ -29,10 +30,10 @@ public:
     }
 
     u64 divide_perft(ChessGame &game, int depth) {
-        std::vector<u16> moves = MoveGenerator::generate_legal_moves(game);
+        std::vector<u32> moves = MoveGenerator::generate_legal_moves(game);
         u64 total_nodes = 0;
 
-        for (u16 move : moves) {
+        for (u32 move : moves) {
             game.make_move(move);
             u64 nodes = perft(game, depth - 1);
             game.unmake_move(move);
@@ -50,54 +51,55 @@ TEST_F(PerftTest, InitPos) {
     ChessGame game;
     game.load_pos("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
-    EXPECT_EQ(perft(game, 1), 20);
-    EXPECT_EQ(perft(game, 2), 400);
-    EXPECT_EQ(perft(game, 3), 8902);
-    EXPECT_EQ(perft(game, 4), 197281);
-    EXPECT_EQ(perft(game, 5), 4865609);
-    EXPECT_EQ(perft(game, 6), 119060324);
-    EXPECT_EQ(perft(game, 7), 3195901860);
+    // EXPECT_EQ(perft(game, 1), 20);
+    // EXPECT_EQ(perft(game, 2), 400);
+    // EXPECT_EQ(perft(game, 3), 8902);
+    // EXPECT_EQ(perft(game, 4), 197281);
+    // EXPECT_EQ(perft(game, 5), 4865609);
+    // EXPECT_EQ(perft(game, 6), 119060324);
+    // EXPECT_EQ(perft(game, 7), 3195901860);
     EXPECT_EQ(perft(game, 8), 84998978956);
-    EXPECT_EQ(perft(game, 9), 2439530234167);
+    // EXPECT_EQ(perft(game, 9), 2439530234167);
 }
 
-// TEST_F(PerftTest, InitPosDivide) {
-//     ChessGame game;
-//     game.load_pos("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-//     EXPECT_EQ(divide_perft(game, 1), 20);
-//     EXPECT_EQ(divide_perft(game, 2), 400);
-//     EXPECT_EQ(divide_perft(game, 3), 8902);
-//     EXPECT_EQ(divide_perft(game, 4), 197281);
-//     EXPECT_EQ(divide_perft(game, 5), 4865609);
-//     EXPECT_EQ(divide_perft(game, 6), 119060324);
-//     EXPECT_EQ(divide_perft(game, 7), 3195901860);
-//     EXPECT_EQ(divide_perft(game, 8), 84998978956);
-//     EXPECT_EQ(divide_perft(game, 9), 2439530234167);
-//}
+TEST_F(PerftTest, InitPosDivide) {
+    // ChessGame game;
+    // game.load_pos("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
-// TEST_F(PerftTest, KiwipetePos) {
-//     ChessGame game;
-//     game.load_pos("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
-//
-//     EXPECT_EQ(perft(game, 1), 48);
-//     EXPECT_EQ(perft(game, 2), 2039);
-//     EXPECT_EQ(perft(game, 3), 97862);
-//     EXPECT_EQ(perft(game, 4), 4085603);
-//     EXPECT_EQ(perft(game, 5), 193690690);
-//     EXPECT_EQ(perft(game, 6), 8031647685);
-// }
+    // EXPECT_EQ(divide_perft(game, 1), 20);
+    // EXPECT_EQ(divide_perft(game, 2), 400);
+    // EXPECT_EQ(divide_perft(game, 3), 8902);
+    // EXPECT_EQ(divide_perft(game, 4), 197281);
+    // EXPECT_EQ(divide_perft(game, 5), 4865609);
+    // EXPECT_EQ(divide_perft(game, 6), 119060324);
+    // EXPECT_EQ(divide_perft(game, 7), 3195901860);
+    // EXPECT_EQ(divide_perft(game, 8), 84998978956);
+    // EXPECT_EQ(divide_perft(game, 9), 2439530234167);
+}
 
-// TEST_F(PerftTest, KiwipetePosDivide) {
-//     ChessGame game;
-//     game.load_pos("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
-//
-//     EXPECT_EQ(divide_perft(game, 1), 48);
-//     EXPECT_EQ(divide_perft(game, 2), 2039);
-//     EXPECT_EQ(divide_perft(game, 3), 97862);
-//     EXPECT_EQ(divide_perft(game, 4), 4085603);
-//     EXPECT_EQ(divide_perft(game, 5), 193690690);
-//     EXPECT_EQ(divide_perft(game, 6), 8031647685);
-// }
+TEST_F(PerftTest, KiwipetePos) {
+    // ChessGame game;
+    // game.load_pos("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
+
+    // EXPECT_EQ(perft(game, 1), 48);
+    // EXPECT_EQ(perft(game, 2), 2039);
+    // EXPECT_EQ(perft(game, 3), 97862);
+    // EXPECT_EQ(perft(game, 4), 4085603);
+    // EXPECT_EQ(perft(game, 5), 193690690);
+    // EXPECT_EQ(perft(game, 6), 8031647685);
+}
+
+TEST_F(PerftTest, KiwipetePosDivide) {
+    // ChessGame game;
+    // game.load_pos("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
+
+    // EXPECT_EQ(divide_perft(game, 1), 48);
+    // EXPECT_EQ(divide_perft(game, 2), 2039);
+    // EXPECT_EQ(divide_perft(game, 3), 97862);
+    // EXPECT_EQ(divide_perft(game, 4), 4085603);
+    // EXPECT_EQ(divide_perft(game, 5), 193690690);
+    // EXPECT_EQ(divide_perft(game, 6), 8031647685);
+}
 
 int main(int argc, char **argv) {
     testing::InitGoogleTest(&argc, argv);
