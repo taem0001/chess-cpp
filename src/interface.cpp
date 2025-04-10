@@ -31,6 +31,6 @@ void Interface::run_game() {
         game.make_move(move);
         game.draw_game();
     }
-    player = turn ? "White player in checkmate" : "Black player in checkmate";
+    player = turn ? "Black player in checkmate" : "White player in checkmate";
     std::cout << player << std::endl;
 }
