@@ -390,13 +390,13 @@ bool BitBoardGenerator::square_attacked_by_pawn_or_knight(int square, u64 *bitbo
 
     if (enemy_turn) {
         // Black attackers
-        attackers |= shift_south_west(mask_piece[square]) & bitboards[BLACK_PAWN];
-        attackers |= shift_south_east(mask_piece[square]) & bitboards[BLACK_PAWN];
+        attackers |= shift_north_west(mask_piece[square]) & bitboards[BLACK_PAWN];
+        attackers |= shift_north_east(mask_piece[square]) & bitboards[BLACK_PAWN];
         attackers |= knight_attack_squares[square] & bitboards[BLACK_KNIGHT];
     } else {
         // White attackers
-        attackers |= shift_north_west(mask_piece[square]) & bitboards[WHITE_PAWN];
-        attackers |= shift_north_east(mask_piece[square]) & bitboards[WHITE_PAWN];
+        attackers |= shift_south_west(mask_piece[square]) & bitboards[WHITE_PAWN];
+        attackers |= shift_south_east(mask_piece[square]) & bitboards[WHITE_PAWN];
         attackers |= knight_attack_squares[square] & bitboards[WHITE_KNIGHT];
     }
 
