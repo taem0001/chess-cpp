@@ -300,21 +300,26 @@ u64 BitBoardGenerator::generate_castle_bitboard(ChessGame &game, bool turn) {
     u64 king_attacks = pieces_attacking_king(game.get_board().get_bitboards(), turn);
     u64 occ = game.get_board().get_bitboards()[ALL];
     u64 res = 0;
+    
     if (king_attacks) {
         return res;
     }
     if (turn) {
-        if (game.get_wk_castle() && (attacks & wk_castle_mask) == 0 && (occ & wk_castle_mask) == 0) {
+        bool wkr_present = mask_piece[7] & game.get_board().get_bitboards()[WHITE_ROOK];
+        bool wkq_present = mask_piece[0] & game.get_board().get_bitboards()[WHITE_ROOK];
+        if (game.get_wk_castle() && (attacks & wk_castle_mask) == 0 && (occ & wk_castle_mask) == 0 && wkr_present) {
             res |= mask_piece[6];
         }
-        if (game.get_wq_castle() && (attacks & wq_castle_mask) == 0 && (occ & wq_castle_mask) == 0) {
+        if (game.get_wq_castle() && (attacks & wq_castle_mask_t) == 0 && (occ & wq_castle_mask) == 0 && wkq_present) {
             res |= mask_piece[2];
         }
     } else {
-        if (game.get_bk_castle() && (attacks & bk_castle_mask) == 0 && (occ & bk_castle_mask) == 0) {
+        bool bkr_present = mask_piece[63] & game.get_board().get_bitboards()[BLACK_ROOK];
+        bool bkq_present = mask_piece[56] & game.get_board().get_bitboards()[BLACK_ROOK];
+        if (game.get_bk_castle() && (attacks & bk_castle_mask) == 0 && (occ & bk_castle_mask) == 0 && bkr_present) {
             res |= mask_piece[62];
         }
-        if (game.get_bq_castle() && (attacks & bq_castle_mask) == 0 && (occ & bq_castle_mask) == 0) {
+        if (game.get_bq_castle() && (attacks & bq_castle_mask_t) == 0 && (occ & bq_castle_mask) == 0 && bkq_present) {
             res |= mask_piece[58];
         }
     }

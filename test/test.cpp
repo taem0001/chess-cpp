@@ -48,8 +48,8 @@ class PerftTest : public testing::Test {
 };
 
 TEST_F(PerftTest, InitPos) {
-    ChessGame game;
-    game.load_pos("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    // ChessGame game;
+    // game.load_pos("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
     // EXPECT_EQ(perft(game, 1), 20);
     // EXPECT_EQ(perft(game, 2), 400);
@@ -58,13 +58,13 @@ TEST_F(PerftTest, InitPos) {
     // EXPECT_EQ(perft(game, 5), 4865609);
     // EXPECT_EQ(perft(game, 6), 119060324);
     // EXPECT_EQ(perft(game, 7), 3195901860);
-    EXPECT_EQ(perft(game, 8), 84998978956);
+    // EXPECT_EQ(perft(game, 8), 84998978956);
     // EXPECT_EQ(perft(game, 9), 2439530234167);
 }
 
 TEST_F(PerftTest, InitPosDivide) {
-    // ChessGame game;
-    // game.load_pos("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    ChessGame game;
+    game.load_pos("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
     // EXPECT_EQ(divide_perft(game, 1), 20);
     // EXPECT_EQ(divide_perft(game, 2), 400);
@@ -72,7 +72,7 @@ TEST_F(PerftTest, InitPosDivide) {
     // EXPECT_EQ(divide_perft(game, 4), 197281);
     // EXPECT_EQ(divide_perft(game, 5), 4865609);
     // EXPECT_EQ(divide_perft(game, 6), 119060324);
-    // EXPECT_EQ(divide_perft(game, 7), 3195901860);
+    EXPECT_EQ(divide_perft(game, 7), 3195901860);
     // EXPECT_EQ(divide_perft(game, 8), 84998978956);
     // EXPECT_EQ(divide_perft(game, 9), 2439530234167);
 }

@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-#define STARTPOS "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+#define STARTPOS "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"
 
 typedef enum {
     ALL,
@@ -134,8 +134,10 @@ static const u64 not_ab_file = 0xfcfcfcfcfcfcfcfc;
 static const u64 not_gh_file = 0x3f3f3f3f3f3f3f3f;
 static const u64 wk_castle_mask = 0x60;
 static const u64 wq_castle_mask = 0xe;
+static const u64 wq_castle_mask_t = 0xc;
 static const u64 bk_castle_mask = wk_castle_mask << 56;
 static const u64 bq_castle_mask = wq_castle_mask << 56;
+static const u64 bq_castle_mask_t = wq_castle_mask_t << 56;
 
 static const u32 quiet_move = 0x0;
 static const u32 double_pawn_push = 0x1;
