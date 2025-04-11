@@ -1,11 +1,6 @@
 #include "../include/chessgame.h"
 
-ChessGame::ChessGame() : logic() {
-    MoveGenerator::init();
-    running = true;
-    draw = false;
-    winner = false;
-}
+ChessGame::ChessGame() : logic(), bot(), running(true), draw(false), winner(false) { MoveGenerator::init(); }
 
 void ChessGame::run_game() {
     bool turn;
@@ -37,18 +32,23 @@ void ChessGame::run_game() {
             break;
         }
 
-        do {
-            player = turn ? "White player's move: " : "Black player's move: ";
-            std::cout << player;
-            std::cin >> pos;
-            correct_pos = get_pos(pos, &from, &to);
-            valid_move = contains_move(moves, from, to, logic.get_totalmoves(), &move);
-        } while (!correct_pos || !valid_move);
+        if (bot_color == turn) {
+            move = bot.choose_move(moves);
+        } else {
+            do {
+                player = turn ? "White player's move: " : "Black player's move: ";
+                std::cout << player;
+                std::cin >> pos;
+                correct_pos = get_pos(pos, &from, &to);
+                valid_move = contains_move(moves, from, to, logic.get_totalmoves(), &move);
+            } while (!correct_pos || !valid_move);
+        }
 
         logic.make_move(move);
         logic.draw_game();
     }
 }
 
+void ChessGame::set_bot_color(bool b) { bot_color = b; }
 bool ChessGame::get_draw() { return draw; }
 bool ChessGame::get_winner() { return winner; }

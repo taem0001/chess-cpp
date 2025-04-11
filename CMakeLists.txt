@@ -29,6 +29,7 @@ add_executable(ChessProject
     src/utils.cpp
     src/movegen.cpp
     src/bitboard.cpp
+    src/bot.cpp
 )
 
 # Unit test executable
