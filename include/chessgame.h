@@ -8,16 +8,14 @@
 class ChessGame {
 private:
     ChessLogic logic;
-    Bot bot;
-    bool bot_color;
     bool running;
     bool draw;
     bool winner;
 
 public:
     ChessGame();
-    void run_game();
-    void set_bot_color(bool);
+    void run_game(Bot &, bool);
+    void run_game_bot(Bot &, Bot &);
     bool get_draw();
     bool get_winner();
 };

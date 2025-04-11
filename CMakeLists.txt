@@ -20,8 +20,21 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 # Main application
-add_executable(ChessProject
+add_executable(runChess
     src/main.cpp
+    src/board.cpp
+    src/chesslogic.cpp
+    src/fen.cpp
+    src/chessgame.cpp
+    src/utils.cpp
+    src/movegen.cpp
+    src/bitboard.cpp
+    src/bot.cpp
+)
+
+# Bot vs Bot application
+add_executable(runBot
+    test/botvsbot.cpp
     src/board.cpp
     src/chesslogic.cpp
     src/fen.cpp

@@ -1,7 +1,9 @@
 #include "../include/chessgame.h"
+#include "../include/bot.h"
 
 void game(void) {
     ChessGame game;
+    Bot bot;
     char bot_color;
     do {
         std::cout << "What color should the bot play(w/b): ";
@@ -9,12 +11,11 @@ void game(void) {
     } while (bot_color != 'w' && bot_color != 'W' && bot_color != 'b' && bot_color != 'B');
 
     if (bot_color == 'w' || bot_color == 'W') {
-        game.set_bot_color(true);
+        game.run_game(bot, true);
     } else {
-        game.set_bot_color(false);
+        game.run_game(bot, false);
     }
     
-    game.run_game();
     if (game.get_draw()) {
         std::cout << "DRAW" << std::endl;
     } else {
