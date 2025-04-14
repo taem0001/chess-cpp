@@ -336,18 +336,19 @@ std::vector<u32> MoveGenerator::handle_single_check(std::vector<u32> &moves, Che
     int king_sq = first_bit(turn ? bitboards[WHITE_KING] : bitboards[BLACK_KING]);
 
     int en_passant_sq = logic.get_en_passant_sq();
-    int en_passant_piece_sq = (en_passant_sq != -1) ? (turn ? en_passant_sq + 8 : en_passant_sq - 8) : -1;
-
-    bool is_bishop = pieces_attacking_king & (turn ? bitboards[BLACK_BISHOP] | bitboards[BLACK_QUEEN]
-                                                   : bitboards[WHITE_BISHOP] | bitboards[WHITE_QUEEN]);
-    bool is_rook = pieces_attacking_king & (turn ? bitboards[BLACK_ROOK] | bitboards[BLACK_QUEEN]
-                                                 : bitboards[WHITE_ROOK] | bitboards[WHITE_QUEEN]);
+    int en_passant_piece_sq = -1;
+    if (en_passant_sq != -1) {
+        en_passant_piece_sq = turn ? en_passant_sq - 8 : en_passant_sq + 8;
+    }
 
     u64 in_between = BitBoardGenerator::precomputed_in_between[king_sq][attacking_piece_sq];
+    u64 pawns = turn ? bitboards[WHITE_PAWN] : bitboards[BLACK_PAWN];
 
     for (u32 move : moves) {
         int from = (int)get_from(move);
         int to = (int)get_to(move);
+
+        bool is_pawn = mask_piece[from] & pawns;
 
         if (from == king_sq) {
             check_moves.push_back(move);
@@ -359,7 +360,7 @@ std::vector<u32> MoveGenerator::handle_single_check(std::vector<u32> &moves, Che
             continue;
         }
 
-        if (to == en_passant_sq && en_passant_piece_sq == attacking_piece_sq) {
+        if (to == en_passant_sq && en_passant_piece_sq == attacking_piece_sq && is_pawn) {
             check_moves.push_back(move);
             continue;
         }
