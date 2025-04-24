@@ -23,6 +23,13 @@ int last_bit(u64 bitboard) {
 #endif
 }
 
+int max(int n1, int n2) {
+    if (n1 > n2) {
+        return n1;
+    }
+    return n2;
+}
+
 bool contains_move(std::vector<u32> &moves, int from, int to, u32 total_moves, u32 *move) {
     for (u32 move_t : moves) {
         int from_t = (int)get_from(move_t);

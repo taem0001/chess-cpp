@@ -27,13 +27,13 @@ void ChessGame::run_game(Bot &bot, bool bot_color) {
         } else if (logic.fifty_move_rule()) {
             draw = true;
             break;
-        } else if (moves.size() == 0 && (logic.get_singlecheck() && logic.get_doublecheck())) {
+        } else if (moves.size() == 0 && (logic.get_singlecheck() || logic.get_doublecheck())) {
             winner = !turn;
             break;
         }
 
         if (bot_color == turn) {
-            move = bot.choose_move(moves);
+            move = bot.choose_move(logic, moves);
         } else {
             do {
                 player = turn ? "White player's move: " : "Black player's move: ";
@@ -87,9 +87,9 @@ void ChessGame::run_game_bot(Bot &bot1, Bot &bot2) {
         }
 
         if (turn) {
-            move = bot1.choose_move(moves);
+            move = bot1.choose_move(logic, moves);
         } else {
-            move = bot2.choose_move(moves);
+            move = bot2.choose_move(logic, moves);
         }
 
         std::cout << logic.get_halfmoves() << std::endl;

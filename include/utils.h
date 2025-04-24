@@ -11,7 +11,7 @@
 #include <vector>
 #include <ctime>
 
-#define STARTPOS "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+#define STARTPOS "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1"
 
 typedef enum {
     ALL,
@@ -252,6 +252,7 @@ static const u64 king_attack_pattern[] = {0x302,
 
 int first_bit(u64);
 int last_bit(u64);
+int max(int, int);
 bool contains_move(std::vector<u32> &, int, int, u32, u32 *);
 bool get_pos(std::string &, int *, int *);
 char get_symbol(u64 *, int);
