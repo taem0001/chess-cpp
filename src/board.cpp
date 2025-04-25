@@ -3,20 +3,24 @@
 u64 *Board::get_bitboards() { return bitboards; }
 
 void Board::draw_board() {
-    int square;
+    std::string line = "  +---+---+---+---+---+---+---+---+";
+    std::string files = "    a   b   c   d   e   f   g   h";
 
-    std::cout << "    a b c d e f g h" << std::endl;
-    std::cout << "  +-----------------+" << std::endl;
-    for (int rank = 7; rank >= 0; rank--) {
-        std::cout << rank + 1 << " | ";
-        for (int file = 0; file < 8; file++) {
-            square = rank * 8 + file;
-            std::cout << get_symbol(bitboards, square) << " ";
+    std::cout << files << std::endl;
+    std::cout << line << std::endl;
+    for (int rank = 15; rank >= 0; rank--) {
+        if (rank % 2 == 0) {
+            std::cout << line << std::endl;
+        } else {
+            std::cout << (rank / 2) + 1 << " ";
+            for (int file = 0; file < 8; file++) {
+                int square = (rank / 2) * 8 + file;
+                std::cout << "| " << get_symbol(bitboards, square) << " ";
+            }
+            std::cout << "| " << (rank / 2) + 1 << std::endl;
         }
-        std::cout << "| " << rank + 1 << std::endl;
     }
-    std::cout << "  +-----------------+" << std::endl;
-    std::cout << "    a b c d e f g h" << std::endl;
+    std::cout << files << std::endl;
 }
 
 void Board::move_piece(int from, int to) {

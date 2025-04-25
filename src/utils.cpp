@@ -75,7 +75,7 @@ char get_symbol(u64 *bitboards, int square) {
             return symbols[i - 3];
         }
     }
-    return '.';
+    return ' ';
 }
 
 u64 shift_north(u64 b) { return b << 8ULL; }
