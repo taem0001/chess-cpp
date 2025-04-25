@@ -7,8 +7,8 @@
 class Bot {
 private:
     int evaluate(ChessLogic &);
-    int search(ChessLogic &, int);
-    u64 search_move(ChessLogic &, int);
+    int negamax(ChessLogic &, int, int, int, int);
+    u64 search_move(ChessLogic &, int, int);
 
 public:
     Bot();
