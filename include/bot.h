@@ -7,11 +7,12 @@
 class Bot {
 private:
     int evaluate(ChessLogic &);
-    int search(ChessLogic &, int, int, int);
+    int search(ChessLogic &, int);
+    u64 search_move(ChessLogic &, int);
 
 public:
     Bot();
-    u32 choose_move(ChessLogic, std::vector<u32> &);
+    u64 choose_move(ChessLogic, std::vector<u64> &);
 };
 
 #endif // !BOT_H

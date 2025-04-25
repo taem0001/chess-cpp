@@ -43,8 +43,6 @@ typedef enum {
 } Direction;
 
 typedef uint64_t u64;
-typedef uint32_t u32;
-typedef uint8_t u8;
 
 static const char symbols[] = {'P', 'R', 'N', 'B', 'Q', 'K',
                                'p', 'r', 'n', 'b', 'q', 'k'};
@@ -131,6 +129,7 @@ static const u64 mask_piece[] = {0x1,
                                  0x8000000000000000,
                                  0x0};
 
+// Bitboard masks
 static const u64 not_ab_file = 0xfcfcfcfcfcfcfcfc;
 static const u64 not_gh_file = 0x3f3f3f3f3f3f3f3f;
 static const u64 wk_castle_mask = 0x60;
@@ -140,20 +139,24 @@ static const u64 bk_castle_mask = wk_castle_mask << 56;
 static const u64 bq_castle_mask = wq_castle_mask << 56;
 static const u64 bq_castle_mask_t = wq_castle_mask_t << 56;
 
-static const u32 quiet_move = 0x0;
-static const u32 double_pawn_push = 0x1;
-static const u32 king_castle = 0x2;
-static const u32 queen_castle = 0x3;
-static const u32 capture = 0x4;
-static const u32 ep_capture = 0x5;
-static const u32 knight_promotion = 0x8;
-static const u32 bishop_promotion = 0x9;
-static const u32 rook_promotion = 0xa;
-static const u32 queen_promotion = 0xb;
-static const u32 knight_promo_capture = 0xc;
-static const u32 bishop_promo_capture = 0xd;
-static const u32 rook_promo_capture = 0xe;
-static const u32 queen_promo_capture = 0xf;
+// Move encoding
+static const u64 quiet_move = 0x0;
+static const u64 double_pawn_push = 0x1;
+static const u64 king_castle = 0x2;
+static const u64 queen_castle = 0x3;
+static const u64 capture = 0x4;
+static const u64 ep_capture = 0x5;
+static const u64 knight_promotion = 0x8;
+static const u64 bishop_promotion = 0x9;
+static const u64 rook_promotion = 0xa;
+static const u64 queen_promotion = 0xb;
+static const u64 knight_promo_capture = 0xc;
+static const u64 bishop_promo_capture = 0xd;
+static const u64 rook_promo_capture = 0xe;
+static const u64 queen_promo_capture = 0xf;
+
+// Evaluation
+static const int INF = 1000000;
 
 static const int deBruijn_lookup_table[] = {
     0,  1,  48, 2,  57, 49, 28, 3,  61, 58, 50, 42, 38, 29, 17, 4,
@@ -253,7 +256,7 @@ static const u64 king_attack_pattern[] = {0x302,
 int first_bit(u64);
 int last_bit(u64);
 int max(int, int);
-bool contains_move(std::vector<u32> &, int, int, u32, u32 *);
+bool contains_move(std::vector<u64> &, int, int, u64, u64 *);
 bool get_pos(std::string &, int *, int *);
 char get_symbol(u64 *, int);
 u64 shift_north(u64);
@@ -265,13 +268,13 @@ u64 shift_north_east(u64);
 u64 shift_south_west(u64);
 u64 shift_south_east(u64);
 u64 in_between(int, int);
-u32 define_move(u32, u32, u32, u32);
-u32 get_from(u32);
-u32 get_to(u32);
-u32 get_flag(u32);
-u32 get_totalmoves(u32);
+u64 define_move(u64, u64, u64, u64);
+u64 get_from(u64);
+u64 get_to(u64);
+u64 get_flag(u64);
+u64 get_totalmoves(u64);
 void print_bitboard(u64);
-void print_moves(std::vector<u32> &);
+void print_moves(std::vector<u64> &);
 std::string print_pos(int);
 
 #endif  // !UTILS_H

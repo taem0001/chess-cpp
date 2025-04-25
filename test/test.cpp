@@ -10,7 +10,7 @@ class PerftTest : public testing::Test {
 
    public:
     u64 perft(ChessLogic &logic, int depth) {
-        std::vector<u32> moves = MoveGenerator::generate_legal_moves(logic);
+        std::vector<u64> moves = MoveGenerator::generate_legal_moves(logic);
 
         if (depth == 1) {
             return moves.size();
@@ -20,7 +20,7 @@ class PerftTest : public testing::Test {
         }
 
         u64 total_nodes = 0;
-        for (u32 move : moves) {
+        for (u64 move : moves) {
             logic.make_move(move);
             u64 nodes = perft(logic, depth - 1);
             logic.unmake_move(move);
@@ -30,10 +30,10 @@ class PerftTest : public testing::Test {
     }
 
     u64 divide_perft(ChessLogic &logic, int depth) {
-        std::vector<u32> moves = MoveGenerator::generate_legal_moves(logic);
+        std::vector<u64> moves = MoveGenerator::generate_legal_moves(logic);
         u64 total_nodes = 0;
 
-        for (u32 move : moves) {
+        for (u64 move : moves) {
             logic.make_move(move);
             u64 nodes = perft(logic, depth - 1);
             logic.unmake_move(move);
@@ -89,7 +89,7 @@ class PerftTest : public testing::Test {
     EXPECT_EQ(perft(logic, 6), 8031647685);
 } */
 
-TEST_F(PerftTest, KiwipetePosDivide) {
+/* TEST_F(PerftTest, KiwipetePosDivide) {
     ChessLogic logic;
     logic.load_pos("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
 
@@ -99,28 +99,21 @@ TEST_F(PerftTest, KiwipetePosDivide) {
     EXPECT_EQ(divide_perft(logic, 4), 4085603);
     EXPECT_EQ(divide_perft(logic, 5), 193690690);
     EXPECT_EQ(divide_perft(logic, 6), 8031647685);
-}
+} */
 
-/* TEST_F(PerftTest, Position3Divide) {
+TEST_F(PerftTest, Position3Divide) {
     ChessLogic logic;
     logic.load_pos("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1");
 
-    EXPECT_EQ(divide_perft(logic, 1), 14);
-    EXPECT_EQ(divide_perft(logic, 2), 191);
-    EXPECT_EQ(divide_perft(logic, 3), 2812);
-    EXPECT_EQ(divide_perft(logic, 4), 43238);
-    EXPECT_EQ(divide_perft(logic, 5), 674624);
-    EXPECT_EQ(divide_perft(logic, 6), 11030083);
-    EXPECT_EQ(divide_perft(logic, 7), 178633661);
+    // EXPECT_EQ(divide_perft(logic, 1), 14);
+    // EXPECT_EQ(divide_perft(logic, 2), 191);
+    // EXPECT_EQ(divide_perft(logic, 3), 2812);
+    // EXPECT_EQ(divide_perft(logic, 4), 43238);
+    // EXPECT_EQ(divide_perft(logic, 5), 674624);
+    // EXPECT_EQ(divide_perft(logic, 6), 11030083);
+    // EXPECT_EQ(divide_perft(logic, 7), 178633661);
     EXPECT_EQ(divide_perft(logic, 8), 3009794393);
 }
-
-TEST_F(PerftTest, Debug) {
-    ChessLogic logic;
-    logic.load_pos("8/2p5/3p4/KP5r/5Rk1/8/4P1P1/8 b - - 0 2");
-
-    divide_perft(logic, 6);
-} */
 
 int main(int argc, char **argv) {
     testing::InitGoogleTest(&argc, argv);

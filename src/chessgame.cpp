@@ -8,7 +8,7 @@ void ChessGame::run_game(Bot &bot, bool bot_color) {
     bool valid_move;
     bool five_fold;
     int from, to;
-    u32 move;
+    u64 move;
     std::string player, pos;
 
     logic.draw_game();
@@ -16,7 +16,7 @@ void ChessGame::run_game(Bot &bot, bool bot_color) {
     while (running) {
         five_fold = logic.fivefold_repitition();
         turn = logic.get_turn();
-        std::vector<u32> moves = MoveGenerator::generate_legal_moves(logic);
+        std::vector<u64> moves = MoveGenerator::generate_legal_moves(logic);
 
         if (moves.size() == 0 && (!logic.get_singlecheck() && !logic.get_doublecheck())) {
             draw = true;
@@ -55,7 +55,7 @@ void ChessGame::run_game_bot(Bot &bot1, Bot &bot2) {
     bool valid_move;
     bool five_fold;
     int from, to;
-    u32 move;
+    u64 move;
     std::string player, pos;
 
     logic.draw_game();
@@ -63,7 +63,7 @@ void ChessGame::run_game_bot(Bot &bot1, Bot &bot2) {
     while (running) {
         five_fold = logic.fivefold_repitition();
         turn = logic.get_turn();
-        std::vector<u32> moves = MoveGenerator::generate_legal_moves(logic);
+        std::vector<u64> moves = MoveGenerator::generate_legal_moves(logic);
 
         if (moves.size() == 0 && (!logic.get_singlecheck() && !logic.get_doublecheck())) {
             std::cout << "STALEMATE" << std::endl;

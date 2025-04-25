@@ -11,12 +11,12 @@ void ChessLogic::load_pos(const std::string &fen) { FenHandler::load_fen(*this, 
 
 void ChessLogic::draw_game() { board.draw_board(); }
 
-bool ChessLogic::make_move(u32 move) {
+bool ChessLogic::make_move(u64 move) {
     fens[move] = FenHandler::write_fen(*this);
     u64 *bitboards = get_board().get_bitboards();
-    u32 from = get_from(move);
-    u32 to = get_to(move);
-    u32 flag = get_flag(move);
+    u64 from = get_from(move);
+    u64 to = get_to(move);
+    u64 flag = get_flag(move);
     half_moves++;
 
     if (!white_turn) {
@@ -116,7 +116,7 @@ bool ChessLogic::make_move(u32 move) {
     return true;
 }
 
-bool ChessLogic::unmake_move(u32 move) {
+bool ChessLogic::unmake_move(u64 move) {
     std::string pos = fens[move];
     load_pos(pos);
     return true;
@@ -161,5 +161,5 @@ void ChessLogic::set_singlecheck(bool b) { single_check = b; }
 bool ChessLogic::get_doublecheck() { return double_check; }
 void ChessLogic::set_doublecheck(bool b) { double_check = b; }
 bool ChessLogic::fifty_move_rule() { return half_moves >= 100; }
-u32 ChessLogic::get_totalmoves() { return total_moves; }
-std::map<u32, std::string> ChessLogic::get_fens() { return fens; }
+u64 ChessLogic::get_totalmoves() { return total_moves; }
+std::map<u64, std::string> ChessLogic::get_fens() { return fens; }

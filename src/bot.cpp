@@ -2,15 +2,10 @@
 
 Bot::Bot() {
     MoveGenerator::init();
-    std::srand(std::time(0));
 }
 
-u32 Bot::choose_move(ChessLogic logic, std::vector<u32> &moves) {
-    int search_res = search(logic, 4, INT_MIN, INT_MAX);
-    std::cout << search_res << std::endl;
-
-    int rand = std::rand() % moves.size();
-    return moves.at(rand);
+u64 Bot::choose_move(ChessLogic logic, std::vector<u64> &moves) {
+    return search_move(logic, 4);
 }
 
 int Bot::evaluate(ChessLogic &logic) {
@@ -38,29 +33,44 @@ int Bot::evaluate(ChessLogic &logic) {
     return eval;
 }
 
-int Bot::search(ChessLogic &logic, int depth, int alpha, int beta) {
+int Bot::search(ChessLogic &logic, int depth) {
     if (depth == 0) {
         return evaluate(logic);
     }
 
-    std::vector<u32> moves = MoveGenerator::generate_legal_moves(logic);
+    std::vector<u64> moves = MoveGenerator::generate_legal_moves(logic);
     if (moves.size() == 0) {
         if (logic.get_singlecheck() || logic.get_doublecheck()) {
-            return INT_MIN + depth;
+            return -INF + depth;
         }
         return 0;
     }
 
-    int result = INT_MIN;
+    int result = -INF;
 
-    for (u32 move : moves) {
+    for (u64 move : moves) {
         logic.make_move(move);
-        result = max(result, -search(logic, depth - 1, -beta, -alpha));
+        int eval = -search(logic, depth - 1);
         logic.unmake_move(move);
-        alpha = max(alpha, result);
-        if (alpha >= beta) {
-            break;
-        }
+        result = max(result, eval);
     }
     return result;
+}
+
+u64 Bot::search_move(ChessLogic &logic, int depth) {
+    std::vector<u64> moves = MoveGenerator::generate_legal_moves(logic);
+    u64 best_move;
+    int best_eval = -INF;
+
+    for (u64 move : moves) {
+        logic.make_move(move);
+        int eval = search(logic, depth - 1);
+        logic.unmake_move(move);
+        if (eval >= best_eval) {
+            best_eval = eval;
+            best_move = move;
+        }
+    }
+    std::cout << best_eval << std::endl;
+    return best_move;
 }

@@ -30,13 +30,13 @@ int max(int n1, int n2) {
     return n2;
 }
 
-bool contains_move(std::vector<u32> &moves, int from, int to, u32 total_moves, u32 *move) {
-    for (u32 move_t : moves) {
+bool contains_move(std::vector<u64> &moves, int from, int to, u64 total_moves, u64 *move) {
+    for (u64 move_t : moves) {
         int from_t = (int)get_from(move_t);
         int to_t = (int)get_to(move_t);
         if (from == from_t && to == to_t) {
-            u32 flag = get_flag(move_t);
-            *move = define_move((u32)from, (u32)to, flag, total_moves);
+            u64 flag = get_flag(move_t);
+            *move = define_move((u64)from, (u64)to, flag, total_moves);
             return true;
         }
     }
@@ -105,14 +105,14 @@ u64 in_between(int sq1, int sq2) {
     return line & btwn;
 }
 
-u32 define_move(u32 from, u32 to, u32 flag, u32 total_moves) {
-    return ((total_moves & 0xffff) << 16) | ((flag & 0xf) << 12) | ((to & 0x3f) << 6) | (from & 0x3f);
+u64 define_move(u64 from, u64 to, u64 flag, u64 total_moves) {
+    return ((total_moves & 0xffffffffffff) << 16) | ((flag & 0xf) << 12) | ((to & 0x3f) << 6) | (from & 0x3f);
 }
 
-u32 get_from(u32 move) { return move & 0x3f; }
-u32 get_to(u32 move) { return (move >> 6) & 0x3f; }
-u32 get_flag(u32 move) { return (move >> 12) & 0xf; }
-u32 get_totalmoves(u32 move) { return (move >> 16) & 0xffff; }
+u64 get_from(u64 move) { return move & 0x3f; }
+u64 get_to(u64 move) { return (move >> 6) & 0x3f; }
+u64 get_flag(u64 move) { return (move >> 12) & 0xf; }
+u64 get_totalmoves(u64 move) { return (move >> 16) & 0xffffffffffff; }
 
 void print_bitboard(u64 bitboard) {
     for (int rank = 7; rank >= 0; --rank) {
@@ -125,8 +125,8 @@ void print_bitboard(u64 bitboard) {
     std::cout << std::endl;
 }
 
-void print_moves(std::vector<u32> &moves) {
-    for (u32 move : moves) {
+void print_moves(std::vector<u64> &moves) {
+    for (u64 move : moves) {
         std::cout << print_pos((int)get_from(move)) << print_pos((int)get_to(move)) << std::endl;
     }
     std::cout << std::endl;
