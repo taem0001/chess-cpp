@@ -30,6 +30,55 @@ int max(int n1, int n2) {
     return n2;
 }
 
+int get_piece_score(u64 *bitboards, int square) {
+    int type;
+    int score;
+
+    for (int i = 3; i < 15; i++) {
+        if (mask_piece[square] & bitboards[i]) {
+            type = i;
+        }
+    }
+
+    switch (type) {
+    case WHITE_PAWN:
+        score = pawn_value;
+        break;
+    case WHITE_KNIGHT:
+        score = knight_value;
+        break;
+    case WHITE_BISHOP:
+        score = bishop_value;
+        break;
+    case WHITE_ROOK:
+        score = rook_value;
+        break;
+    case WHITE_QUEEN:
+        score = queen_value;
+        break;
+    case BLACK_PAWN:
+        score = pawn_value;
+        break;
+    case BLACK_KNIGHT:
+        score = knight_value;
+        break;
+    case BLACK_BISHOP:
+        score = bishop_value;
+        break;
+    case BLACK_ROOK:
+        score = rook_value;
+        break;
+    case BLACK_QUEEN:
+        score = queen_value;
+        break;
+    default:
+        score = 0;
+        break;
+    }
+
+    return score;
+}
+
 bool contains_move(std::vector<u64> &moves, int from, int to, u64 total_moves, u64 *move) {
     for (u64 move_t : moves) {
         int from_t = (int)get_from(move_t);
@@ -130,6 +179,57 @@ void print_moves(std::vector<u64> &moves) {
         std::cout << print_pos((int)get_from(move)) << print_pos((int)get_to(move)) << std::endl;
     }
     std::cout << std::endl;
+}
+
+void merge(std::vector<MoveScore> &vec, int left, int mid, int right) {
+    int i, j, k;
+    int n1 = mid - left + 1;
+    int n2 = right - mid;
+
+    // Temporary vectors
+    std::vector<MoveScore> left_vec(n1), right_vec(n2);
+
+    // Copy data
+    for (int i = 0; i < n1; i++) {
+        left_vec[i] = vec[left + i];
+    }
+    for (int i = 0; i < n2; i++) {
+        right_vec[i] = vec[mid + 1 + i];
+    }
+
+    // Merge temporary vectors back
+    i = 0;
+    j = 0;
+    k = left;
+    while (i < n1 && j < n2) {
+        if (left_vec[i].score >= right_vec[j].score) {
+            vec[k++] = left_vec[i++];
+        } else {
+            vec[k++] = right_vec[j++];
+        }
+    }
+
+    // Copy remaining elements
+    while (i < n1) {
+        vec[k++] = left_vec[i++];
+    }
+    while (j < n2) {
+        vec[k++] = right_vec[j++];
+    }
+}
+
+void merge_sort(std::vector<MoveScore> &vec, int left, int right) {
+    if (left < right) {
+        // Calculate mid point
+        int mid = left + (right - left) / 2;
+
+        // Sort halves
+        merge_sort(vec, left, mid);
+        merge_sort(vec, mid + 1, right);
+
+        // Merge sorted halves
+        merge(vec, left, mid, right);
+    }
 }
 
 std::string print_pos(int pos) {

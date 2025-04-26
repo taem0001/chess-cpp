@@ -33,7 +33,12 @@ void ChessGame::run_game(Bot &bot, bool bot_color) {
         }
 
         if (bot_color == turn) {
+            auto t1 = std::chrono::high_resolution_clock::now();
             move = bot.choose_move(logic, moves);
+            auto t2 = std::chrono::high_resolution_clock::now();
+
+            auto ms_int = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
+            std::cout << "Time elapsed: " << ms_int.count() << "ms" << std::endl;
         } else {
             do {
                 player = turn ? "White player's move: " : "Black player's move: ";

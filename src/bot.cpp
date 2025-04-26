@@ -1,4 +1,5 @@
 #include "../include/bot.h"
+#include "bot.h"
 
 Bot::Bot() {
     MoveGenerator::init();
@@ -38,6 +39,7 @@ int Bot::negamax(ChessLogic &logic, int depth, int color, int alpha, int beta) {
     }
 
     std::vector<u64> moves = MoveGenerator::generate_legal_moves(logic);
+    // std::vector<u64> moves = order_moves(logic, unordered_moves);
     if (moves.size() == 0) {
         if (logic.get_singlecheck() || logic.get_doublecheck()) {
             return -INF + depth;
@@ -76,4 +78,38 @@ u64 Bot::search_move(ChessLogic &logic, int depth, int color) {
         }
     }
     return best_move;
+}
+
+std::vector<u64> Bot::order_moves(ChessLogic &logic, std::vector<u64> moves) {
+    std::vector<MoveScore> move_scores;
+    std::vector<u64> result;
+    u64 *bitboards = logic.get_board().get_bitboards();
+
+    for (u64 move : moves) {
+        int move_score = 0;
+        int from = get_from(move);
+        int to = get_to(move);
+        int flag = get_flag(move);
+
+        // Reward captures and especially between low-ranking and high-ranking pieces
+        if (flag == capture || flag == ep_capture) {
+            move_score = get_piece_score(bitboards, to) - get_piece_score(bitboards, from);
+        }
+
+        // Reward promotions
+        if (flag == queen_promotion || flag == rook_promotion || flag == bishop_promotion || flag == knight_promotion || flag == queen_promo_capture || flag == rook_promo_capture || flag == bishop_promo_capture || flag == knight_promo_capture) {
+            move_score += 1000;
+        }
+
+        move_scores.push_back({move_score, move});
+    }
+
+    int size = move_scores.size();
+    merge_sort(move_scores, 0, size - 1);
+
+    for (MoveScore move_score : move_scores) {
+        result.push_back(move_score.move);
+    }
+
+    return result;
 }

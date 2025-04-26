@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 #include <ctime>
+#include <chrono>
 
 #define STARTPOS "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
@@ -43,6 +44,11 @@ typedef enum {
 } Direction;
 
 typedef uint64_t u64;
+
+typedef struct {
+    int score;
+    u64 move;
+} MoveScore;
 
 static const char symbols[] = {'P', 'R', 'N', 'B', 'Q', 'K',
                                'p', 'r', 'n', 'b', 'q', 'k'};
@@ -157,6 +163,11 @@ static const u64 queen_promo_capture = 0xf;
 
 // Evaluation
 static const int INF = 1000000;
+static const int queen_value = 900;
+static const int rook_value = 500;
+static const int bishop_value = 320;
+static const int knight_value = 300;
+static const int pawn_value = 100;
 
 static const int deBruijn_lookup_table[] = {
     0,  1,  48, 2,  57, 49, 28, 3,  61, 58, 50, 42, 38, 29, 17, 4,
@@ -256,6 +267,7 @@ static const u64 king_attack_pattern[] = {0x302,
 int first_bit(u64);
 int last_bit(u64);
 int max(int, int);
+int get_piece_score(u64 *, int);
 bool contains_move(std::vector<u64> &, int, int, u64, u64 *);
 bool get_pos(std::string &, int *, int *);
 char get_symbol(u64 *, int);
@@ -275,6 +287,8 @@ u64 get_flag(u64);
 u64 get_totalmoves(u64);
 void print_bitboard(u64);
 void print_moves(std::vector<u64> &);
+void merge(std::vector<MoveScore> &, int, int, int);
+void merge_sort(std::vector<MoveScore> &, int, int);
 std::string print_pos(int);
 
 #endif  // !UTILS_H
