@@ -232,6 +232,17 @@ void merge_sort(std::vector<MoveScore> &vec, int left, int right) {
     }
 }
 
+void moves_only_captures(std::vector<u64> &moves) {
+    for (int i = 0; i < moves.size(); i++) {
+        u64 move = moves[i];
+        int flag = get_flag(move);
+
+        if (flag != capture && flag != ep_capture) {
+            moves.erase(moves.begin() + i);
+        }
+    }
+}
+
 std::string print_pos(int pos) {
     std::string res = "";
     int rank = pos / 8;

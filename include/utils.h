@@ -12,7 +12,7 @@
 #include <ctime>
 #include <chrono>
 
-#define STARTPOS "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+#define STARTPOS "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10"
 
 typedef enum {
     ALL,
@@ -289,6 +289,7 @@ void print_bitboard(u64);
 void print_moves(std::vector<u64> &);
 void merge(std::vector<MoveScore> &, int, int, int);
 void merge_sort(std::vector<MoveScore> &, int, int);
+void moves_only_captures(std::vector<u64> &);
 std::string print_pos(int);
 
 #endif  // !UTILS_H

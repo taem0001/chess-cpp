@@ -35,11 +35,11 @@ int Bot::evaluate(ChessLogic &logic) {
 
 int Bot::negamax(ChessLogic &logic, int depth, int color, int alpha, int beta) {
     if (depth == 0) {
-        return color * evaluate(logic);
+        return evaluate(logic);
     }
 
-    std::vector<u64> moves = MoveGenerator::generate_legal_moves(logic);
-    // std::vector<u64> moves = order_moves(logic, unordered_moves);
+    std::vector<u64> unorderd_moves = MoveGenerator::generate_legal_moves(logic);
+    std::vector<u64> moves = order_moves(logic, unorderd_moves);
     if (moves.size() == 0) {
         if (logic.get_singlecheck() || logic.get_doublecheck()) {
             return -INF + depth;
@@ -63,23 +63,6 @@ int Bot::negamax(ChessLogic &logic, int depth, int color, int alpha, int beta) {
     return best_score;
 }
 
-u64 Bot::search_move(ChessLogic &logic, int depth, int color) {
-    std::vector<u64> moves = MoveGenerator::generate_legal_moves(logic);
-    u64 best_move;
-    int best_score = -INF;
-
-    for (u64 move : moves) {
-        logic.make_move(move);
-        int score = -negamax(logic, depth - 1, -color, -INF, INF);
-        logic.unmake_move(move);
-        if (score >= best_score) {
-            best_score = score;
-            best_move = move;
-        }
-    }
-    return best_move;
-}
-
 std::vector<u64> Bot::order_moves(ChessLogic &logic, std::vector<u64> moves) {
     std::vector<MoveScore> move_scores;
     std::vector<u64> result;
@@ -93,7 +76,7 @@ std::vector<u64> Bot::order_moves(ChessLogic &logic, std::vector<u64> moves) {
 
         // Reward captures and especially between low-ranking and high-ranking pieces
         if (flag == capture || flag == ep_capture) {
-            move_score = get_piece_score(bitboards, to) - get_piece_score(bitboards, from);
+            move_score = 10 * get_piece_score(bitboards, to) - get_piece_score(bitboards, from);
         }
 
         // Reward promotions
@@ -112,4 +95,21 @@ std::vector<u64> Bot::order_moves(ChessLogic &logic, std::vector<u64> moves) {
     }
 
     return result;
+}
+
+u64 Bot::search_move(ChessLogic &logic, int depth, int color) {
+    std::vector<u64> moves = MoveGenerator::generate_legal_moves(logic);
+    u64 best_move;
+    int best_score = -INF;
+
+    for (u64 move : moves) {
+        logic.make_move(move);
+        int score = -negamax(logic, depth - 1, -color, -INF, INF);
+        logic.unmake_move(move);
+        if (score >= best_score) {
+            best_score = score;
+            best_move = move;
+        }
+    }
+    return best_move;
 }
