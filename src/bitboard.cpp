@@ -1,87 +1,216 @@
 #include "../include/bitboard.h"
 
-u64 BitBoardGenerator::rays[8][64];
-u64 BitBoardGenerator::precomputed_bishop[64];
-u64 BitBoardGenerator::precomputed_rook[64];
+u64 BitBoardGenerator::bishop_masks[64];
+u64 BitBoardGenerator::rook_masks[64];
+u64 BitBoardGenerator::bishop_magics[64];
+u64 BitBoardGenerator::rook_magics[64];
+u64 BitBoardGenerator::bishop_attacks[64][512];
+u64 BitBoardGenerator::rook_attacks[64][4096];
 u64 BitBoardGenerator::precomputed_in_between[64][64];
 
 void BitBoardGenerator::init() {
-    u64 north = 0x0101010101010100;
-    u64 south = 0x0080808080808080;
-    u64 no_ea = 0x8040201008040200;
-    u64 no_we = 0x0102040810204000;
-    u64 so_we = 0x0040201008040201;
-    u64 so_ea = 0x0002040810204080;
-    for (int i = 0; i < 64; i++, north <<= 1ULL) {
-        rays[NORTH][i] = north;
-        rays[EAST][i] = 2ULL * ((1ULL << (i | 7ULL)) - (1ULL << i));
-    }
-    for (int i = 63; i >= 0; i--, south >>= 1) {
-        rays[SOUTH][i] = south;
-        rays[WEST][i] = (1ULL << i) - (1ULL << (i & 56ULL));
-    }
-    for (int f = 0; f < 8; f++, no_ea = shift_east(no_ea)) {
-        u64 ne = no_ea;
-        for (int r = 0; r < 8; r++, ne <<= 8) {
-            rays[NORTH_EAST][(r * 8) + f] = ne;
-        }
-    }
-    for (int f = 7; f >= 0; f--, no_we = shift_west(no_we)) {
-        u64 nw = no_we;
-        for (int r = 0; r < 8; r++, nw <<= 8) {
-            rays[NORTH_WEST][(r * 8) + f] = nw;
-        }
-    }
-    for (int f = 0; f < 8; f++, so_ea = shift_east(so_ea)) {
-        u64 se = so_ea;
-        for (int r = 7; r >= 0; r--, se >>= 8) {
-            rays[SOUTH_EAST][(r * 8) + f] = se;
-        }
-    }
-    for (int f = 7; f >= 0; f--, so_we = shift_west(so_we)) {
-        u64 sw = so_we;
-        for (int r = 7; r >= 0; r--, sw >>= 8) {
-            rays[SOUTH_WEST][(r * 8) + f] = sw;
-        }
-    }
-
+    // Initialize bishop and rook masks plus in between masks
     for (int i = 0; i < 64; i++) {
-        precomputed_bishop[i] = diag_attacks(0, (unsigned long)i) | anti_diag_attacks(0, (unsigned long)i);
-        precomputed_rook[i] = rank_attacks(0, (unsigned long)i) | file_attacks(0, (unsigned long)i);
+        bishop_masks[i] = generate_bishop_mask(i);
+        rook_masks[i] = generate_rook_mask(i);
         for (int j = 0; j < 64; j++) {
             precomputed_in_between[i][j] = in_between(i, j);
         }
     }
+
+    // Initalize magic numbers
+    for (int i = 0; i < 64; i++) {
+        bishop_magics[i] = find_magic(i, BBits[i], true);
+        rook_magics[i] = find_magic(i, RBits[i], false);
+    }
+
+    // Generate attack tables for bishops and rooks with all blocker combinations
+    for (int sq = 0; sq < 64; sq++) {
+        u64 b_mask = bishop_masks[sq];
+        u64 r_mask = rook_masks[sq];
+        int b_bits = count_1s(b_mask);
+        int r_bits = count_1s(r_mask);
+
+        for (int i = 0; i < mask_piece[b_bits]; i++) {
+            u64 blockers = index_to_u64(i, b_bits, b_mask);
+            u64 attacks = generate_bishop_attacks(sq, blockers);
+            int index = (blockers * bishop_magics[sq]) >> (64 - b_bits);
+            bishop_attacks[sq][index] = attacks;
+        }
+
+        for (int i = 0; i < mask_piece[r_bits]; i++) {
+            u64 blockers = index_to_u64(i, r_bits, r_mask);
+            u64 attacks = generate_rook_attacks(sq, blockers);
+            int index = (blockers * rook_magics[sq]) >> (64 - r_bits);
+            rook_attacks[sq][index] = attacks;
+        }
+    }
 }
 
-u64 BitBoardGenerator::get_positive_rays(u64 occ, Direction dir, unsigned long sq) {
-    u64 attacks = rays[dir][sq];
-    u64 blocker = attacks & occ;
-    sq = first_bit(blocker | (u64)0x8000000000000000);
-    return attacks ^ rays[dir][sq];
+u64 BitBoardGenerator::find_magic(int sq, int m, bool bishop) {
+    u64 mask, b[4096], a[4096], used[4096], magic;
+    int i, j, k, n, fail;
+
+    mask = bishop ? bishop_masks[sq] : rook_masks[sq];
+    n = count_1s(mask);
+
+    for (i = 0; i < mask_piece[n]; i++) {
+        b[i] = index_to_u64(i, n, mask);
+        a[i] = bishop ? generate_bishop_attacks(sq, b[i]) : generate_rook_attacks(sq, b[i]);
+    }
+
+    for (k = 0; k < 100000000; k++) {
+        magic = random_u64_fewbits();
+
+        if (count_1s((mask * magic) & 0xff00000000000000ULL) < 6) {
+            continue;
+        }
+
+        for (i = 0; i < 4096; i++) {
+            used[i] = 0ULL;
+        }
+
+        for (i = 0, fail = 0; !fail && i < mask_piece[n]; i++) {
+            j = transform(b[i], magic, m);
+            if (used[j] == 0ULL) {
+                used[j] = a[i];
+            } else if (used[j] != a[i]) {
+                fail = 1;
+            }
+        }
+
+        if (!fail) {
+            return magic;
+        }
+    }
+    std::cout << "FAILED" << "\n";
+    return 0ULL;
 }
 
-u64 BitBoardGenerator::get_negative_rays(u64 occ, Direction dir, unsigned long sq) {
-    u64 attacks = rays[dir][sq];
-    u64 blocker = attacks & occ;
-    sq = last_bit(blocker | 1ULL);
-    return attacks ^ rays[dir][sq];
+u64 BitBoardGenerator::generate_bishop_attacks(int sq, u64 block) {
+    u64 result = 0ULL;
+    int rank = sq / 8;
+    int file = sq % 8;
+    int r, f;
+
+    for (r = rank + 1, f = file + 1; r <= 7 && f <= 7; r++, f++) {
+        int i = f + r * 8;
+        result |= mask_piece[i];
+        if (block & mask_piece[i]) {
+            break;
+        }
+    }
+
+    for (r = rank + 1, f = file - 1; r <= 7 && f >= 0; r++, f--) {
+        int i = f + r * 8;
+        result |= mask_piece[i];
+        if (block & mask_piece[i]) {
+            break;
+        }
+    }
+
+    for (r = rank - 1, f = file + 1; r >= 0 && f <= 7; r--, f++) {
+        int i = f + r * 8;
+        result |= mask_piece[i];
+        if (block & mask_piece[i]) {
+            break;
+        }
+    }
+
+    for (r = rank - 1, f = file - 1; r >= 0 && f >= 0; r--, f--) {
+        int i = f + r * 8;
+        result |= mask_piece[i];
+        if (block & mask_piece[i]) {
+            break;
+        }
+    }
+
+    return result;
 }
 
-u64 BitBoardGenerator::diag_attacks(u64 occ, unsigned long sq) {
-    return get_positive_rays(occ, NORTH_EAST, sq) | get_negative_rays(occ, SOUTH_WEST, sq);
+u64 BitBoardGenerator::generate_rook_attacks(int sq, u64 block) {
+    u64 result = 0ULL;
+    int rank = sq / 8;
+    int file = sq % 8;
+    int r, f;
+
+    for (r = rank + 1; r < 8; r++) {
+        int i = file + r * 8;
+        result |= mask_piece[i];
+        if (block & mask_piece[i]) {
+            break;
+        }
+    }
+
+    for (r = rank - 1; r >= 0; r--) {
+        int i = file + r * 8;
+        result |= mask_piece[i];
+        if (block & mask_piece[i]) {
+            break;
+        }
+    }
+
+    for (f = file + 1; f < 8; f++) {
+        int i = f + rank * 8;
+        result |= mask_piece[i];
+        if (block & mask_piece[i]) {
+            break;
+        }
+    }
+
+    for (f = file - 1; f >= 0; f--) {
+        int i = f + rank * 8;
+        result |= mask_piece[i];
+        if (block & mask_piece[i]) {
+            break;
+        }
+    }
+
+    return result;
 }
 
-u64 BitBoardGenerator::anti_diag_attacks(u64 occ, unsigned long sq) {
-    return get_positive_rays(occ, NORTH_WEST, sq) | get_negative_rays(occ, SOUTH_EAST, sq);
+u64 BitBoardGenerator::generate_bishop_mask(int sq) {
+    u64 mask = 0ULL;
+    int rank = sq / 8;
+    int file = sq % 8;
+
+    for (int dr = -1; dr <= 1; dr += 2) {
+        for (int df = -1; df <= 1; df += 2) {
+            int tr = rank + dr;
+            int tf = file + df;
+
+            while (tr > 0 && tr < 7 && tf > 0 && tf < 7) {
+                mask |= mask_piece[tr * 8 + tf];
+                tr += dr;
+                tf += df;
+            }
+        }
+    }
+    return mask;
 }
 
-u64 BitBoardGenerator::rank_attacks(u64 occ, unsigned long sq) {
-    return get_positive_rays(occ, EAST, sq) | get_negative_rays(occ, WEST, sq);
-}
+u64 BitBoardGenerator::generate_rook_mask(int sq) {
+    u64 mask = 0ULL;
+    int rank = sq / 8;
+    int file = sq % 8;
 
-u64 BitBoardGenerator::file_attacks(u64 occ, unsigned long sq) {
-    return get_positive_rays(occ, NORTH, sq) | get_negative_rays(occ, SOUTH, sq);
+    for (int r = rank + 1; r < 7; r++) {
+        mask |= mask_piece[r * 8 + file];
+    }
+
+    for (int r = rank - 1; r > 0; r--) {
+        mask |= mask_piece[r * 8 + file];
+    }
+
+    for (int f = file + 1; f < 7; f++) {
+        mask |= mask_piece[rank * 8 + f];
+    }
+
+    for (int f = file - 1; f > 0; f--) {
+        mask |= mask_piece[rank * 8 + f];
+    }
+
+    return mask;
 }
 
 u64 BitBoardGenerator::pieces_attacking_square(u64 *bitboards, int sq, bool turn) {
@@ -105,36 +234,17 @@ u64 BitBoardGenerator::pieces_attacking_square(u64 *bitboards, int sq, bool turn
     PieceType king_type = turn ? WHITE_KING : BLACK_KING;
     res |= bitboards[king_type] & king_attack_pattern[sq];
 
-    // Check for sliding pieces attacking the square
-    // Get the rays from the attacked square
-    u64 rays[8] = {get_positive_rays(bitboards[ALL], NORTH, (unsigned long)sq),
-                   get_negative_rays(bitboards[ALL], SOUTH, (unsigned long)sq),
-                   get_positive_rays(bitboards[ALL], EAST, (unsigned long)sq),
-                   get_negative_rays(bitboards[ALL], WEST, (unsigned long)sq),
-                   get_positive_rays(bitboards[ALL], NORTH_EAST, (unsigned long)sq),
-                   get_positive_rays(bitboards[ALL], NORTH_WEST, (unsigned long)sq),
-                   get_negative_rays(bitboards[ALL], SOUTH_EAST, (unsigned long)sq),
-                   get_negative_rays(bitboards[ALL], SOUTH_WEST, (unsigned long)sq)};
+    // Sliding pieces using magic bitboards
+    u64 occupancy = bitboards[ALL];
 
-    // Get the first or last piece in each direction
-    int blockers[8] = {
-        last_bit(rays[0]),  first_bit(rays[1]), // North / South
-        last_bit(rays[2]),  first_bit(rays[3]), // East / West
-        last_bit(rays[4]),  last_bit(rays[5]),  // NE / NW
-        first_bit(rays[6]), first_bit(rays[7])  // SE / SW
-    };
+    // Bishop-like attacks (bishops and queens)
+    u64 bishop_attackers = generate_bishop_bitboard(sq, occupancy);
+    res |= bishop_attackers &
+           (bitboards[turn ? WHITE_BISHOP : BLACK_BISHOP] | bitboards[turn ? WHITE_QUEEN : BLACK_QUEEN]);
 
-    // Determine attacking pieces
-    PieceType rook = turn ? WHITE_ROOK : BLACK_ROOK;
-    PieceType bishop = turn ? WHITE_BISHOP : BLACK_BISHOP;
-    PieceType queen = turn ? WHITE_QUEEN : BLACK_QUEEN;
-
-    for (int i = 0; i < 4; i++) {
-        res |= (mask_piece[blockers[i]] & bitboards[rook]) | (mask_piece[blockers[i]] & bitboards[queen]);
-    }
-    for (int i = 4; i < 8; i++) {
-        res |= (mask_piece[blockers[i]] & bitboards[bishop]) | (mask_piece[blockers[i]] & bitboards[queen]);
-    }
+    // Rook-like attacks (rooks and queens)
+    u64 rook_attackers = generate_rook_bitboard(sq, occupancy);
+    res |= rook_attackers & (bitboards[turn ? WHITE_ROOK : BLACK_ROOK] | bitboards[turn ? WHITE_QUEEN : BLACK_QUEEN]);
 
     return res;
 }
@@ -150,20 +260,27 @@ u64 BitBoardGenerator::generate_attacks_bitboard(ChessLogic &game, bool turn) {
     u64 rooks = turn ? bitboards[WHITE_ROOK] : bitboards[BLACK_ROOK];
     u64 queens = turn ? bitboards[WHITE_QUEEN] : bitboards[BLACK_QUEEN];
     u64 all_attacks = 0;
+    u64 friendly = turn ? bitboards[WHITE] : bitboards[BLACK];
 
     while (bishops) {
         int sq = first_bit(bishops);
-        all_attacks |= generate_bishop_bitboard(bitboards, sq, turn);
+        u64 bishop = generate_bishop_bitboard(sq, bitboards[ALL]);
+        bishop &= ~friendly;
+        all_attacks |= bishop;
         bishops &= bishops - 1;
     }
     while (rooks) {
         int sq = first_bit(rooks);
-        all_attacks |= generate_rook_bitboard(bitboards, sq, turn);
+        u64 rook = generate_rook_bitboard(sq, bitboards[ALL]);
+        rook &= ~friendly;
+        all_attacks |= rook;
         rooks &= rooks - 1;
     }
     while (queens) {
         int sq = first_bit(queens);
-        all_attacks |= generate_queen_bitboard(bitboards, sq, turn);
+        u64 queen = generate_queen_bitboard(sq, bitboards[ALL]);
+        queen &= ~friendly;
+        all_attacks |= queen;
         queens &= queens - 1;
     }
     if (square_attacked_by_pawn_or_knight(6, bitboards, !turn)) {
@@ -243,56 +360,24 @@ u64 BitBoardGenerator::generate_king_bitboard(ChessLogic &game, bool turn) {
     return moves;
 }
 
-u64 BitBoardGenerator::generate_knight_bitboard(u64 *bitboards, bool turn) {
-    u64 knights = turn ? bitboards[WHITE_KNIGHT] : bitboards[BLACK_KNIGHT];
-    u64 no_no_ea = (knights << 17) & clear_file[0];
-    u64 no_ea_ea = (knights << 10) & not_ab_file;
-    u64 so_ea_ea = (knights >> 6) & not_ab_file;
-    u64 so_so_ea = (knights >> 15) & clear_file[0];
-    u64 no_no_we = (knights << 15) & clear_file[7];
-    u64 no_we_we = (knights << 6) & not_gh_file;
-    u64 so_we_we = (knights >> 10) & not_gh_file;
-    u64 so_so_we = (knights >> 17) & clear_file[7];
-
-    u64 res = no_no_ea | no_ea_ea | so_ea_ea | so_so_ea | no_no_we | no_we_we | so_we_we | so_so_we;
-    if (turn) {
-        res &= ~bitboards[WHITE];
-    } else {
-        res &= ~bitboards[BLACK];
-    }
-    return res;
+u64 BitBoardGenerator::generate_bishop_bitboard(int sq, u64 occ) {
+    u64 mask = bishop_masks[sq];
+    u64 blockers = occ & mask;
+    int index = (int)((blockers * bishop_magics[sq]) >> (64 - BBits[sq]));
+    return bishop_attacks[sq][index];
 }
 
-u64 BitBoardGenerator::generate_bishop_bitboard(u64 *bitboards, int sq, bool turn) {
-    u64 res = diag_attacks(bitboards[ALL], (unsigned long)sq) | anti_diag_attacks(bitboards[ALL], (unsigned long)sq);
-    if (turn) {
-        res &= ~bitboards[WHITE];
-    } else {
-        res &= ~bitboards[BLACK];
-    }
-    return res;
+u64 BitBoardGenerator::generate_rook_bitboard(int sq, u64 occ) {
+    u64 mask = rook_masks[sq];
+    u64 blockers = occ & mask;
+    int index = (int)((blockers * rook_magics[sq]) >> (64 - RBits[sq]));
+    return rook_attacks[sq][index];
 }
 
-u64 BitBoardGenerator::generate_rook_bitboard(u64 *bitboards, int sq, bool turn) {
-    u64 res = rank_attacks(bitboards[ALL], (unsigned long)sq) | file_attacks(bitboards[ALL], (unsigned long)sq);
-    if (turn) {
-        res &= ~bitboards[WHITE];
-    } else {
-        res &= ~bitboards[BLACK];
-    }
-    return res;
-}
-
-u64 BitBoardGenerator::generate_queen_bitboard(u64 *bitboards, int sq, bool turn) {
-    u64 occ = bitboards[ALL];
-    u64 res = file_attacks(occ, (unsigned long)sq) | rank_attacks(occ, (unsigned long)sq) |
-              diag_attacks(occ, (unsigned long)sq) | anti_diag_attacks(occ, (unsigned long)sq);
-    if (turn) {
-        res &= ~bitboards[WHITE];
-    } else {
-        res &= ~bitboards[BLACK];
-    }
-    return res;
+u64 BitBoardGenerator::generate_queen_bitboard(int sq, u64 occ) {
+    u64 bishop = generate_bishop_bitboard(sq, occ);
+    u64 rook = generate_rook_bitboard(sq, occ);
+    return bishop | rook;
 }
 
 u64 BitBoardGenerator::generate_castle_bitboard(ChessLogic &game, bool turn) {
@@ -350,16 +435,16 @@ u64 BitBoardGenerator::generate_pinned_pieces_bitboard(u64 *bitboards, bool turn
 }
 
 u64 BitBoardGenerator::xray_rook_attacks(u64 occ, u64 blockers, int sq) {
-    u64 attacks = rank_attacks(occ, (unsigned long)sq) | file_attacks(occ, (unsigned long)sq);
+    u64 attacks = generate_rook_bitboard(sq, occ);
     blockers &= attacks;
-    u64 var = rank_attacks(occ ^ blockers, (unsigned long)sq) | file_attacks(occ ^ blockers, (unsigned long)sq);
+    u64 var = generate_rook_bitboard(sq, occ ^ blockers);
     return attacks ^ var;
 }
 
 u64 BitBoardGenerator::xray_bishop_attacks(u64 occ, u64 blockers, int sq) {
-    u64 attacks = diag_attacks(occ, (unsigned long)sq) | anti_diag_attacks(occ, (unsigned long)sq);
+    u64 attacks = generate_bishop_bitboard(sq, occ);
     blockers &= attacks;
-    u64 var = diag_attacks(occ ^ blockers, (unsigned long)sq) | anti_diag_attacks(occ ^ blockers, (unsigned long)sq);
+    u64 var = generate_bishop_bitboard(sq, occ ^ blockers);
     return attacks ^ var;
 }
 
@@ -378,6 +463,7 @@ int BitBoardGenerator::get_pinning_piece_square(u64 *bitboards, int sq, bool tur
         }
         pinner &= pinner - 1;
     }
+
     pinner = xray_bishop_attacks(bitboards[ALL], own_pieces, king_sq) & op_bq;
     while (pinner) {
         int pinner_sq = first_bit(pinner);
@@ -386,6 +472,7 @@ int BitBoardGenerator::get_pinning_piece_square(u64 *bitboards, int sq, bool tur
         }
         pinner &= pinner - 1;
     }
+
     return 64;
 }
 

@@ -236,6 +236,7 @@ void MoveGenerator::generate_bishop_moves(std::vector<u64> &moves, ChessLogic &l
     u64 *bitboards = logic.get_board().get_bitboards();
     u64 bishops = turn ? bitboards[WHITE_BISHOP] : bitboards[BLACK_BISHOP];
     u64 enemy = turn ? bitboards[BLACK] : bitboards[WHITE];
+    u64 friendly = turn ? bitboards[WHITE] : bitboards[BLACK];
     u64 pinned_bishops = BitBoardGenerator::generate_pinned_pieces_bitboard(bitboards, turn) & bishops;
     int king_sq = turn ? first_bit(bitboards[WHITE_KING]) : first_bit(bitboards[BLACK_KING]);
 
@@ -243,12 +244,14 @@ void MoveGenerator::generate_bishop_moves(std::vector<u64> &moves, ChessLogic &l
     u64 flag;
     while (bishops) {
         from = first_bit(bishops);
-        u64 attacks = BitBoardGenerator::generate_bishop_bitboard(bitboards, from, turn);
+        u64 attacks = BitBoardGenerator::generate_bishop_bitboard(from, bitboards[ALL]);
         if (pinned_bishops & mask_piece[from]) {
             int pinner_sq = BitBoardGenerator::get_pinning_piece_square(bitboards, from, turn);
             u64 pin_ray = BitBoardGenerator::precomputed_in_between[king_sq][pinner_sq] | mask_piece[pinner_sq];
             attacks &= pin_ray;
         }
+
+        attacks &= ~friendly;
 
         while (attacks) {
             to = first_bit(attacks);
@@ -265,6 +268,7 @@ void MoveGenerator::generate_rook_moves(std::vector<u64> &moves, ChessLogic &log
     u64 *bitboards = logic.get_board().get_bitboards();
     u64 rooks = turn ? bitboards[WHITE_ROOK] : bitboards[BLACK_ROOK];
     u64 enemy = turn ? bitboards[BLACK] : bitboards[WHITE];
+    u64 friendly = turn ? bitboards[WHITE] : bitboards[BLACK];
     u64 pinned_rooks = BitBoardGenerator::generate_pinned_pieces_bitboard(bitboards, turn) & rooks;
     int king_sq = turn ? first_bit(bitboards[WHITE_KING]) : first_bit(bitboards[BLACK_KING]);
 
@@ -272,12 +276,14 @@ void MoveGenerator::generate_rook_moves(std::vector<u64> &moves, ChessLogic &log
     u64 flag;
     while (rooks) {
         from = first_bit(rooks);
-        u64 attacks = BitBoardGenerator::generate_rook_bitboard(bitboards, from, turn);
+        u64 attacks = BitBoardGenerator::generate_rook_bitboard(from, bitboards[ALL]);
         if (pinned_rooks & mask_piece[from]) {
             int pinner_sq = BitBoardGenerator::get_pinning_piece_square(bitboards, from, turn);
             u64 pin_ray = BitBoardGenerator::precomputed_in_between[king_sq][pinner_sq] | mask_piece[pinner_sq];
             attacks &= pin_ray;
         }
+
+        attacks &= ~friendly;
 
         while (attacks) {
             to = first_bit(attacks);
@@ -294,6 +300,7 @@ void MoveGenerator::generate_queen_moves(std::vector<u64> &moves, ChessLogic &lo
     u64 *bitboards = logic.get_board().get_bitboards();
     u64 queen = turn ? bitboards[WHITE_QUEEN] : bitboards[BLACK_QUEEN];
     u64 enemy = turn ? bitboards[BLACK] : bitboards[WHITE];
+    u64 friendly = turn ? bitboards[WHITE] : bitboards[BLACK];
     u64 pinned_queens = BitBoardGenerator::generate_pinned_pieces_bitboard(bitboards, turn) & queen;
     int king_sq = turn ? first_bit(bitboards[WHITE_KING]) : first_bit(bitboards[BLACK_KING]);
 
@@ -301,12 +308,14 @@ void MoveGenerator::generate_queen_moves(std::vector<u64> &moves, ChessLogic &lo
     u64 flag;
     while (queen) {
         from = first_bit(queen);
-        u64 attacks = BitBoardGenerator::generate_queen_bitboard(bitboards, from, turn);
+        u64 attacks = BitBoardGenerator::generate_queen_bitboard(from, bitboards[ALL]);
         if (pinned_queens & mask_piece[from]) {
             int pinner_sq = BitBoardGenerator::get_pinning_piece_square(bitboards, from, turn);
             u64 pin_ray = BitBoardGenerator::precomputed_in_between[king_sq][pinner_sq] | mask_piece[pinner_sq];
             attacks &= pin_ray;
         }
+
+        attacks &= ~friendly;
 
         while (attacks) {
             to = first_bit(attacks);
