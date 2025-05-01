@@ -1,0 +1,10 @@
+D:\Programmering\chess-cpp\test\botvsbot.cpp;D:\Programmering\chess-cpp\build\runBot.dir\Release\botvsbot.obj
+D:\Programmering\chess-cpp\src\board.cpp;D:\Programmering\chess-cpp\build\runBot.dir\Release\board.obj
+D:\Programmering\chess-cpp\src\chesslogic.cpp;D:\Programmering\chess-cpp\build\runBot.dir\Release\chesslogic.obj
+D:\Programmering\chess-cpp\src\fen.cpp;D:\Programmering\chess-cpp\build\runBot.dir\Release\fen.obj
+D:\Programmering\chess-cpp\src\chessgame.cpp;D:\Programmering\chess-cpp\build\runBot.dir\Release\chessgame.obj
+D:\Programmering\chess-cpp\src\utils.cpp;D:\Programmering\chess-cpp\build\runBot.dir\Release\utils.obj
+D:\Programmering\chess-cpp\src\movegen.cpp;D:\Programmering\chess-cpp\build\runBot.dir\Release\movegen.obj
+D:\Programmering\chess-cpp\src\bitboard.cpp;D:\Programmering\chess-cpp\build\runBot.dir\Release\bitboard.obj
+D:\Programmering\chess-cpp\src\magic.cpp;D:\Programmering\chess-cpp\build\runBot.dir\Release\magic.obj
+D:\Programmering\chess-cpp\src\bot.cpp;D:\Programmering\chess-cpp\build\runBot.dir\Release\bot.obj

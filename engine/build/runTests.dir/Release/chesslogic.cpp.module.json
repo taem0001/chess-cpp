@@ -1,0 +1,13 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "runTests.dir\\Release\\chesslogic.obj",
+            "outputs": [
+                "runTests.dir\\Release\\"
+            ],
+            "requires": []
+        }
+    ]
+}

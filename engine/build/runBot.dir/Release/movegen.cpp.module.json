@@ -1,0 +1,13 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "runBot.dir\\Release\\movegen.obj",
+            "outputs": [
+                "runBot.dir\\Release\\"
+            ],
+            "requires": []
+        }
+    ]
+}

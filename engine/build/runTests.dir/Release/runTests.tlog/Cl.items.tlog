@@ -1,0 +1,8 @@
+D:\Programmering\chess-cpp\test\test.cpp;D:\Programmering\chess-cpp\build\runTests.dir\Release\test.obj
+D:\Programmering\chess-cpp\src\board.cpp;D:\Programmering\chess-cpp\build\runTests.dir\Release\board.obj
+D:\Programmering\chess-cpp\src\chesslogic.cpp;D:\Programmering\chess-cpp\build\runTests.dir\Release\chesslogic.obj
+D:\Programmering\chess-cpp\src\fen.cpp;D:\Programmering\chess-cpp\build\runTests.dir\Release\fen.obj
+D:\Programmering\chess-cpp\src\utils.cpp;D:\Programmering\chess-cpp\build\runTests.dir\Release\utils.obj
+D:\Programmering\chess-cpp\src\movegen.cpp;D:\Programmering\chess-cpp\build\runTests.dir\Release\movegen.obj
+D:\Programmering\chess-cpp\src\bitboard.cpp;D:\Programmering\chess-cpp\build\runTests.dir\Release\bitboard.obj
+D:\Programmering\chess-cpp\src\magic.cpp;D:\Programmering\chess-cpp\build\runTests.dir\Release\magic.obj

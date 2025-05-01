@@ -1,0 +1,13 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "runTests.dir\\Release\\fen.obj",
+            "outputs": [
+                "runTests.dir\\Release\\"
+            ],
+            "requires": []
+        }
+    ]
+}

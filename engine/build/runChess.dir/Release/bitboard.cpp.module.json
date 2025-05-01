@@ -1,0 +1,13 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "runChess.dir\\Release\\bitboard.obj",
+            "outputs": [
+                "runChess.dir\\Release\\"
+            ],
+            "requires": []
+        }
+    ]
+}
