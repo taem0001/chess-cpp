@@ -29,6 +29,7 @@ add_executable(runChess
     src/utils.cpp
     src/movegen.cpp
     src/bitboard.cpp
+    src/magic.cpp
     src/bot.cpp
 )
 
@@ -42,6 +43,7 @@ add_executable(runBot
     src/utils.cpp
     src/movegen.cpp
     src/bitboard.cpp
+    src/magic.cpp
     src/bot.cpp
 )
 
@@ -54,6 +56,7 @@ add_executable(runTests
     src/utils.cpp
     src/movegen.cpp
     src/bitboard.cpp
+    src/magic.cpp
 )
 
 # Link test executable with GoogleTest and pthread if needed
