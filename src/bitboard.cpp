@@ -300,7 +300,7 @@ u64 BitBoardGenerator::generate_castle_bitboard(ChessLogic &game, bool turn) {
     u64 king_attacks = pieces_attacking_king(game.get_board().get_bitboards(), turn);
     u64 occ = game.get_board().get_bitboards()[ALL];
     u64 res = 0;
-    
+
     if (king_attacks) {
         return res;
     }

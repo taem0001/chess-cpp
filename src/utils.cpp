@@ -13,14 +13,9 @@ int last_bit(u64 bitboard) {
     if (bitboard == 0) {
         return 64;
     }
-
-#if defined(_MSC_VER)  // For MSVC (Windows)
     unsigned long index;
     _BitScanReverse64(&index, bitboard);
     return static_cast<int>(index);
-#else  // For GCC/Clang (Linux/Unix)
-    return 63 - __builtin_clzll(bitboard);
-#endif
 }
 
 int max(int n1, int n2) {
@@ -190,11 +185,11 @@ void merge(std::vector<MoveScore> &vec, int left, int mid, int right) {
     std::vector<MoveScore> left_vec(n1), right_vec(n2);
 
     // Copy data
-    for (int i = 0; i < n1; i++) {
+    for (i = 0; i < n1; i++) {
         left_vec[i] = vec[left + i];
     }
-    for (int i = 0; i < n2; i++) {
-        right_vec[i] = vec[mid + 1 + i];
+    for (j = 0; j < n2; j++) {
+        right_vec[j] = vec[mid + 1 + j];
     }
 
     // Merge temporary vectors back
