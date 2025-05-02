@@ -1,4 +1,4 @@
-/build/
+/engine/build/
 /.vscode/
 /*.o
 /*.exe

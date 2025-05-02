@@ -46,6 +46,46 @@ void ChessGame::run_game(Bot &bot, bool bot_color) {
                 std::cin >> pos;
                 correct_pos = get_pos(pos, &from, &to);
                 valid_move = contains_move(moves, from, to, logic.get_totalmoves(), &move);
+                int flag = get_flag(move);
+                if (flag == queen_promotion || flag == rook_promotion || flag == bishop_promotion ||
+                    flag == knight_promotion || flag == queen_promo_capture || flag == rook_promo_capture ||
+                    flag == bishop_promo_capture || flag == knight_promo_capture) {
+                    char c;
+                    do {
+                        std::cout << "Choose promoting piece: ";
+                        std::cin >> c;
+                    } while (c != 'Q' && c != 'q' && c != 'N' && c != 'n' && c != 'R' && c != 'r' && c != 'B' &&
+                             c != 'b');
+                    if (c == 'Q' || c == 'q') {
+                        u64 from = get_from(move);
+                        u64 to = get_to(move);
+                        u64 flag = queen_promotion;
+                        u64 total_moves = get_totalmoves(move);
+
+                        move = define_move(from, to, flag, total_moves);
+                    } else if (c == 'N' || c == 'n') {
+                        u64 from = get_from(move);
+                        u64 to = get_to(move);
+                        u64 flag = knight_promotion;
+                        u64 total_moves = get_totalmoves(move);
+
+                        move = define_move(from, to, flag, total_moves);
+                    } else if (c == 'R' || c == 'r') {
+                        u64 from = get_from(move);
+                        u64 to = get_to(move);
+                        u64 flag = rook_promotion;
+                        u64 total_moves = get_totalmoves(move);
+
+                        move = define_move(from, to, flag, total_moves);
+                    } else if (c == 'B' || c == 'b') {
+                        u64 from = get_from(move);
+                        u64 to = get_to(move);
+                        u64 flag = bishop_promotion;
+                        u64 total_moves = get_totalmoves(move);
+
+                        move = define_move(from, to, flag, total_moves);
+                    }
+                }
             } while (!correct_pos || !valid_move);
         }
 
