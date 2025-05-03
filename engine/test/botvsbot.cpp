@@ -7,12 +7,12 @@ int main(void) {
     game.run_game_bot(bot1, bot2);
 
     if (game.get_draw()) {
-        std::cout << "DRAW" << std::endl;
+        std::cout << "DRAW" << "\n";
     } else {
         if (game.get_winner()) {
-            std::cout << "WHITE WINS" << std::endl;
+            std::cout << "WHITE WINS" << "\n";
         } else {
-            std::cout << "BLACK WINS" << std::endl;
+            std::cout << "BLACK WINS" << "\n";
         }
     }
 

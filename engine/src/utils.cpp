@@ -164,16 +164,16 @@ void print_bitboard(u64 bitboard) {
             int square = rank * 8 + file;
             std::cout << ((bitboard >> square) & 1) << " ";
         }
-        std::cout << std::endl;
+        std::cout << "\n";
     }
-    std::cout << std::endl;
+    std::cout << "\n";
 }
 
 void print_moves(std::vector<u64> &moves) {
     for (u64 move : moves) {
-        std::cout << print_pos((int)get_from(move)) << print_pos((int)get_to(move)) << std::endl;
+        std::cout << print_pos((int)get_from(move)) << print_pos((int)get_to(move)) << "\n";
     }
-    std::cout << std::endl;
+    std::cout << "\n";
 }
 
 void merge(std::vector<MoveScore> &vec, int left, int mid, int right) {

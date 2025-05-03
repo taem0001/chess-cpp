@@ -38,7 +38,7 @@ void ChessGame::run_game(Bot &bot, bool bot_color) {
             auto t2 = std::chrono::high_resolution_clock::now();
 
             auto ms_int = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
-            std::cout << "Time elapsed: " << ms_int.count() << "ms" << std::endl;
+            std::cout << "Time elapsed: " << ms_int.count() << "ms" << "\n";
         } else {
             do {
                 player = turn ? "White player's move: " : "Black player's move: ";
@@ -111,22 +111,22 @@ void ChessGame::run_game_bot(Bot &bot1, Bot &bot2) {
         std::vector<u64> moves = MoveGenerator::generate_legal_moves(logic);
 
         if (moves.size() == 0 && (!logic.get_singlecheck() && !logic.get_doublecheck())) {
-            std::cout << "STALEMATE" << std::endl;
+            std::cout << "STALEMATE" << "\n";
             draw = true;
             break;
         } else if (five_fold) {
-            std::cout << "FIVEFOLD" << std::endl;
+            std::cout << "FIVEFOLD" << "\n";
             draw = true;
             break;
         } else if (logic.fifty_move_rule()) {
-            std::cout << "FIFTYMOVES" << std::endl;
+            std::cout << "FIFTYMOVES" << "\n";
             draw = true;
             break;
         } else if (moves.size() == 0 && (logic.get_singlecheck() || logic.get_doublecheck())) {
             winner = !turn;
             break;
         } else if (moves.size() == 0) {
-            std::cout << "DEADPOS" << std::endl;
+            std::cout << "DEADPOS" << "\n";
             draw = true;
             break;
         }
@@ -137,7 +137,7 @@ void ChessGame::run_game_bot(Bot &bot1, Bot &bot2) {
             move = bot2.choose_move(logic, moves);
         }
 
-        std::cout << logic.get_halfmoves() << std::endl;
+        std::cout << logic.get_halfmoves() << "\n";
 
         logic.make_move(move);
         logic.draw_game();

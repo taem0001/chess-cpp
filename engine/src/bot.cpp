@@ -1,5 +1,4 @@
 #include "../include/bot.h"
-#include "bot.h"
 
 Bot::Bot() { MoveGenerator::init(); }
 
@@ -28,7 +27,7 @@ int Bot::evaluate(ChessLogic &logic) {
     int n_diff = __popcnt64(n_w) - __popcnt64(n_b);
     int p_diff = __popcnt64(p_w) - __popcnt64(p_b);
 
-    return 9 * q_diff + 5 * r_diff + 3 * b_diff + 3 * n_diff + 1 * p_diff;
+    return queen_value * q_diff + rook_value * r_diff + bishop_value * b_diff + knight_value * n_diff + pawn_value * p_diff;
 }
 
 int Bot::negamax(ChessLogic &logic, int depth, int color, int alpha, int beta) {
@@ -111,5 +110,6 @@ u64 Bot::search_move(ChessLogic &logic, int depth, int color) {
             best_move = move;
         }
     }
+    std::cout << print_pos(get_from(best_move)) << print_pos(get_to(best_move)) << "\n";
     return best_move;
 }

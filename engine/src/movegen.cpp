@@ -329,7 +329,7 @@ void MoveGenerator::generate_queen_moves(std::vector<u64> &moves, ChessLogic &lo
 
 void MoveGenerator::check_detection(u64 *bitboards, bool *single_check, bool *double_check, bool turn) {
     u64 attacks_to_king = BitBoardGenerator::pieces_attacking_king(bitboards, turn);
-    int check_count = std::popcount(attacks_to_king);
+    int check_count = __popcnt64(attacks_to_king);
     *single_check = check_count == 1;
     *double_check = check_count > 1;
 }
