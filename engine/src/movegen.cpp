@@ -88,24 +88,30 @@ void MoveGenerator::generate_pawn_captures(std::vector<u64> &moves, ChessLogic &
         int file = from % 8;
         int rank = from / 8;
 
-        pin_ray = 0xffffffffffffffff;
+        pin_ray = ~0x0;
         if (pinned_pawns & mask_piece[from]) {
             int pinner_sq = BitBoardGenerator::get_pinning_piece_square(bitboards, from, turn);
             pin_ray = BitBoardGenerator::precomputed_in_between[king_sq][pinner_sq] | mask_piece[pinner_sq];
         }
 
-        u64 rank_mask;
-        if (turn) {
-            rank_mask = rank < 7 ? mask_rank[rank + 1] : 0;
-        } else {
-            rank_mask = rank > 0 ? mask_rank[rank - 1] : 0;
+        int rank_shift = turn ? +1 : -1;
+        int next_rank = rank + rank_shift;
+        if (next_rank < 0 || next_rank > 7) {
+            continue;
         }
+        u64 rank_mask = mask_rank[next_rank];
 
-        if (file > 0) {
-            u64 left_captures = captures & mask_file[file - 1] & rank_mask & pin_ray;
+        // Diagonal captures
+        for (int df = -1; df <= 1; df += 2) {
+            int capture_file = file + df;
+            if (capture_file < 0 || capture_file > 7) {
+                continue;
+            }
 
-            while (left_captures) {
-                to = first_bit(left_captures);
+            u64 capture_targets = captures & mask_file[capture_file] & rank_mask & pin_ray;
+            while (capture_targets) {
+                to = first_bit(capture_targets);
+                capture_targets &= capture_targets - 1;
                 int to_rank = to / 8;
 
                 if ((turn && to_rank == 7) || (!turn && to_rank == 0)) {
@@ -116,37 +122,17 @@ void MoveGenerator::generate_pawn_captures(std::vector<u64> &moves, ChessLogic &
                 } else {
                     moves.push_back(define_move(from, to, capture, logic.get_totalmoves()));
                 }
-                left_captures &= left_captures - 1;
             }
         }
-
-        if (file < 7) {
-            u64 right_captures = captures & mask_file[file + 1] & rank_mask & pin_ray;
-
-            while (right_captures) {
-                to = first_bit(right_captures);
-                int to_rank = to / 8;
-
-                if ((turn && to_rank == 7) || (!turn && to_rank == 0)) {
-                    moves.push_back(define_move(from, to, knight_promo_capture, logic.get_totalmoves()));
-                    moves.push_back(define_move(from, to, bishop_promo_capture, logic.get_totalmoves()));
-                    moves.push_back(define_move(from, to, rook_promo_capture, logic.get_totalmoves()));
-                    moves.push_back(define_move(from, to, queen_promo_capture, logic.get_totalmoves()));
-                } else {
-                    moves.push_back(define_move(from, to, capture, logic.get_totalmoves()));
-                }
-                right_captures &= right_captures - 1;
-            }
-        }
-
+        
+        // En passant
         if (en_passant_sq != -1) {
             u64 enp_mask = turn ? shift_north_west(mask_piece[from]) | shift_north_east(mask_piece[from])
                                 : shift_south_west(mask_piece[from]) | shift_south_east(mask_piece[from]);
             if (mask_piece[en_passant_sq] & enp_mask & pin_ray) {
                 u64 board_sim[15];
-                for (int i = 0; i < 15; i++) {
-                    board_sim[i] = bitboards[i];
-                }
+                std::memcpy(board_sim, bitboards, sizeof(u64) * 15);
+
                 to = en_passant_sq;
                 int capture_sq = turn ? en_passant_sq - 8 : en_passant_sq + 8;
                 for (int i = 3; i < 15; i++) {
@@ -384,9 +370,7 @@ std::vector<u64> MoveGenerator::handle_single_check(std::vector<u64> &moves, Che
 
 bool MoveGenerator::simulate_check(u64 *bitboards, PieceType type, bool turn, int from, int to) {
     u64 sim[15];
-    for (int i = 0; i < 15; i++) {
-        sim[i] = bitboards[i];
-    }
+    std::memcpy(sim, bitboards, sizeof(u64) * 15);
 
     for (int i = 3; i < 15; i++) {
         if (mask_piece[to] & sim[i]) {
