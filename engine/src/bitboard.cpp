@@ -283,29 +283,10 @@ u64 BitBoardGenerator::generate_attacks_bitboard(ChessLogic &game, bool turn) {
         all_attacks |= queen;
         queens &= queens - 1;
     }
-    if (square_attacked_by_pawn_or_knight(6, bitboards, !turn)) {
-        all_attacks |= mask_piece[6];
-    }
-    if (square_attacked_by_pawn_or_knight(2, bitboards, !turn)) {
-        all_attacks |= mask_piece[2];
-    }
-    if (square_attacked_by_pawn_or_knight(5, bitboards, !turn)) {
-        all_attacks |= mask_piece[5];
-    }
-    if (square_attacked_by_pawn_or_knight(3, bitboards, !turn)) {
-        all_attacks |= mask_piece[3];
-    }
-    if (square_attacked_by_pawn_or_knight(58, bitboards, !turn)) {
-        all_attacks |= mask_piece[58];
-    }
-    if (square_attacked_by_pawn_or_knight(62, bitboards, !turn)) {
-        all_attacks |= mask_piece[62];
-    }
-    if (square_attacked_by_pawn_or_knight(59, bitboards, !turn)) {
-        all_attacks |= mask_piece[59];
-    }
-    if (square_attacked_by_pawn_or_knight(61, bitboards, !turn)) {
-        all_attacks |= mask_piece[61];
+    for (int i = 0; i < 8; i++) {
+        if (square_attacked_by_pawn_or_knight(CBits[i], bitboards, !turn)) {
+            all_attacks |= mask_piece[CBits[i]];
+        }
     }
     return all_attacks;
 }

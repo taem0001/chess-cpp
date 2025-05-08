@@ -118,12 +118,10 @@ void FenHandler::load_fen(ChessLogic &logic, const std::string &fen) {
     logic.set_halfmoves(half_m);
     logic.set_fullmoves(full_m);
 
-    bitboards[WHITE] = bitboards[WHITE_PAWN] | bitboards[WHITE_ROOK] |
-                       bitboards[WHITE_BISHOP] | bitboards[WHITE_KNIGHT] |
-                       bitboards[WHITE_QUEEN] | bitboards[WHITE_KING];
-    bitboards[BLACK] = bitboards[BLACK_PAWN] | bitboards[BLACK_ROOK] |
-                       bitboards[BLACK_BISHOP] | bitboards[BLACK_KNIGHT] |
-                       bitboards[BLACK_QUEEN] | bitboards[BLACK_KING];
+    bitboards[WHITE] = bitboards[WHITE_PAWN] | bitboards[WHITE_ROOK] | bitboards[WHITE_BISHOP] |
+                       bitboards[WHITE_KNIGHT] | bitboards[WHITE_QUEEN] | bitboards[WHITE_KING];
+    bitboards[BLACK] = bitboards[BLACK_PAWN] | bitboards[BLACK_ROOK] | bitboards[BLACK_BISHOP] |
+                       bitboards[BLACK_KNIGHT] | bitboards[BLACK_QUEEN] | bitboards[BLACK_KING];
     bitboards[ALL] = bitboards[WHITE] | bitboards[BLACK];
 }
 
@@ -165,8 +163,7 @@ std::string FenHandler::write_fen(ChessLogic &logic) {
     res += logic.get_turn() ? 'w' : 'b';
     res += ' ';
 
-    if (!logic.get_wk_castle() && !logic.get_wq_castle() &&
-        !logic.get_bk_castle() && !logic.get_bq_castle()) {
+    if (!logic.get_wk_castle() && !logic.get_wq_castle() && !logic.get_bk_castle() && !logic.get_bq_castle()) {
         res += '-';
     }
     if (logic.get_wk_castle()) {
@@ -183,8 +180,7 @@ std::string FenHandler::write_fen(ChessLogic &logic) {
     }
 
     res += ' ';
-    res += logic.get_en_passant_sq() != -1 ? print_pos(logic.get_en_passant_sq())
-                                          : "-";
+    res += logic.get_en_passant_sq() != -1 ? print_pos(logic.get_en_passant_sq()) : "-";
 
     res += ' ';
     res += std::to_string(logic.get_halfmoves());
