@@ -2,8 +2,14 @@
 #include "../include/movegen.h"
 #include "../include/utils.h"
 #include <windows.h>
+#include <iomanip>
 
-#define assertm(exp, msg) assert((void(msg), exp))
+void print_result(const std::string& status, const std::string& fen, int depth, long long time_us) {
+    std::cout << std::left << std::setw(8) << status;
+    std::cout << "FEN: " << std::setw(72) << fen;
+    std::cout << " | DEPTH: " << std::setw(2) << depth;
+    std::cout << " | TIME: " << std::setw(10) << time_us << " microseconds\n";
+}
 
 u64 perft(ChessLogic &logic, int depth) {
     std::vector<u64> moves = MoveGenerator::generate_legal_moves(logic);
@@ -55,12 +61,13 @@ void run_perft_test(const std::string &fen, int depth, u64 expected) {
     auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 
     passed = nodes == expected;
+    std::string status;
     if (passed) {
-        std::cout << "\033[1;32mPASSED\033[0m\n";
+        status = "\033[1;32mPASSED\033[0m   ";
     } else {
-        std::cout << "\033[1;31mFAILED\033[0m\n";
+        status = "\033[1;31mFAILED\033[0m   ";
     }
-    std::cout << "FEN: " << fen << " | DEPTH: " << depth << " | TIME: " << elapsed.count() << " microseconds\n";
+    print_result(status, fen, depth, elapsed.count());
 }
 
 void enable_virtual_terminal_processing() {
