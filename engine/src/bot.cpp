@@ -112,20 +112,29 @@ std::vector<u64> Bot::order_moves(ChessLogic &logic, std::vector<u64> moves) {
     return result;
 }
 
-u64 Bot::search_move(ChessLogic &logic, int depth, int color) {
-    std::vector<u64> moves = MoveGenerator::generate_legal_moves(logic);
-    u64 best_move;
+u64 Bot::search_move(ChessLogic &logic, int max_depth, int color) {
+    u64 best_move = 0;
     int best_score = -INF;
 
-    for (u64 move : moves) {
-        logic.make_move(move);
-        int score = -negamax(logic, depth - 1, -color, -INF, INF);
-        logic.unmake_move(move);
-        if (score >= best_score) {
-            best_score = score;
-            best_move = move;
+    for (int depth = 1; depth <= max_depth; ++depth) {
+        std::vector<u64> moves = MoveGenerator::generate_legal_moves(logic);
+        int current_best_score = -INF;
+        u64 current_best_move = 0;
+
+        for (u64 move : moves) {
+            logic.make_move(move);
+            int score = -negamax(logic, depth - 1, -color, -INF, INF);
+            logic.unmake_move(move);
+
+            if (score > current_best_score) {
+                current_best_score = score;
+                current_best_move = move;
+            }
         }
+
+        best_move = current_best_move;
+        best_score = current_best_score;
     }
-    std::cout << print_pos(get_from(best_move)) << print_pos(get_to(best_move)) << "\n";
+
     return best_move;
 }
