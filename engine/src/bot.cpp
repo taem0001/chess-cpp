@@ -4,7 +4,7 @@ Bot::Bot() { MoveGenerator::init(); }
 
 u64 Bot::choose_move(ChessLogic logic, std::vector<u64> &moves) {
     int color = logic.get_turn() ? 1 : -1;
-    return search_move(logic, 4, color);
+    return search_move(logic, 5, color);
 }
 
 int Bot::evaluate(ChessLogic &logic) {
@@ -27,7 +27,8 @@ int Bot::evaluate(ChessLogic &logic) {
     int n_diff = __popcnt64(n_w) - __popcnt64(n_b);
     int p_diff = __popcnt64(p_w) - __popcnt64(p_b);
 
-    return queen_value * q_diff + rook_value * r_diff + bishop_value * b_diff + knight_value * n_diff + pawn_value * p_diff;
+    return queen_value * q_diff + rook_value * r_diff + bishop_value * b_diff + knight_value * n_diff +
+           pawn_value * p_diff;
 }
 
 int Bot::negamax(ChessLogic &logic, int depth, int color, int alpha, int beta) {
@@ -77,10 +78,25 @@ std::vector<u64> Bot::order_moves(ChessLogic &logic, std::vector<u64> moves) {
         }
 
         // Reward promotions
-        if (flag == queen_promotion || flag == rook_promotion || flag == bishop_promotion || flag == knight_promotion ||
-            flag == queen_promo_capture || flag == rook_promo_capture || flag == bishop_promo_capture ||
-            flag == knight_promo_capture) {
+        if (flag == queen_promotion || flag == queen_promo_capture) {
+            move_score += 2000;
+        }
+        if (flag == rook_promotion || flag == rook_promo_capture) {
+            move_score += 1200;
+        }
+        if (flag == knight_promotion || flag == knight_promo_capture) {
+            move_score += 1500;
+        }
+        if (flag == bishop_promotion || flag == bishop_promo_capture) {
             move_score += 1000;
+        }
+
+        // Reward castling
+        if (flag == king_castle) {
+            move_score += 500;
+        }
+        if (flag == queen_castle) {
+            move_score += 450;
         }
 
         move_scores.push_back({move_score, move});
@@ -96,20 +112,29 @@ std::vector<u64> Bot::order_moves(ChessLogic &logic, std::vector<u64> moves) {
     return result;
 }
 
-u64 Bot::search_move(ChessLogic &logic, int depth, int color) {
-    std::vector<u64> moves = MoveGenerator::generate_legal_moves(logic);
-    u64 best_move;
+u64 Bot::search_move(ChessLogic &logic, int max_depth, int color) {
+    u64 best_move = 0;
     int best_score = -INF;
 
-    for (u64 move : moves) {
-        logic.make_move(move);
-        int score = -negamax(logic, depth - 1, -color, -INF, INF);
-        logic.unmake_move(move);
-        if (score >= best_score) {
-            best_score = score;
-            best_move = move;
+    for (int depth = 1; depth <= max_depth; ++depth) {
+        std::vector<u64> moves = MoveGenerator::generate_legal_moves(logic);
+        int current_best_score = -INF;
+        u64 current_best_move = 0;
+
+        for (u64 move : moves) {
+            logic.make_move(move);
+            int score = -negamax(logic, depth - 1, -color, -INF, INF);
+            logic.unmake_move(move);
+
+            if (score > current_best_score) {
+                current_best_score = score;
+                current_best_move = move;
+            }
         }
+
+        best_move = current_best_move;
+        best_score = current_best_score;
     }
-    std::cout << print_pos(get_from(best_move)) << print_pos(get_to(best_move)) << "\n";
+
     return best_move;
 }
