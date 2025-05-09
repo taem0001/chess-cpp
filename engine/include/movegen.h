@@ -19,7 +19,7 @@ private:
     static void generate_queen_moves(std::vector <u64> &, ChessLogic &);
 
     static void check_detection(u64 *, bool *, bool *, bool);
-    static bool simulate_check(u64 *, PieceType, bool, int, int);
+    static bool simulate_check(u64 *, int *, PieceType, bool, int, int);
     static std::vector<u64> handle_single_check(std::vector<u64> &, ChessLogic &);
 };
 

@@ -2,10 +2,12 @@
 
 void FenHandler::load_fen(ChessLogic &logic, const std::string &fen) {
     u64 *bitboards = logic.get_board().get_bitboards();
+    int *piece_on_square = logic.get_board().get_piece_on_squares();
 
-    for (int i = 0; i < 15; i++) {
-        bitboards[i] = 0;
-    }
+    std::fill(bitboards, bitboards + 15, 0);
+    
+    // Set all squares to be empty
+    std::fill(piece_on_square, piece_on_square + 64, -1);
 
     int index = 56;
     int s_index = 0;
@@ -27,46 +29,28 @@ void FenHandler::load_fen(ChessLogic &logic, const std::string &fen) {
             } else if (c == '/') {
                 index -= 16;
             } else {
+                int piece_type = -1;
                 switch (c) {
-                    case 'p':
-                        bitboards[BLACK_PAWN] |= mask_piece[index];
-                        break;
-                    case 'r':
-                        bitboards[BLACK_ROOK] |= mask_piece[index];
-                        break;
-                    case 'n':
-                        bitboards[BLACK_KNIGHT] |= mask_piece[index];
-                        break;
-                    case 'b':
-                        bitboards[BLACK_BISHOP] |= mask_piece[index];
-                        break;
-                    case 'q':
-                        bitboards[BLACK_QUEEN] |= mask_piece[index];
-                        break;
-                    case 'k':
-                        bitboards[BLACK_KING] |= mask_piece[index];
-                        break;
-                    case 'P':
-                        bitboards[WHITE_PAWN] |= mask_piece[index];
-                        break;
-                    case 'R':
-                        bitboards[WHITE_ROOK] |= mask_piece[index];
-                        break;
-                    case 'N':
-                        bitboards[WHITE_KNIGHT] |= mask_piece[index];
-                        break;
-                    case 'B':
-                        bitboards[WHITE_BISHOP] |= mask_piece[index];
-                        break;
-                    case 'Q':
-                        bitboards[WHITE_QUEEN] |= mask_piece[index];
-                        break;
-                    case 'K':
-                        bitboards[WHITE_KING] |= mask_piece[index];
-                        break;
-                    default:
-                        break;
+                    case 'p': piece_type = BLACK_PAWN; break;
+                    case 'r': piece_type = BLACK_ROOK; break;
+                    case 'n': piece_type = BLACK_KNIGHT; break;
+                    case 'b': piece_type = BLACK_BISHOP; break;
+                    case 'q': piece_type = BLACK_QUEEN; break;
+                    case 'k': piece_type = BLACK_KING; break;
+                    case 'P': piece_type = WHITE_PAWN; break;
+                    case 'R': piece_type = WHITE_ROOK; break;
+                    case 'N': piece_type = WHITE_KNIGHT; break;
+                    case 'B': piece_type = WHITE_BISHOP; break;
+                    case 'Q': piece_type = WHITE_QUEEN; break;
+                    case 'K': piece_type = WHITE_KING; break;
+                    default: break;
                 }
+
+                if (piece_type != -1) {
+                    bitboards[piece_type] |= mask_piece[index];
+                    piece_on_square[index] = piece_type;
+                }
+
                 index++;
             }
         }
