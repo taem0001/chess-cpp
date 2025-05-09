@@ -42,7 +42,7 @@ void MoveGenerator::generate_pawn_pushes(std::vector<u64> &moves, ChessLogic &lo
         from = first_bit(pawns);
         u64 pushes = BitBoardGenerator::generate_pawn_bitboard(bitboards, mask_piece[from], turn);
 
-        pin_ray = 0xffffffffffffffff;
+        pin_ray = ~0x0;
         if (mask_piece[from] & pinned_pawns) {
             int pinner_sq = BitBoardGenerator::get_pinning_piece_square(bitboards, from, turn);
             pin_ray = BitBoardGenerator::precomputed_in_between[king_sq][pinner_sq] | mask_piece[pinner_sq];
@@ -74,6 +74,7 @@ void MoveGenerator::generate_pawn_pushes(std::vector<u64> &moves, ChessLogic &lo
 
 void MoveGenerator::generate_pawn_captures(std::vector<u64> &moves, ChessLogic &logic) {
     bool turn = logic.get_turn();
+    int *piece_on_square = logic.get_board().get_piece_on_squares();
     u64 *bitboards = logic.get_board().get_bitboards();
     u64 pawns = turn ? bitboards[WHITE_PAWN] : bitboards[BLACK_PAWN];
     u64 captures = BitBoardGenerator::generate_pawn_captures_bitboard(logic, turn);
@@ -135,13 +136,11 @@ void MoveGenerator::generate_pawn_captures(std::vector<u64> &moves, ChessLogic &
 
                 to = en_passant_sq;
                 int capture_sq = turn ? en_passant_sq - 8 : en_passant_sq + 8;
-                for (int i = 3; i < 15; i++) {
-                    if (mask_piece[from] & board_sim[i]) {
-                        board_sim[i] &= ~mask_piece[from];
-                        board_sim[i] |= mask_piece[to];
-                    }
-                    board_sim[i] &= ~mask_piece[capture_sq];
-                }
+                int type = piece_on_square[from];
+                int capture_type = piece_on_square[capture_sq];
+                board_sim[type] &= ~mask_piece[from];
+                board_sim[type] |= mask_piece[to];
+                board_sim[capture_type] &= ~mask_piece[capture_sq];
 
                 board_sim[WHITE] = board_sim[WHITE_PAWN] | board_sim[WHITE_ROOK] | board_sim[WHITE_BISHOP] |
                                    board_sim[WHITE_KNIGHT] | board_sim[WHITE_QUEEN] | board_sim[WHITE_KING];
@@ -168,6 +167,7 @@ void MoveGenerator::generate_knight_moves(std::vector<u64> &moves, ChessLogic &l
     u64 mask = turn ? ~bitboards[WHITE] : ~bitboards[BLACK];
     u64 pinned_knights = BitBoardGenerator::generate_pinned_pieces_bitboard(bitboards, turn) & knights;
     int from, to;
+
     while (knights) {
         from = first_bit(knights);
         u64 attacks = knight_attack_squares[from] & mask;
@@ -189,6 +189,7 @@ void MoveGenerator::generate_knight_moves(std::vector<u64> &moves, ChessLogic &l
 
 void MoveGenerator::generate_king_moves(std::vector<u64> &moves, ChessLogic &logic) {
     bool turn = logic.get_turn();
+    int *piece_on_square = logic.get_board().get_piece_on_squares();
     u64 *bitboards = logic.get_board().get_bitboards();
     u64 king = turn ? bitboards[WHITE_KING] : bitboards[BLACK_KING];
     u64 enemy = turn ? bitboards[BLACK] : bitboards[WHITE];
@@ -201,7 +202,7 @@ void MoveGenerator::generate_king_moves(std::vector<u64> &moves, ChessLogic &log
         from = first_bit(king);
         while (attacks) {
             to = first_bit(attacks);
-            if (simulate_check(bitboards, turn ? WHITE_KING : BLACK_KING, turn, from, to)) {
+            if (simulate_check(bitboards, piece_on_square, turn ? WHITE_KING : BLACK_KING, turn, from, to)) {
                 flag = enemy & mask_piece[to] ? capture : quiet_move;
                 moves.push_back(define_move(from, to, flag, logic.get_totalmoves()));
             }
@@ -368,14 +369,13 @@ std::vector<u64> MoveGenerator::handle_single_check(std::vector<u64> &moves, Che
     return check_moves;
 }
 
-bool MoveGenerator::simulate_check(u64 *bitboards, PieceType type, bool turn, int from, int to) {
+bool MoveGenerator::simulate_check(u64 *bitboards, int *piece_on_square, PieceType type, bool turn, int from, int to) {
     u64 sim[15];
     std::memcpy(sim, bitboards, sizeof(u64) * 15);
 
-    for (int i = 3; i < 15; i++) {
-        if (mask_piece[to] & sim[i]) {
-            sim[i] &= ~mask_piece[to];
-        }
+    int _type = piece_on_square[to];
+    if (_type != -1) {
+        sim[_type] &= ~mask_piece[to];
     }
 
     sim[type] &= ~mask_piece[from];

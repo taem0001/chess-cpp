@@ -1,6 +1,7 @@
 #include "../include/board.h"
 
 u64 *Board::get_bitboards() { return bitboards; }
+int *Board::get_piece_on_squares() { return piece_on_square; }
 
 void Board::draw_board() {
     std::string line = "  +---+---+---+---+---+---+---+---+";
@@ -25,19 +26,19 @@ void Board::draw_board() {
 
 void Board::move_piece(int from, int to) {
     // Remove captured piece
-    for (int i = 3; i < 15; i++) {
-        if (bitboards[i] & mask_piece[to]) {
-            bitboards[i] &= ~mask_piece[to];
-        }
+    if (piece_on_square[to] != -1) {
+        bitboards[piece_on_square[to]] &= ~mask_piece[to];
+        piece_on_square[to] = -1;
     }
 
-    // Move piece from the from square to the to square
-    for (int i = 3; i < 15; i++) {
-        if (bitboards[i] & mask_piece[from]) {
-            bitboards[i] &= ~mask_piece[from];
-            bitboards[i] |= mask_piece[to];
-        }
-    }
+    // Move piece from the from square
+    int piece_from = piece_on_square[from];
+    bitboards[piece_from] &= ~mask_piece[from];
+    piece_on_square[from] = -1;
+
+    // Add the piece to the to square
+    bitboards[piece_from] |= mask_piece[to];
+    piece_on_square[to] = piece_from;
 
     bitboards[WHITE] = bitboards[WHITE_PAWN] | bitboards[WHITE_ROOK] | bitboards[WHITE_BISHOP] |
                        bitboards[WHITE_KNIGHT] | bitboards[WHITE_QUEEN] | bitboards[WHITE_KING];
@@ -73,6 +74,11 @@ void Board::promote_piece(bool turn, char piece, int sq) {
     } else {
         bitboards[BLACK_PAWN] &= ~mask_piece[sq];
     }
+
+    // Update piece to square mapping
+    piece_on_square[sq] = type;
+
+    // Update the bitboards
     bitboards[type] |= mask_piece[sq];
     bitboards[WHITE] = bitboards[WHITE_PAWN] | bitboards[WHITE_ROOK] | bitboards[WHITE_BISHOP] |
                        bitboards[WHITE_KNIGHT] | bitboards[WHITE_QUEEN] | bitboards[WHITE_KING];
@@ -82,13 +88,19 @@ void Board::promote_piece(bool turn, char piece, int sq) {
 }
 
 void Board::remove_piece(int sq) {
-    for (int i = 3; i < 15; i++) {
-        bitboards[i] &= ~mask_piece[sq];
-    }
+    int type = piece_on_square[sq];
 
-    bitboards[WHITE] = bitboards[WHITE_PAWN] | bitboards[WHITE_ROOK] | bitboards[WHITE_BISHOP] |
+    // If the square is not empty, remove the piece
+    if (type != -1) {
+        // Update the square to piece mapping
+        piece_on_square[sq] = -1;
+
+        // Update the bitboards
+        bitboards[type] &= ~mask_piece[sq];
+        bitboards[WHITE] = bitboards[WHITE_PAWN] | bitboards[WHITE_ROOK] | bitboards[WHITE_BISHOP] |
                        bitboards[WHITE_KNIGHT] | bitboards[WHITE_QUEEN] | bitboards[WHITE_KING];
-    bitboards[BLACK] = bitboards[BLACK_PAWN] | bitboards[BLACK_ROOK] | bitboards[BLACK_BISHOP] |
-                       bitboards[BLACK_KNIGHT] | bitboards[BLACK_QUEEN] | bitboards[BLACK_KING];
-    bitboards[ALL] = bitboards[WHITE] | bitboards[BLACK];
+        bitboards[BLACK] = bitboards[BLACK_PAWN] | bitboards[BLACK_ROOK] | bitboards[BLACK_BISHOP] |
+                        bitboards[BLACK_KNIGHT] | bitboards[BLACK_QUEEN] | bitboards[BLACK_KING];
+        bitboards[ALL] = bitboards[WHITE] | bitboards[BLACK];
+    }
 }

@@ -1,5 +1,5 @@
 #ifndef MAGIC_H
-#define MAGIC_G
+#define MAGIC_H
 #include "utils.h"
 
 u64 random_u64();

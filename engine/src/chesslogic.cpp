@@ -1,5 +1,4 @@
 #include "../include/chesslogic.h"
-
 #include "../include/fen.h"
 
 ChessLogic::ChessLogic() : board() {
@@ -13,7 +12,8 @@ void ChessLogic::draw_game() { board.draw_board(); }
 
 bool ChessLogic::make_move(u64 move) {
     fens[move] = FenHandler::write_fen(*this);
-    u64 *bitboards = get_board().get_bitboards();
+    int *piece_on_square = board.get_piece_on_squares();
+    u64 *bitboards = board.get_bitboards();
     u64 from = get_from(move);
     u64 to = get_to(move);
     u64 flag = get_flag(move);
@@ -24,29 +24,29 @@ bool ChessLogic::make_move(u64 move) {
     }
 
     // Reset castling rights if the king moves
-    if (bitboards[WHITE_KING] & mask_piece[from]) {
+    if (piece_on_square[from] == WHITE_KING) {
         wk_castle = wq_castle = false;
     }
-    if (bitboards[BLACK_KING] & mask_piece[from]) {
+    if (piece_on_square[from] == BLACK_KING) {
         bk_castle = bq_castle = false;
     }
 
     // Reset halfmove clock counter
-    if ((bitboards[WHITE_PAWN] & mask_piece[from]) || (bitboards[BLACK_PAWN] & mask_piece[from])) {
+    if (piece_on_square[from] == WHITE_PAWN || piece_on_square[from] == BLACK_PAWN) {
         half_moves = 0;
     }
 
     // Reset castling rights if rooks move from their original squares
-    if (from == 0 && (bitboards[WHITE_ROOK] & mask_piece[from])) {
+    if (from == 0 && piece_on_square[from] == WHITE_ROOK) {
         wq_castle = false;
     }
-    if (from == 7 && (bitboards[WHITE_ROOK] & mask_piece[from])) {
+    if (from == 7 && piece_on_square[from] == WHITE_ROOK) {
         wk_castle = false;
     }
-    if (from == 56 && (bitboards[BLACK_ROOK] & mask_piece[from])) {
+    if (from == 56 && piece_on_square[from] == BLACK_ROOK) {
         bq_castle = false;
     }
-    if (from == 63 && (bitboards[BLACK_ROOK] & mask_piece[from])) {
+    if (from == 63 && piece_on_square[from] == BLACK_ROOK) {
         bk_castle = false;
     }
 
