@@ -4,7 +4,7 @@ Bot::Bot() { MoveGenerator::init(); }
 
 u64 Bot::choose_move(ChessLogic logic, std::vector<u64> &moves) {
     int color = logic.get_turn() ? 1 : -1;
-    return search_move(logic, 5, color);
+    return search_move(logic, 1000, color);
 }
 
 int Bot::evaluate(ChessLogic &logic) {
@@ -112,16 +112,30 @@ std::vector<u64> Bot::order_moves(ChessLogic &logic, std::vector<u64> moves) {
     return result;
 }
 
-u64 Bot::search_move(ChessLogic &logic, int max_depth, int color) {
+u64 Bot::search_move(ChessLogic &logic, int thinktime, int color) {
+    auto start = std::chrono::steady_clock::now();
     u64 best_move = 0;
     int best_score = -INF;
+    int depth;
 
-    for (int depth = 1; depth <= max_depth; ++depth) {
+    for (depth = 1; depth <= INF; ++depth) {
+        auto now = std::chrono::steady_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count();
+        if (elapsed > thinktime) {
+            break;
+        }
+
         std::vector<u64> moves = MoveGenerator::generate_legal_moves(logic);
         int current_best_score = -INF;
         u64 current_best_move = 0;
 
         for (u64 move : moves) {
+            auto now = std::chrono::steady_clock::now();
+            auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count();
+            if (elapsed > thinktime) {
+                goto end_search;
+            }
+
             logic.make_move(move);
             int score = -negamax(logic, depth - 1, -color, -INF, INF);
             logic.unmake_move(move);
@@ -136,5 +150,7 @@ u64 Bot::search_move(ChessLogic &logic, int max_depth, int color) {
         best_score = current_best_score;
     }
 
+end_search:
+    std::cout << "Depth searched: " << depth << "\n";
     return best_move;
 }
