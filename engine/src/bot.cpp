@@ -113,27 +113,34 @@ std::vector<u64> Bot::order_moves(ChessLogic &logic, std::vector<u64> moves) {
 }
 
 u64 Bot::search_move(ChessLogic &logic, int thinktime, int color) {
-    auto start = std::chrono::steady_clock::now();
+    using namespace std::chrono;
+
+    auto start = steady_clock::now();
     u64 best_move = 0;
     int best_score = -INF;
-    int depth;
+    int depth = 1;
 
-    for (depth = 1; depth <= INF; ++depth) {
-        auto now = std::chrono::steady_clock::now();
-        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count();
-        if (elapsed > thinktime) {
+    const int time_buffer = thinktime * 95 / 100;
+
+    while (true) {
+        auto now = steady_clock::now();
+        int elapsed = duration_cast<milliseconds>(now - start).count();
+        if (elapsed >= time_buffer) {
             break;
         }
 
         std::vector<u64> moves = MoveGenerator::generate_legal_moves(logic);
+
         int current_best_score = -INF;
         u64 current_best_move = 0;
+        bool completed = true;
 
         for (u64 move : moves) {
-            auto now = std::chrono::steady_clock::now();
-            auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count();
-            if (elapsed > thinktime) {
-                goto end_search;
+            now = steady_clock::now();
+            int elapsed = duration_cast<milliseconds>(now - start).count();
+            if (elapsed >= time_buffer) {
+                completed = false;
+                break;
             }
 
             logic.make_move(move);
@@ -146,11 +153,15 @@ u64 Bot::search_move(ChessLogic &logic, int thinktime, int color) {
             }
         }
 
-        best_move = current_best_move;
-        best_score = current_best_score;
+        if (completed) {
+            best_move = current_best_move;
+            best_score = current_best_score;
+            depth++;
+        } else {
+            break;
+        }
     }
 
-end_search:
     std::cout << "Depth searched: " << depth << "\n";
     return best_move;
 }
