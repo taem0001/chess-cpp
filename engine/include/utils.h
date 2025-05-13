@@ -50,6 +50,15 @@ typedef struct {
     u64 move;
 } MoveScore;
 
+typedef struct {
+    bool turn;
+    bool bkc, bqc, wkc, wqc;
+    int captured_piece_type;
+    int ep_sq;
+    int half_moves;
+    int full_moves;
+} MoveData;
+
 static const char symbols[] = {'P', 'R', 'N', 'B', 'Q', 'K',
                                'p', 'r', 'n', 'b', 'q', 'k'};
 
