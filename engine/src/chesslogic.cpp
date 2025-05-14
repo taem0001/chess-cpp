@@ -11,17 +11,28 @@ void ChessLogic::load_pos(const std::string &fen) { FenHandler::load_fen(*this, 
 void ChessLogic::draw_game() { board.draw_board(); }
 
 bool ChessLogic::make_move(u64 move) {
-    fens[move] = FenHandler::write_fen(*this);
     int *piece_on_square = board.get_piece_on_squares();
     u64 *bitboards = board.get_bitboards();
 
     int from = (int)get_from(move);
     int to = (int)get_to(move);
     int flag = (int)get_flag(move);
-
     assert(from >= 0 && from < 64);
     assert(to >= 0 && to < 64);
     assert(flag >= 0 && flag < 16);
+
+    int captured_piece_type = -1;
+
+    // Store data for unmake function
+    MoveData undo_data;
+    undo_data.bkc = bk_castle;
+    undo_data.bqc = bq_castle;
+    undo_data.wkc = wk_castle;
+    undo_data.wqc = wq_castle;
+    undo_data.turn = white_turn;
+    undo_data.ep_sq = en_passant_square;
+    undo_data.half_moves = half_moves;
+    undo_data.full_moves = full_moves;
 
     // Reset castling rights if the king moves
     if (piece_on_square[from] == WHITE_KING) {
@@ -60,8 +71,6 @@ bool ChessLogic::make_move(u64 move) {
     // Handle move types
     int rook_sq, en_passant_capture;
     switch (flag) {
-        case quiet_move:
-            break;
         case double_pawn_push:
             en_passant_square = white_turn ? to - 8 : to + 8;
             break;
@@ -75,10 +84,12 @@ bool ChessLogic::make_move(u64 move) {
             break;
         case capture:
             half_moves = 0;
+            captured_piece_type = piece_on_square[to];
             break;
         case ep_capture:
             half_moves = 0;
             en_passant_capture = white_turn ? ep_temp - 8 : ep_temp + 8;
+            captured_piece_type = piece_on_square[en_passant_capture];
             board.remove_piece(en_passant_capture);
             break;
         case knight_promotion:
@@ -95,23 +106,30 @@ bool ChessLogic::make_move(u64 move) {
             break;
         case knight_promo_capture:
             half_moves = 0;
+            captured_piece_type = piece_on_square[to];
             board.promote_piece(white_turn, 'n', to);
             break;
         case bishop_promo_capture:
             half_moves = 0;
+            captured_piece_type = piece_on_square[to];
             board.promote_piece(white_turn, 'b', to);
             break;
         case rook_promo_capture:
             half_moves = 0;
+            captured_piece_type = piece_on_square[to];
             board.promote_piece(white_turn, 'r', to);
             break;
         case queen_promo_capture:
             half_moves = 0;
+            captured_piece_type = piece_on_square[to];
             board.promote_piece(white_turn, 'q', to);
             break;
         default:
             break;
     }
+    undo_data.captured_piece_type = captured_piece_type;
+    undo_stack.push_back(undo_data);
+
     if (!white_turn) full_moves++;
     change_turn();
     total_moves++;
@@ -119,24 +137,69 @@ bool ChessLogic::make_move(u64 move) {
 }
 
 bool ChessLogic::unmake_move(u64 move) {
-    std::string pos = fens[move];
-    load_pos(pos);
+    assert(undo_stack.size() != 0);
+
+    int from = (int)get_from(move);
+    int to = (int)get_to(move);
+    int flag = (int)get_flag(move);
+    assert(from >= 0 && from < 64);
+    assert(to >= 0 && to < 64);
+    assert(flag >= 0 && flag < 16);
+
+    // Pop previous move data from stack
+    MoveData undo_data = undo_stack.back();
+    undo_stack.pop_back();
+
+    // Reset pieces to previous position
+    if (flag == quiet_move || flag == double_pawn_push) {
+        board.move_piece(to, from);
+    } else if (flag == king_castle) {
+        int rook_from = undo_data.turn ? 5 : 61;
+        int rook_to = rook_from + 2;
+        board.move_piece(rook_from, rook_to);
+        board.move_piece(to, from);
+    } else if (flag == queen_castle) {
+        int rook_from = undo_data.turn ? 3 : 59;
+        int rook_to = rook_from - 3;
+        board.move_piece(rook_from, rook_to);
+        board.move_piece(to, from);
+    } else if (flag == capture) {
+        assert(undo_data.captured_piece_type != -1);
+        board.move_piece(to, from);
+        board.add_piece(to, undo_data.captured_piece_type);        
+    } else if (flag == ep_capture) {
+        assert(undo_data.captured_piece_type != -1);
+        board.move_piece(to, from);
+        int sq = undo_data.turn ? to - 8 : to + 8;
+        board.add_piece(sq, undo_data.captured_piece_type);
+    } else if (flag >= knight_promotion && flag < knight_promo_capture) {
+        board.remove_piece(to);
+        int pawn = undo_data.turn ? WHITE_PAWN : BLACK_PAWN;
+        board.add_piece(from, pawn);
+    } else {
+        assert(undo_data.captured_piece_type != -1);
+        board.remove_piece(to);
+        int pawn = undo_data.turn ? WHITE_PAWN : BLACK_PAWN;
+        board.add_piece(from, pawn);
+        board.add_piece(to, undo_data.captured_piece_type);
+    }
+
+    // Restore game state
+    white_turn = undo_data.turn;
+    bk_castle = undo_data.bkc;
+    bq_castle = undo_data.bqc;
+    wk_castle = undo_data.wkc;
+    wq_castle = undo_data.wqc;
+    half_moves = undo_data.half_moves;
+    full_moves = undo_data.full_moves;
+    en_passant_square = undo_data.ep_sq;
+    total_moves--;
+
     return true;
 }
 
+// TODO: Complete this when zobrist hashing is implemented
 bool ChessLogic::fivefold_repitition() {
-    std::map<std::string, int> freq;
-
-    for (const auto &pair : fens) {
-        freq[pair.second]++;
-    }
-
-    for (const auto &pair : freq) {
-        if (pair.second == 5) {
-            return true;
-        }
-    }
-
     return false;
 }
 
@@ -164,4 +227,3 @@ bool ChessLogic::get_doublecheck() { return double_check; }
 void ChessLogic::set_doublecheck(bool b) { double_check = b; }
 bool ChessLogic::fifty_move_rule() { return half_moves >= 100; }
 u64 ChessLogic::get_totalmoves() { return total_moves; }
-std::map<u64, std::string> ChessLogic::get_fens() { return fens; }
