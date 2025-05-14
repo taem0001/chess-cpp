@@ -45,6 +45,7 @@ typedef enum {
 } Direction;
 
 typedef uint64_t u64;
+typedef uint16_t u16;
 
 typedef struct {
     int score;
@@ -287,7 +288,7 @@ int first_bit(u64);
 int last_bit(u64);
 int max(int, int);
 int get_piece_score(u64 *, int);
-bool contains_move(std::vector<u64> &, int, int, u64, u64 *);
+bool contains_move(std::vector<u16> &, int, int, u16 *);
 bool get_pos(std::string &, int *, int *);
 char get_symbol(u64 *, int);
 u64 shift_north(u64);
@@ -299,16 +300,14 @@ u64 shift_north_east(u64);
 u64 shift_south_west(u64);
 u64 shift_south_east(u64);
 u64 in_between(int, int);
-u64 define_move(u64, u64, u64, u64);
-u64 get_from(u64);
-u64 get_to(u64);
-u64 get_flag(u64);
-u64 get_totalmoves(u64);
+u16 define_move(int, int, int);
+u16 get_from(u16);
+u16 get_to(u16);
+u16 get_flag(u16);
 void print_bitboard(u64);
-void print_moves(std::vector<u64> &);
+void print_moves(std::vector<u16> &);
 void merge(std::vector<MoveScore> &, int, int, int);
 void merge_sort(std::vector<MoveScore> &, int, int);
-void moves_only_captures(std::vector<u64> &);
 std::string print_pos(int);
 
 #endif  // !UTILS_H

@@ -38,7 +38,7 @@ void print_result(const std::string& status, const std::string& fen, int depth, 
 }
 
 u64 perft(ChessLogic &logic, int depth) {
-    std::vector<u64> moves = MoveGenerator::generate_legal_moves(logic);
+    std::vector<u16> moves = MoveGenerator::generate_legal_moves(logic);
 
     if (depth == 1) {
         return moves.size();
@@ -48,7 +48,7 @@ u64 perft(ChessLogic &logic, int depth) {
     }
 
     u64 total_nodes = 0;
-    for (u64 move : moves) {
+    for (u16 move : moves) {
         logic.make_move(move);
         u64 nodes = perft(logic, depth - 1);
         logic.unmake_move(move);
@@ -58,10 +58,10 @@ u64 perft(ChessLogic &logic, int depth) {
 }
 
 u64 divide_perft(ChessLogic &logic, int depth) {
-    std::vector<u64> moves = MoveGenerator::generate_legal_moves(logic);
+    std::vector<u16> moves = MoveGenerator::generate_legal_moves(logic);
     u64 total_nodes = 0;
 
-    for (u64 move : moves) {
+    for (u16 move : moves) {
         logic.make_move(move);
         u64 nodes = perft(logic, depth - 1);
         logic.unmake_move(move);

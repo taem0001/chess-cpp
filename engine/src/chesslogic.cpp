@@ -1,16 +1,13 @@
 #include "../include/chesslogic.h"
 #include "../include/fen.h"
 
-ChessLogic::ChessLogic() : board() {
-    load_pos(STARTPOS);
-    total_moves = 1;
-}
+ChessLogic::ChessLogic() : board() { load_pos(STARTPOS); }
 
 void ChessLogic::load_pos(const std::string &fen) { FenHandler::load_fen(*this, fen); }
 
 void ChessLogic::draw_game() { board.draw_board(); }
 
-bool ChessLogic::make_move(u64 move) {
+bool ChessLogic::make_move(u16 move) {
     int *piece_on_square = board.get_piece_on_squares();
     u64 *bitboards = board.get_bitboards();
 
@@ -145,11 +142,10 @@ bool ChessLogic::make_move(u64 move) {
 
     if (!white_turn) full_moves++;
     change_turn();
-    total_moves++;
     return true;
 }
 
-bool ChessLogic::unmake_move(u64 move) {
+bool ChessLogic::unmake_move(u16 move) {
     assert(undo_stack.size() != 0);
 
     int from = (int)get_from(move);
@@ -206,7 +202,6 @@ bool ChessLogic::unmake_move(u64 move) {
     half_moves = undo_data.half_moves;
     full_moves = undo_data.full_moves;
     en_passant_square = undo_data.ep_sq;
-    total_moves--;
 
     return true;
 }
@@ -239,4 +234,3 @@ void ChessLogic::set_singlecheck(bool b) { single_check = b; }
 bool ChessLogic::get_doublecheck() { return double_check; }
 void ChessLogic::set_doublecheck(bool b) { double_check = b; }
 bool ChessLogic::fifty_move_rule() { return half_moves >= 100; }
-u64 ChessLogic::get_totalmoves() { return total_moves; }

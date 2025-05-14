@@ -2,8 +2,8 @@
 
 void MoveGenerator::init() { BitBoardGenerator::init(); }
 
-std::vector<u64> MoveGenerator::generate_legal_moves(ChessLogic &logic) {
-    std::vector<u64> moves;
+std::vector<u16> MoveGenerator::generate_legal_moves(ChessLogic &logic) {
+    std::vector<u16> moves;
 
     bool single_ = false;
     bool double_ = false;
@@ -28,7 +28,7 @@ std::vector<u64> MoveGenerator::generate_legal_moves(ChessLogic &logic) {
     return moves;
 }
 
-void MoveGenerator::generate_pawn_pushes(std::vector<u64> &moves, ChessLogic &logic) {
+void MoveGenerator::generate_pawn_pushes(std::vector<u16> &moves, ChessLogic &logic) {
     bool turn = logic.get_turn();
     u64 *bitboards = logic.get_board().get_bitboards();
     u64 pawns = turn ? bitboards[WHITE_PAWN] : bitboards[BLACK_PAWN];
@@ -53,15 +53,15 @@ void MoveGenerator::generate_pawn_pushes(std::vector<u64> &moves, ChessLogic &lo
             int to_rank = to / 8;
 
             if ((turn && to_rank == 7) || (!turn && to_rank == 0)) {
-                moves.push_back(define_move(from, to, knight_promotion, logic.get_totalmoves()));
-                moves.push_back(define_move(from, to, bishop_promotion, logic.get_totalmoves()));
-                moves.push_back(define_move(from, to, rook_promotion, logic.get_totalmoves()));
-                moves.push_back(define_move(from, to, queen_promotion, logic.get_totalmoves()));
+                moves.push_back(define_move(from, to, knight_promotion));
+                moves.push_back(define_move(from, to, bishop_promotion));
+                moves.push_back(define_move(from, to, rook_promotion));
+                moves.push_back(define_move(from, to, queen_promotion));
             } else {
                 if ((turn && to - from == 16) || (!turn && from - to == 16)) {
-                    moves.push_back(define_move(from, to, double_pawn_push, logic.get_totalmoves()));
+                    moves.push_back(define_move(from, to, double_pawn_push));
                 } else {
-                    moves.push_back(define_move(from, to, quiet_move, logic.get_totalmoves()));
+                    moves.push_back(define_move(from, to, quiet_move));
                 }
             }
             pushes &= pushes - 1;
@@ -71,7 +71,7 @@ void MoveGenerator::generate_pawn_pushes(std::vector<u64> &moves, ChessLogic &lo
     }
 }
 
-void MoveGenerator::generate_pawn_captures(std::vector<u64> &moves, ChessLogic &logic) {
+void MoveGenerator::generate_pawn_captures(std::vector<u16> &moves, ChessLogic &logic) {
     bool turn = logic.get_turn();
     int *piece_on_square = logic.get_board().get_piece_on_squares();
     u64 *bitboards = logic.get_board().get_bitboards();
@@ -115,12 +115,12 @@ void MoveGenerator::generate_pawn_captures(std::vector<u64> &moves, ChessLogic &
                 int to_rank = to / 8;
 
                 if ((turn && to_rank == 7) || (!turn && to_rank == 0)) {
-                    moves.push_back(define_move(from, to, knight_promo_capture, logic.get_totalmoves()));
-                    moves.push_back(define_move(from, to, bishop_promo_capture, logic.get_totalmoves()));
-                    moves.push_back(define_move(from, to, rook_promo_capture, logic.get_totalmoves()));
-                    moves.push_back(define_move(from, to, queen_promo_capture, logic.get_totalmoves()));
+                    moves.push_back(define_move(from, to, knight_promo_capture));
+                    moves.push_back(define_move(from, to, bishop_promo_capture));
+                    moves.push_back(define_move(from, to, rook_promo_capture));
+                    moves.push_back(define_move(from, to, queen_promo_capture));
                 } else {
-                    moves.push_back(define_move(from, to, capture, logic.get_totalmoves()));
+                    moves.push_back(define_move(from, to, capture));
                 }
             }
         }
@@ -149,7 +149,7 @@ void MoveGenerator::generate_pawn_captures(std::vector<u64> &moves, ChessLogic &
 
                 u64 king_check = BitBoardGenerator::pieces_attacking_king(board_sim, turn);
                 if (king_check == 0) {
-                    moves.push_back(define_move(from, to, ep_capture, logic.get_totalmoves()));
+                    moves.push_back(define_move(from, to, ep_capture));
                 }
             }
         }
@@ -158,7 +158,7 @@ void MoveGenerator::generate_pawn_captures(std::vector<u64> &moves, ChessLogic &
     }
 }
 
-void MoveGenerator::generate_knight_moves(std::vector<u64> &moves, ChessLogic &logic) {
+void MoveGenerator::generate_knight_moves(std::vector<u16> &moves, ChessLogic &logic) {
     bool turn = logic.get_turn();
     u64 *bitboards = logic.get_board().get_bitboards();
     u64 knights = turn ? bitboards[WHITE_KNIGHT] : bitboards[BLACK_KNIGHT];
@@ -176,9 +176,9 @@ void MoveGenerator::generate_knight_moves(std::vector<u64> &moves, ChessLogic &l
         while (attacks) {
             to = first_bit(attacks);
             if (mask_piece[to] & enemy) {
-                moves.push_back(define_move(from, to, capture, logic.get_totalmoves()));
+                moves.push_back(define_move(from, to, capture));
             } else {
-                moves.push_back(define_move(from, to, quiet_move, logic.get_totalmoves()));
+                moves.push_back(define_move(from, to, quiet_move));
             }
             attacks &= attacks - 1;
         }
@@ -186,7 +186,7 @@ void MoveGenerator::generate_knight_moves(std::vector<u64> &moves, ChessLogic &l
     }
 }
 
-void MoveGenerator::generate_king_moves(std::vector<u64> &moves, ChessLogic &logic) {
+void MoveGenerator::generate_king_moves(std::vector<u16> &moves, ChessLogic &logic) {
     bool turn = logic.get_turn();
     int *piece_on_square = logic.get_board().get_piece_on_squares();
     u64 *bitboards = logic.get_board().get_bitboards();
@@ -203,7 +203,7 @@ void MoveGenerator::generate_king_moves(std::vector<u64> &moves, ChessLogic &log
             to = first_bit(attacks);
             if (simulate_check(bitboards, piece_on_square, turn, from, to)) {
                 flag = enemy & mask_piece[to] ? capture : quiet_move;
-                moves.push_back(define_move(from, to, flag, logic.get_totalmoves()));
+                moves.push_back(define_move(from, to, flag));
             }
             attacks &= attacks - 1;
         }
@@ -211,13 +211,13 @@ void MoveGenerator::generate_king_moves(std::vector<u64> &moves, ChessLogic &log
         while (castle) {
             to = first_bit(castle);
             flag = (to - from) > 0 ? king_castle : queen_castle;
-            moves.push_back(define_move(from, to, flag, logic.get_totalmoves()));
+            moves.push_back(define_move(from, to, flag));
             castle &= castle - 1;
         }
     }
 }
 
-void MoveGenerator::generate_bishop_moves(std::vector<u64> &moves, ChessLogic &logic) {
+void MoveGenerator::generate_bishop_moves(std::vector<u16> &moves, ChessLogic &logic) {
     bool turn = logic.get_turn();
     u64 *bitboards = logic.get_board().get_bitboards();
     u64 bishops = turn ? bitboards[WHITE_BISHOP] : bitboards[BLACK_BISHOP];
@@ -242,14 +242,14 @@ void MoveGenerator::generate_bishop_moves(std::vector<u64> &moves, ChessLogic &l
         while (attacks) {
             to = first_bit(attacks);
             flag = (enemy & mask_piece[to]) ? capture : quiet_move;
-            moves.push_back(define_move(from, to, flag, logic.get_totalmoves()));
+            moves.push_back(define_move(from, to, flag));
             attacks &= attacks - 1;
         }
         bishops &= bishops - 1;
     }
 }
 
-void MoveGenerator::generate_rook_moves(std::vector<u64> &moves, ChessLogic &logic) {
+void MoveGenerator::generate_rook_moves(std::vector<u16> &moves, ChessLogic &logic) {
     bool turn = logic.get_turn();
     u64 *bitboards = logic.get_board().get_bitboards();
     u64 rooks = turn ? bitboards[WHITE_ROOK] : bitboards[BLACK_ROOK];
@@ -274,14 +274,14 @@ void MoveGenerator::generate_rook_moves(std::vector<u64> &moves, ChessLogic &log
         while (attacks) {
             to = first_bit(attacks);
             flag = (enemy & mask_piece[to]) ? capture : quiet_move;
-            moves.push_back(define_move(from, to, flag, logic.get_totalmoves()));
+            moves.push_back(define_move(from, to, flag));
             attacks &= attacks - 1;
         }
         rooks &= rooks - 1;
     }
 }
 
-void MoveGenerator::generate_queen_moves(std::vector<u64> &moves, ChessLogic &logic) {
+void MoveGenerator::generate_queen_moves(std::vector<u16> &moves, ChessLogic &logic) {
     bool turn = logic.get_turn();
     u64 *bitboards = logic.get_board().get_bitboards();
     u64 queen = turn ? bitboards[WHITE_QUEEN] : bitboards[BLACK_QUEEN];
@@ -306,7 +306,7 @@ void MoveGenerator::generate_queen_moves(std::vector<u64> &moves, ChessLogic &lo
         while (attacks) {
             to = first_bit(attacks);
             flag = (enemy & mask_piece[to]) ? capture : quiet_move;
-            moves.push_back(define_move(from, to, flag, logic.get_totalmoves()));
+            moves.push_back(define_move(from, to, flag));
             attacks &= attacks - 1;
         }
         queen &= queen - 1;
@@ -320,8 +320,8 @@ void MoveGenerator::check_detection(u64 *bitboards, bool *single_check, bool *do
     *double_check = check_count > 1;
 }
 
-std::vector<u64> MoveGenerator::handle_single_check(std::vector<u64> &moves, ChessLogic &logic) {
-    std::vector<u64> check_moves;
+std::vector<u16> MoveGenerator::handle_single_check(std::vector<u16> &moves, ChessLogic &logic) {
+    std::vector<u16> check_moves;
     bool turn = logic.get_turn();
     u64 *bitboards = logic.get_board().get_bitboards();
 

@@ -74,16 +74,16 @@ int get_piece_score(u64 *bitboards, int square) {
     return score;
 }
 
-bool contains_move(std::vector<u64> &moves, int from, int to, u64 total_moves, u64 *move) {
+bool contains_move(std::vector<u16> &moves, int from, int to, u16 *move) {
     assert(from >= 0 && from < 64);
     assert(to >= 0 && to < 64);
 
-    for (u64 move_t : moves) {
+    for (u16 move_t : moves) {
         int from_t = (int)get_from(move_t);
         int to_t = (int)get_to(move_t);
         if (from == from_t && to == to_t) {
-            u64 flag = get_flag(move_t);
-            *move = define_move((u64)from, (u64)to, flag, total_moves);
+            int flag = (int)get_flag(move_t);
+            *move = define_move(from, to, flag);
             return true;
         }
     }
@@ -159,18 +159,18 @@ u64 in_between(int sq1, int sq2) {
     return line & btwn;
 }
 
-u64 define_move(u64 from, u64 to, u64 flag, u64 total_moves) {
+u16 define_move(int from, int to, int flag) {
     assert(from >= 0 && from < 64);
     assert(to >= 0 && to < 64);
     assert(flag >= 0 && flag < 16);
 
-    return ((total_moves & 0xffffffffffff) << 16) | ((flag & 0xf) << 12) | ((to & 0x3f) << 6) | (from & 0x3f);
+    u16 result = ((flag & 0xf) << 12) | ((to & 0x3f) << 6) | (from & 0x3f);
+    return result;
 }
 
-u64 get_from(u64 move) { return move & 0x3f; }
-u64 get_to(u64 move) { return (move >> 6) & 0x3f; }
-u64 get_flag(u64 move) { return (move >> 12) & 0xf; }
-u64 get_totalmoves(u64 move) { return (move >> 16) & 0xffffffffffff; }
+u16 get_from(u16 move) { return move & 0x3f; }
+u16 get_to(u16 move) { return (move >> 6) & 0x3f; }
+u16 get_flag(u16 move) { return (move >> 12) & 0xf; }
 
 void print_bitboard(u64 bitboard) {
     for (int rank = 7; rank >= 0; --rank) {
@@ -183,7 +183,7 @@ void print_bitboard(u64 bitboard) {
     std::cout << "\n";
 }
 
-void print_moves(std::vector<u64> &moves) {
+void print_moves(std::vector<u16> &moves) {
     for (u64 move : moves) {
         std::cout << print_pos((int)get_from(move)) << print_pos((int)get_to(move)) << "\n";
     }
@@ -238,17 +238,6 @@ void merge_sort(std::vector<MoveScore> &vec, int left, int right) {
 
         // Merge sorted halves
         merge(vec, left, mid, right);
-    }
-}
-
-void moves_only_captures(std::vector<u64> &moves) {
-    for (int i = 0; i < moves.size(); i++) {
-        u64 move = moves[i];
-        int flag = get_flag(move);
-
-        if (flag != capture && flag != ep_capture) {
-            moves.erase(moves.begin() + i);
-        }
     }
 }
 

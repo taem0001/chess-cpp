@@ -2,7 +2,7 @@
 
 Bot::Bot() { MoveGenerator::init(); }
 
-u64 Bot::choose_move(ChessLogic logic, std::vector<u64> &moves) {
+u16 Bot::choose_move(ChessLogic logic, std::vector<u16> &moves) {
     int color = logic.get_turn() ? 1 : -1;
     return search_move(logic, 1000, color);
 }
@@ -36,8 +36,8 @@ int Bot::negamax(ChessLogic &logic, int depth, int color, int alpha, int beta) {
         return evaluate(logic);
     }
 
-    std::vector<u64> unorderd_moves = MoveGenerator::generate_legal_moves(logic);
-    std::vector<u64> moves = order_moves(logic, unorderd_moves);
+    std::vector<u16> unorderd_moves = MoveGenerator::generate_legal_moves(logic);
+    std::vector<u16> moves = order_moves(logic, unorderd_moves);
     if (moves.size() == 0) {
         if (logic.get_singlecheck() || logic.get_doublecheck()) {
             return -INF + depth;
@@ -61,16 +61,16 @@ int Bot::negamax(ChessLogic &logic, int depth, int color, int alpha, int beta) {
     return best_score;
 }
 
-std::vector<u64> Bot::order_moves(ChessLogic &logic, std::vector<u64> moves) {
+std::vector<u16> Bot::order_moves(ChessLogic &logic, std::vector<u16> moves) {
     std::vector<MoveScore> move_scores;
-    std::vector<u64> result;
+    std::vector<u16> result;
     u64 *bitboards = logic.get_board().get_bitboards();
 
-    for (u64 move : moves) {
+    for (u16 move : moves) {
         int move_score = 0;
-        int from = get_from(move);
-        int to = get_to(move);
-        int flag = get_flag(move);
+        int from = (int)get_from(move);
+        int to = (int)get_to(move);
+        int flag = (int)get_flag(move);
 
         // Reward captures and especially between low-ranking and high-ranking pieces
         if (flag == capture || flag == ep_capture) {
@@ -112,11 +112,11 @@ std::vector<u64> Bot::order_moves(ChessLogic &logic, std::vector<u64> moves) {
     return result;
 }
 
-u64 Bot::search_move(ChessLogic &logic, int thinktime, int color) {
+u16 Bot::search_move(ChessLogic &logic, int thinktime, int color) {
     using namespace std::chrono;
 
     auto start = steady_clock::now();
-    u64 best_move = 0;
+    u16 best_move = 0;
     int best_score = -INF;
     int depth = 1;
 
@@ -129,13 +129,13 @@ u64 Bot::search_move(ChessLogic &logic, int thinktime, int color) {
             break;
         }
 
-        std::vector<u64> moves = MoveGenerator::generate_legal_moves(logic);
+        std::vector<u16> moves = MoveGenerator::generate_legal_moves(logic);
 
         int current_best_score = -INF;
-        u64 current_best_move = 0;
+        u16 current_best_move = 0;
         bool completed = true;
 
-        for (u64 move : moves) {
+        for (u16 move : moves) {
             now = steady_clock::now();
             int elapsed = duration_cast<milliseconds>(now - start).count();
             if (elapsed >= time_buffer) {
