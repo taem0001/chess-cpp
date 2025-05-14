@@ -66,67 +66,80 @@ bool ChessLogic::make_move(u64 move) {
     int ep_temp = en_passant_square;
     en_passant_square = -1;
 
-    board.move_piece(from, to);
-
     // Handle move types
     int rook_sq, en_passant_capture;
     switch (flag) {
         case double_pawn_push:
+            board.move_piece(from, to);
             en_passant_square = white_turn ? to - 8 : to + 8;
             break;
         case king_castle:
+            board.move_piece(from, to);
             rook_sq = white_turn ? 7 : 63;
             board.move_piece(rook_sq, to - 1);
             break;
         case queen_castle:
+            board.move_piece(from, to);
             rook_sq = white_turn ? 0 : 56;
             board.move_piece(rook_sq, to + 1);
             break;
         case capture:
-            half_moves = 0;
             captured_piece_type = piece_on_square[to];
+            board.move_piece(from, to);
+            half_moves = 0;
             break;
         case ep_capture:
+            board.move_piece(from, to);
             half_moves = 0;
             en_passant_capture = white_turn ? ep_temp - 8 : ep_temp + 8;
             captured_piece_type = piece_on_square[en_passant_capture];
             board.remove_piece(en_passant_capture);
             break;
         case knight_promotion:
+            board.move_piece(from, to);
             board.promote_piece(white_turn, 'n', to);
             break;
         case bishop_promotion:
+            board.move_piece(from, to);
             board.promote_piece(white_turn, 'b', to);
             break;
         case rook_promotion:
+            board.move_piece(from, to);
             board.promote_piece(white_turn, 'r', to);
             break;
         case queen_promotion:
+            board.move_piece(from, to);
             board.promote_piece(white_turn, 'q', to);
             break;
         case knight_promo_capture:
-            half_moves = 0;
             captured_piece_type = piece_on_square[to];
+            board.move_piece(from, to);
+            half_moves = 0;
             board.promote_piece(white_turn, 'n', to);
             break;
         case bishop_promo_capture:
-            half_moves = 0;
             captured_piece_type = piece_on_square[to];
+            board.move_piece(from, to);
+            half_moves = 0;
             board.promote_piece(white_turn, 'b', to);
             break;
         case rook_promo_capture:
-            half_moves = 0;
             captured_piece_type = piece_on_square[to];
+            board.move_piece(from, to);
+            half_moves = 0;
             board.promote_piece(white_turn, 'r', to);
             break;
         case queen_promo_capture:
-            half_moves = 0;
             captured_piece_type = piece_on_square[to];
+            board.move_piece(from, to);
+            half_moves = 0;
             board.promote_piece(white_turn, 'q', to);
             break;
         default:
+            board.move_piece(from, to);
             break;
     }
+
     undo_data.captured_piece_type = captured_piece_type;
     undo_stack.push_back(undo_data);
 
