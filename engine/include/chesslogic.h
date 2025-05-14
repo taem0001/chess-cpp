@@ -4,7 +4,7 @@
 
 class ChessLogic {
 private:
-    std::map<u64, std::string> fens;
+    std::vector<MoveData> undo_stack;
     Board board;
     bool white_turn;
     bool wk_castle, wq_castle, bk_castle, bq_castle;
@@ -12,14 +12,13 @@ private:
     int en_passant_square;
     int half_moves;
     int full_moves;
-    u64 total_moves;
 
 public:
     ChessLogic();
     void load_pos(const std::string &);
     void draw_game();
-    bool make_move(u64);
-    bool unmake_move(u64);
+    bool make_move(u16);
+    bool unmake_move(u16);
     Board &get_board();
     void change_turn();
     void set_turn(bool);
@@ -44,8 +43,6 @@ public:
     void set_doublecheck(bool);
     bool fivefold_repitition();
     bool fifty_move_rule();
-    u64 get_totalmoves();
-    std::map<u64, std::string> get_fens();
 };
 
 #endif // !CHESSLOGIC_H

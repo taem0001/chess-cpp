@@ -8,7 +8,7 @@ void ChessGame::run_game(Bot &bot, bool bot_color) {
     bool valid_move;
     bool five_fold;
     int from, to;
-    u64 move;
+    u16 move;
     std::string player, pos;
 
     logic.draw_game();
@@ -16,7 +16,7 @@ void ChessGame::run_game(Bot &bot, bool bot_color) {
     while (running) {
         five_fold = logic.fivefold_repitition();
         turn = logic.get_turn();
-        std::vector<u64> moves = MoveGenerator::generate_legal_moves(logic);
+        std::vector<u16> moves = MoveGenerator::generate_legal_moves(logic);
 
         if (moves.size() == 0 && (!logic.get_singlecheck() && !logic.get_doublecheck())) {
             draw = true;
@@ -45,7 +45,7 @@ void ChessGame::run_game(Bot &bot, bool bot_color) {
                 std::cout << player;
                 std::cin >> pos;
                 correct_pos = get_pos(pos, &from, &to);
-                valid_move = contains_move(moves, from, to, logic.get_totalmoves(), &move);
+                valid_move = contains_move(moves, from, to, &move);
                 int flag = get_flag(move);
                 if (flag == queen_promotion || flag == rook_promotion || flag == bishop_promotion ||
                     flag == knight_promotion || flag == queen_promo_capture || flag == rook_promo_capture ||
@@ -57,33 +57,29 @@ void ChessGame::run_game(Bot &bot, bool bot_color) {
                     } while (c != 'Q' && c != 'q' && c != 'N' && c != 'n' && c != 'R' && c != 'r' && c != 'B' &&
                              c != 'b');
                     if (c == 'Q' || c == 'q') {
-                        u64 from = get_from(move);
-                        u64 to = get_to(move);
-                        u64 flag = queen_promotion;
-                        u64 total_moves = get_totalmoves(move);
+                        int from = (int)get_from(move);
+                        int to = (int)get_to(move);
+                        int flag = queen_promotion;
 
-                        move = define_move(from, to, flag, total_moves);
+                        move = define_move(from, to, flag);
                     } else if (c == 'N' || c == 'n') {
-                        u64 from = get_from(move);
-                        u64 to = get_to(move);
-                        u64 flag = knight_promotion;
-                        u64 total_moves = get_totalmoves(move);
+                        int from = (int)get_from(move);
+                        int to = (int)get_to(move);
+                        int flag = knight_promotion;
 
-                        move = define_move(from, to, flag, total_moves);
+                        move = define_move(from, to, flag);
                     } else if (c == 'R' || c == 'r') {
-                        u64 from = get_from(move);
-                        u64 to = get_to(move);
-                        u64 flag = rook_promotion;
-                        u64 total_moves = get_totalmoves(move);
+                        int from = (int)get_from(move);
+                        int to = (int)get_to(move);
+                        int flag = rook_promotion;
 
-                        move = define_move(from, to, flag, total_moves);
+                        move = define_move(from, to, flag);
                     } else if (c == 'B' || c == 'b') {
-                        u64 from = get_from(move);
-                        u64 to = get_to(move);
-                        u64 flag = bishop_promotion;
-                        u64 total_moves = get_totalmoves(move);
+                        int from = (int)get_from(move);
+                        int to = (int)get_to(move);
+                        int flag = bishop_promotion;
 
-                        move = define_move(from, to, flag, total_moves);
+                        move = define_move(from, to, flag);
                     }
                 }
             } while (!correct_pos || !valid_move);
@@ -100,7 +96,7 @@ void ChessGame::run_game_bot(Bot &bot1, Bot &bot2) {
     bool valid_move;
     bool five_fold;
     int from, to;
-    u64 move;
+    u16 move;
     std::string player, pos;
 
     logic.draw_game();
@@ -108,7 +104,7 @@ void ChessGame::run_game_bot(Bot &bot1, Bot &bot2) {
     while (running) {
         five_fold = logic.fivefold_repitition();
         turn = logic.get_turn();
-        std::vector<u64> moves = MoveGenerator::generate_legal_moves(logic);
+        std::vector<u16> moves = MoveGenerator::generate_legal_moves(logic);
 
         if (moves.size() == 0 && (!logic.get_singlecheck() && !logic.get_doublecheck())) {
             std::cout << "STALEMATE" << "\n";

@@ -38,9 +38,5 @@ u64 index_to_u64(int index, int bits, u64 m) {
 }
 
 int transform(u64 b, u64 magic, int bits) {
-#if defined(USE_32_BIT_MULTIPLICATIONS)
-    return (unsigned)((int)b * (int)magic ^ (int)(b >> 32) * (int)(magic >> 32)) >> (32 - bits);
-#else
     return (int)((b * magic) >> (64 - bits));
-#endif
 }

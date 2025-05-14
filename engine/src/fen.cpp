@@ -3,10 +3,9 @@
 void FenHandler::load_fen(ChessLogic &logic, const std::string &fen) {
     u64 *bitboards = logic.get_board().get_bitboards();
     int *piece_on_square = logic.get_board().get_piece_on_squares();
-
-    std::fill(bitboards, bitboards + 15, 0);
     
     // Set all squares to be empty
+    std::fill(bitboards, bitboards + 15, 0);
     std::fill(piece_on_square, piece_on_square + 64, -1);
 
     int index = 56;
@@ -45,6 +44,7 @@ void FenHandler::load_fen(ChessLogic &logic, const std::string &fen) {
                     case 'K': piece_type = WHITE_KING; break;
                     default: break;
                 }
+                assert(piece_type == -1 || (piece_type >= 3 && piece_type < 15));
 
                 if (piece_type != -1) {
                     bitboards[piece_type] |= mask_piece[index];

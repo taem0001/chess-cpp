@@ -25,6 +25,9 @@ void Board::draw_board() {
 }
 
 void Board::move_piece(int from, int to) {
+    assert(from >= 0 && from < 64);
+    assert(to >= 0 && to < 64);
+
     // Remove captured piece
     if (piece_on_square[to] != -1) {
         bitboards[piece_on_square[to]] &= ~mask_piece[to];
@@ -48,6 +51,9 @@ void Board::move_piece(int from, int to) {
 }
 
 void Board::promote_piece(bool turn, char piece, int sq) {
+    assert(sq >= 0 && sq < 64);
+    assert(piece == 'n' || piece == 'N' || piece == 'b' || piece == 'B' || piece == 'r' || piece == 'R' || piece == 'q' || piece == 'Q');
+
     PieceType type;
     switch (piece) {
         case 'n':
@@ -69,6 +75,7 @@ void Board::promote_piece(bool turn, char piece, int sq) {
         default:
             break;
     }
+    // Remove pawn on the promote square
     if (turn) {
         bitboards[WHITE_PAWN] &= ~mask_piece[sq];
     } else {
@@ -76,6 +83,7 @@ void Board::promote_piece(bool turn, char piece, int sq) {
     }
 
     // Update piece to square mapping
+    assert(type == WHITE_KNIGHT || type == BLACK_KNIGHT || type == WHITE_BISHOP || type == BLACK_BISHOP || type == WHITE_ROOK || type == BLACK_ROOK || type == WHITE_QUEEN || type == BLACK_QUEEN);
     piece_on_square[sq] = type;
 
     // Update the bitboards
@@ -87,20 +95,37 @@ void Board::promote_piece(bool turn, char piece, int sq) {
     bitboards[ALL] = bitboards[WHITE] | bitboards[BLACK];
 }
 
+void Board::add_piece(int sq, int type) {
+    assert(sq >= 0 && sq < 64);
+    assert(type >= 3 && type < 15);
+    assert(piece_on_square[sq] == -1);
+    assert(bitboards[type] & mask_piece[sq] == 0);
+
+    piece_on_square[sq] = type;
+    bitboards[type] |= mask_piece[sq];
+
+    bitboards[WHITE] = bitboards[WHITE_PAWN] | bitboards[WHITE_ROOK] | bitboards[WHITE_BISHOP] |
+                    bitboards[WHITE_KNIGHT] | bitboards[WHITE_QUEEN] | bitboards[WHITE_KING];
+    bitboards[BLACK] = bitboards[BLACK_PAWN] | bitboards[BLACK_ROOK] | bitboards[BLACK_BISHOP] |
+                    bitboards[BLACK_KNIGHT] | bitboards[BLACK_QUEEN] | bitboards[BLACK_KING];
+    bitboards[ALL] = bitboards[WHITE] | bitboards[BLACK];
+}
+
 void Board::remove_piece(int sq) {
+    assert(sq >= 0 && sq < 64);
+
     int type = piece_on_square[sq];
+    assert(type >= 3 && type < 15);
+    assert(bitboards[type] & mask_piece[sq] == 0);
 
-    // If the square is not empty, remove the piece
-    if (type != -1) {
-        // Update the square to piece mapping
-        piece_on_square[sq] = -1;
+    // Update the square to piece mapping
+    piece_on_square[sq] = -1;
 
-        // Update the bitboards
-        bitboards[type] &= ~mask_piece[sq];
-        bitboards[WHITE] = bitboards[WHITE_PAWN] | bitboards[WHITE_ROOK] | bitboards[WHITE_BISHOP] |
-                       bitboards[WHITE_KNIGHT] | bitboards[WHITE_QUEEN] | bitboards[WHITE_KING];
-        bitboards[BLACK] = bitboards[BLACK_PAWN] | bitboards[BLACK_ROOK] | bitboards[BLACK_BISHOP] |
-                        bitboards[BLACK_KNIGHT] | bitboards[BLACK_QUEEN] | bitboards[BLACK_KING];
-        bitboards[ALL] = bitboards[WHITE] | bitboards[BLACK];
-    }
+    // Update the bitboards
+    bitboards[type] &= ~mask_piece[sq];
+    bitboards[WHITE] = bitboards[WHITE_PAWN] | bitboards[WHITE_ROOK] | bitboards[WHITE_BISHOP] |
+                    bitboards[WHITE_KNIGHT] | bitboards[WHITE_QUEEN] | bitboards[WHITE_KING];
+    bitboards[BLACK] = bitboards[BLACK_PAWN] | bitboards[BLACK_ROOK] | bitboards[BLACK_BISHOP] |
+                    bitboards[BLACK_KNIGHT] | bitboards[BLACK_QUEEN] | bitboards[BLACK_KING];
+    bitboards[ALL] = bitboards[WHITE] | bitboards[BLACK];
 }
