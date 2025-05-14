@@ -44,6 +44,7 @@ void FenHandler::load_fen(ChessLogic &logic, const std::string &fen) {
                     case 'K': piece_type = WHITE_KING; break;
                     default: break;
                 }
+                assert(piece_type == -1 || (piece_type >= 3 && piece_type < 15));
 
                 if (piece_type != -1) {
                     bitboards[piece_type] |= mask_piece[index];
