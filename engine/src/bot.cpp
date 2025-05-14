@@ -1,6 +1,6 @@
 #include "../include/bot.h"
 
-Bot::Bot() { MoveGenerator::init(); }
+Bot::Bot() : tt_table(TABLE_SIZE) { MoveGenerator::init(); }
 
 u16 Bot::choose_move(ChessLogic logic, std::vector<u16> &moves) {
     int color = logic.get_turn() ? 1 : -1;

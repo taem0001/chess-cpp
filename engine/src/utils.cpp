@@ -74,6 +74,38 @@ int get_piece_score(u64 *bitboards, int square) {
     return score;
 }
 
+int get_castling_mask(bool bk, bool bq, bool wk, bool wq) {
+    return (int)(bk << 0) | (int)(bq << 1) | (int)(wk << 2) | (int)(wq << 3);
+}
+
+int get_promoted_piece_index(int flag, bool turn) {
+    int result = -1;
+
+    switch (flag)
+    {
+    case knight_promotion:
+    case knight_promo_capture:
+        result = turn ? WHITE_KNIGHT : BLACK_KNIGHT;
+        break;
+    case bishop_promotion:
+    case bishop_promo_capture:
+        result = turn ? WHITE_BISHOP : BLACK_BISHOP;
+        break;
+    case rook_promotion:
+    case rook_promo_capture:
+        result = turn ? WHITE_ROOK : BLACK_ROOK;
+        break;
+    case queen_promotion:
+    case queen_promo_capture:
+        result = turn ? WHITE_QUEEN : BLACK_QUEEN;
+        break;
+    default:
+        break;
+    }
+    assert(result != -1);
+    return result;
+}
+
 bool contains_move(std::vector<u16> &moves, int from, int to, u16 *move) {
     assert(from >= 0 && from < 64);
     assert(to >= 0 && to < 64);

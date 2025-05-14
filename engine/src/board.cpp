@@ -50,31 +50,10 @@ void Board::move_piece(int from, int to) {
     bitboards[ALL] = bitboards[WHITE] | bitboards[BLACK];
 }
 
-void Board::promote_piece(bool turn, char piece, int sq) {
+void Board::promote_piece(bool turn, int type, int sq) {
     assert(sq >= 0 && sq < 64);
-    assert(piece == 'n' || piece == 'N' || piece == 'b' || piece == 'B' || piece == 'r' || piece == 'R' || piece == 'q' || piece == 'Q');
+    assert(type == WHITE_KNIGHT || type == BLACK_KNIGHT || type == WHITE_BISHOP || type == BLACK_BISHOP || type == WHITE_ROOK || type == BLACK_ROOK || type == WHITE_QUEEN || type == BLACK_QUEEN);
 
-    PieceType type;
-    switch (piece) {
-        case 'n':
-        case 'N':
-            type = turn ? WHITE_KNIGHT : BLACK_KNIGHT;
-            break;
-        case 'b':
-        case 'B':
-            type = turn ? WHITE_BISHOP : BLACK_BISHOP;
-            break;
-        case 'r':
-        case 'R':
-            type = turn ? WHITE_ROOK : BLACK_ROOK;
-            break;
-        case 'q':
-        case 'Q':
-            type = turn ? WHITE_QUEEN : BLACK_QUEEN;
-            break;
-        default:
-            break;
-    }
     // Remove pawn on the promote square
     if (turn) {
         bitboards[WHITE_PAWN] &= ~mask_piece[sq];
@@ -83,7 +62,6 @@ void Board::promote_piece(bool turn, char piece, int sq) {
     }
 
     // Update piece to square mapping
-    assert(type == WHITE_KNIGHT || type == BLACK_KNIGHT || type == WHITE_BISHOP || type == BLACK_BISHOP || type == WHITE_ROOK || type == BLACK_ROOK || type == WHITE_QUEEN || type == BLACK_QUEEN);
     piece_on_square[sq] = type;
 
     // Update the bitboards
@@ -128,4 +106,40 @@ void Board::remove_piece(int sq) {
     bitboards[BLACK] = bitboards[BLACK_PAWN] | bitboards[BLACK_ROOK] | bitboards[BLACK_BISHOP] |
                     bitboards[BLACK_KNIGHT] | bitboards[BLACK_QUEEN] | bitboards[BLACK_KING];
     bitboards[ALL] = bitboards[WHITE] | bitboards[BLACK];
+}
+
+void Board::init_zobrist() {
+    for (int i = 0; i < 12; i++) {
+        for (int sq = 0; sq < 64; sq++) {
+            zobrist_pieces[i][sq] = random_u64();
+        }
+    }
+
+    zobrist_blacktomove = random_u64();
+
+    for (int i = 0; i < 16; i++) {
+        zobrist_castle[i] = random_u64();
+    }
+
+    for (int file = 0; file < 8; file++) {
+        zobrist_epfile[file] = random_u64();
+    }
+}
+
+u64 Board::get_zobrist_piece(int type, int sq) {
+    assert(type >= 3 && type < 15);
+    assert(sq >= 0 && sq < 64);
+
+    return zobrist_pieces[type - 3][sq];
+}
+
+u64 Board::get_zobrist_blacktomove() { return zobrist_blacktomove; }
+
+u64 Board::get_zobrist_castle(int castle_rights) {
+    assert(castle_rights >= 0 && castle_rights < 16);
+    return zobrist_castle[castle_rights];
+} 
+
+u64 Board::get_zobrist_ep(int ep_sq) {
+    return zobrist_epfile[ep_sq % 8];
 }

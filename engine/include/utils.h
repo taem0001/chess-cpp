@@ -12,6 +12,7 @@
 #include <ctime>
 #include <chrono>
 #include <cassert>
+#include <random>
 
 #define STARTPOS "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
@@ -34,15 +35,10 @@ typedef enum {
 } PieceType;
 
 typedef enum {
-    NORTH,
-    SOUTH,
-    WEST,
-    EAST,
-    NORTH_WEST,
-    NORTH_EAST,
-    SOUTH_WEST,
-    SOUTH_EAST
-} Direction;
+    EXACT,
+    LOWER_BOUND,
+    UPPER_BOUND
+} TTFlag;
 
 typedef uint64_t u64;
 typedef uint16_t u16;
@@ -53,6 +49,7 @@ typedef struct {
 } MoveScore;
 
 typedef struct {
+    u64 zobrist_hash;
     bool turn;
     bool bkc, bqc, wkc, wqc;
     int captured_piece_type;
@@ -60,6 +57,14 @@ typedef struct {
     int half_moves;
     int full_moves;
 } MoveData;
+
+typedef struct {
+    u64 zobrist_key;
+    int depth;
+    int score;
+    TTFlag flag;
+    u16 move;
+} TTEntry;
 
 static const char symbols[] = {'P', 'R', 'N', 'B', 'Q', 'K',
                                'p', 'r', 'n', 'b', 'q', 'k'};
@@ -171,6 +176,9 @@ static const u64 knight_promo_capture = 0xc;
 static const u64 bishop_promo_capture = 0xd;
 static const u64 rook_promo_capture = 0xe;
 static const u64 queen_promo_capture = 0xf;
+
+// Transposition table stuff
+static constexpr int TABLE_SIZE = 1 << 20;
 
 // Evaluation
 static const int INF = 1000000;
@@ -288,6 +296,8 @@ int first_bit(u64);
 int last_bit(u64);
 int max(int, int);
 int get_piece_score(u64 *, int);
+int get_castling_mask(bool, bool, bool, bool);
+int get_promoted_piece_index(int, bool);
 bool contains_move(std::vector<u16> &, int, int, u16 *);
 bool get_pos(std::string &, int *, int *);
 char get_symbol(u64 *, int);

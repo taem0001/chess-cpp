@@ -1,9 +1,15 @@
 #include "../include/chesslogic.h"
 #include "../include/fen.h"
 
-ChessLogic::ChessLogic() : board() { load_pos(STARTPOS); }
+ChessLogic::ChessLogic() : board() {
+    board.init_zobrist(); 
+    load_pos(STARTPOS);
+}
 
-void ChessLogic::load_pos(const std::string &fen) { FenHandler::load_fen(*this, fen); }
+void ChessLogic::load_pos(const std::string &fen) { 
+    FenHandler::load_fen(*this, fen);
+    zobrist_hash = compute_zobrist_hash(); 
+}
 
 void ChessLogic::draw_game() { board.draw_board(); }
 
@@ -18,10 +24,12 @@ bool ChessLogic::make_move(u16 move) {
     assert(to >= 0 && to < 64);
     assert(flag >= 0 && flag < 16);
 
+    int moved_piece = piece_on_square[from];
     int captured_piece_type = -1;
 
     // Store data for unmake function
     MoveData undo_data;
+    undo_data.zobrist_hash = zobrist_hash;
     undo_data.bkc = bk_castle;
     undo_data.bqc = bq_castle;
     undo_data.wkc = wk_castle;
@@ -31,111 +39,108 @@ bool ChessLogic::make_move(u16 move) {
     undo_data.half_moves = half_moves;
     undo_data.full_moves = full_moves;
 
-    // Reset castling rights if the king moves
-    if (piece_on_square[from] == WHITE_KING) {
-        wk_castle = wq_castle = false;
-    }
-    if (piece_on_square[from] == BLACK_KING) {
-        bk_castle = bq_castle = false;
-    }
+    // Save castling rights in hash before changes
+    int old_castling = get_castling_mask(bk_castle, bq_castle, wk_castle, wq_castle);
+    if (old_castling) zobrist_hash ^= board.get_zobrist_castle(old_castling);
 
-    // Reset halfmove clock counter
-    half_moves++;
-    if (piece_on_square[from] == WHITE_PAWN || piece_on_square[from] == BLACK_PAWN) {
-        half_moves = 0;
-    }
-
-    // Reset castling rights if rooks move from their original squares
-    if (from == 0 && piece_on_square[from] == WHITE_ROOK) {
-        wq_castle = false;
-    }
-    if (from == 7 && piece_on_square[from] == WHITE_ROOK) {
-        wk_castle = false;
-    }
-    if (from == 56 && piece_on_square[from] == BLACK_ROOK) {
-        bq_castle = false;
-    }
-    if (from == 63 && piece_on_square[from] == BLACK_ROOK) {
-        bk_castle = false;
-    }
-
-    // Reset en passant square
-    int ep_temp = en_passant_square;
+    // Save en passant in hash before changes and reset
+    int old_ep = en_passant_square;
+    if (old_ep != -1) zobrist_hash ^= board.get_zobrist_ep(old_ep);
     en_passant_square = -1;
 
+    // Remove moving piece from origin in hash
+    zobrist_hash ^= board.get_zobrist_piece(moved_piece, from);
+
     // Handle move types
-    int rook_sq, en_passant_capture;
+    int rook_sq, en_passant_capture, promoted;
     switch (flag) {
         case double_pawn_push:
             board.move_piece(from, to);
+            zobrist_hash ^= board.get_zobrist_piece(moved_piece, to);
             en_passant_square = white_turn ? to - 8 : to + 8;
+            zobrist_hash ^= board.get_zobrist_ep(en_passant_square);
             break;
         case king_castle:
             board.move_piece(from, to);
             rook_sq = white_turn ? 7 : 63;
             board.move_piece(rook_sq, to - 1);
+            zobrist_hash ^= board.get_zobrist_piece(moved_piece, to);
+            zobrist_hash ^= board.get_zobrist_piece(piece_on_square[to - 1], to - 1);
+            zobrist_hash ^= board.get_zobrist_piece(piece_on_square[to - 1], rook_sq);
             break;
         case queen_castle:
             board.move_piece(from, to);
             rook_sq = white_turn ? 0 : 56;
             board.move_piece(rook_sq, to + 1);
+            zobrist_hash ^= board.get_zobrist_piece(moved_piece, to);
+            zobrist_hash ^= board.get_zobrist_piece(piece_on_square[to + 1], to + 1);
+            zobrist_hash ^= board.get_zobrist_piece(piece_on_square[to + 1], rook_sq);
             break;
         case capture:
             captured_piece_type = piece_on_square[to];
+            zobrist_hash ^= board.get_zobrist_piece(captured_piece_type, to);
             board.move_piece(from, to);
+            zobrist_hash ^= board.get_zobrist_piece(moved_piece, to);
             half_moves = 0;
             break;
         case ep_capture:
             board.move_piece(from, to);
             half_moves = 0;
-            en_passant_capture = white_turn ? ep_temp - 8 : ep_temp + 8;
+            en_passant_capture = white_turn ? to - 8 : to + 8;
             captured_piece_type = piece_on_square[en_passant_capture];
             board.remove_piece(en_passant_capture);
+            zobrist_hash ^= board.get_zobrist_piece(captured_piece_type, en_passant_capture);
+            zobrist_hash ^= board.get_zobrist_piece(moved_piece, to);
             break;
         case knight_promotion:
-            board.move_piece(from, to);
-            board.promote_piece(white_turn, 'n', to);
-            break;
         case bishop_promotion:
-            board.move_piece(from, to);
-            board.promote_piece(white_turn, 'b', to);
-            break;
         case rook_promotion:
-            board.move_piece(from, to);
-            board.promote_piece(white_turn, 'r', to);
-            break;
         case queen_promotion:
             board.move_piece(from, to);
-            board.promote_piece(white_turn, 'q', to);
+            promoted = get_promoted_piece_index(flag, white_turn);
+            board.promote_piece(white_turn, promoted, to);
+            zobrist_hash ^= board.get_zobrist_piece(promoted, to);
             break;
         case knight_promo_capture:
-            captured_piece_type = piece_on_square[to];
-            board.move_piece(from, to);
-            half_moves = 0;
-            board.promote_piece(white_turn, 'n', to);
-            break;
         case bishop_promo_capture:
-            captured_piece_type = piece_on_square[to];
-            board.move_piece(from, to);
-            half_moves = 0;
-            board.promote_piece(white_turn, 'b', to);
-            break;
         case rook_promo_capture:
-            captured_piece_type = piece_on_square[to];
-            board.move_piece(from, to);
-            half_moves = 0;
-            board.promote_piece(white_turn, 'r', to);
-            break;
         case queen_promo_capture:
             captured_piece_type = piece_on_square[to];
+            zobrist_hash ^= board.get_zobrist_piece(captured_piece_type, to);
             board.move_piece(from, to);
             half_moves = 0;
-            board.promote_piece(white_turn, 'q', to);
+            promoted = get_promoted_piece_index(flag, white_turn);
+            board.promote_piece(white_turn, promoted, to);
+            zobrist_hash ^= board.get_zobrist_piece(promoted, to);
             break;
         default:
             board.move_piece(from, to);
+            zobrist_hash ^= board.get_zobrist_piece(moved_piece, to);
             break;
     }
+
+    // Reset halfmove clock counter
+    half_moves++;
+    if (moved_piece == WHITE_PAWN || moved_piece == BLACK_PAWN) {
+        half_moves = 0;
+    }
+
+    // Reset castling rights if the king moves
+    if (moved_piece == WHITE_KING) wk_castle = wq_castle = false;
+    if (moved_piece == BLACK_KING) bk_castle = bq_castle = false;
+
+    // Reset castling rights if rooks move from their original squares
+    if (from == 0 && moved_piece == WHITE_ROOK) wq_castle = false;
+    if (from == 7 && moved_piece == WHITE_ROOK) wk_castle = false;
+    if (from == 56 && moved_piece == BLACK_ROOK) bq_castle = false;
+    if (from == 63 && moved_piece == BLACK_ROOK) bk_castle = false;
+
+    // Update castling rights in hash
+    int new_castle = get_castling_mask(bk_castle, bq_castle, wk_castle, wq_castle);
+    if (new_castle) zobrist_hash ^= board.get_zobrist_castle(new_castle);
+
+    // Toggle side to move in hash
+    if (!white_turn) zobrist_hash ^= board.get_zobrist_blacktomove();
 
     undo_data.captured_piece_type = captured_piece_type;
     undo_stack.push_back(undo_data);
@@ -204,6 +209,25 @@ bool ChessLogic::unmake_move(u16 move) {
     en_passant_square = undo_data.ep_sq;
 
     return true;
+}
+
+u64 ChessLogic::compute_zobrist_hash() {
+    int *piece_on_square = board.get_piece_on_squares();
+    u64 hash = 0;
+
+    for (int sq = 0; sq < 64; sq++)  {
+        int type = piece_on_square[sq];
+        if (type != -1) hash ^= board.get_zobrist_piece(type, sq);
+    }
+
+    if (!white_turn) hash ^= board.get_zobrist_blacktomove();
+
+    int castling = get_castling_mask(bk_castle, bq_castle, wk_castle, wq_castle);
+    if (castling != 0) hash ^= board.get_zobrist_castle(castling);
+    
+    if (en_passant_square != -1) hash ^= board.get_zobrist_ep(en_passant_square);
+
+    return hash;
 }
 
 // TODO: Complete this when zobrist hashing is implemented

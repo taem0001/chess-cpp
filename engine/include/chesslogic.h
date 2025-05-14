@@ -12,6 +12,10 @@ private:
     int en_passant_square;
     int half_moves;
     int full_moves;
+    u64 zobrist_hash;
+
+    u64 compute_zobrist_hash();
+
 
 public:
     ChessLogic();

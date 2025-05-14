@@ -6,6 +6,8 @@
 
 class Bot {
 private:
+    std::vector<TTEntry> tt_table;
+
     int evaluate(ChessLogic &);
     int negamax(ChessLogic &, int, int, int, int);
     u16 search_move(ChessLogic &, int, int);

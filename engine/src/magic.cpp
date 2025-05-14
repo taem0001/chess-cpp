@@ -6,12 +6,9 @@ const int BitTable[64] = {63, 30, 3,  32, 25, 41, 22, 33, 15, 50, 42, 13, 11, 53
                           46, 27, 56, 16, 7,  39, 48, 24, 59, 14, 12, 55, 38, 28, 58, 20, 37, 17, 36, 8};
 
 u64 random_u64() {
-    u64 u1, u2, u3, u4;
-    u1 = (u64)(rand()) & 0xffff;
-    u2 = (u64)(rand()) & 0xffff;
-    u3 = (u64)(rand()) & 0xffff;
-    u4 = (u64)(rand()) & 0xffff;
-    return u1 | (u2 << 16) | (u3 << 32) | (u4 << 48);
+    static std::mt19937_64 rng(std::random_device{}());
+    static std::uniform_int_distribution<u64> dist(0, UINT64_MAX);
+    return dist(rng);
 }
 
 u64 random_u64_fewbits() { return random_u64() & random_u64() & random_u64(); }
