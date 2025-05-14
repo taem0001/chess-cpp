@@ -75,6 +75,9 @@ int get_piece_score(u64 *bitboards, int square) {
 }
 
 bool contains_move(std::vector<u64> &moves, int from, int to, u64 total_moves, u64 *move) {
+    assert(from >= 0 && from < 64);
+    assert(to >= 0 && to < 64);
+
     for (u64 move_t : moves) {
         int from_t = (int)get_from(move_t);
         int to_t = (int)get_to(move_t);
@@ -110,6 +113,10 @@ bool get_pos(std::string &pos, int *from, int *to) {
     file = pos[2] - 'a';
     rank = pos[3] - '1';
     *to = rank * 8 + file;
+
+    assert(*from >= 0 && *from < 64);
+    assert(*to >= 0 && *to < 64);
+
     return true;
 }
 
@@ -132,6 +139,9 @@ u64 shift_south_west(u64 b) { return (b >> 9ULL) & clear_file[7]; }
 u64 shift_north_west(u64 b) { return (b << 7ULL) & clear_file[7]; }
 
 u64 in_between(int sq1, int sq2) {
+    assert(sq1 >= 0 && sq1 < 64);
+    assert(sq2 >= 0 && sq2 < 64);
+
     const u64 m1 = u64(-1);
     const u64 a2a7 = 0x0001010101010100;
     const u64 b2g7 = 0x0040201008040200;
@@ -150,6 +160,10 @@ u64 in_between(int sq1, int sq2) {
 }
 
 u64 define_move(u64 from, u64 to, u64 flag, u64 total_moves) {
+    assert(from >= 0 && from < 64);
+    assert(to >= 0 && to < 64);
+    assert(flag >= 0 && flag < 16);
+
     return ((total_moves & 0xffffffffffff) << 16) | ((flag & 0xf) << 12) | ((to & 0x3f) << 6) | (from & 0x3f);
 }
 

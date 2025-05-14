@@ -14,14 +14,14 @@ bool ChessLogic::make_move(u64 move) {
     fens[move] = FenHandler::write_fen(*this);
     int *piece_on_square = board.get_piece_on_squares();
     u64 *bitboards = board.get_bitboards();
-    u64 from = get_from(move);
-    u64 to = get_to(move);
-    u64 flag = get_flag(move);
-    half_moves++;
 
-    if (!white_turn) {
-        full_moves++;
-    }
+    int from = (int)get_from(move);
+    int to = (int)get_to(move);
+    int flag = (int)get_flag(move);
+
+    assert(from >= 0 && from < 64);
+    assert(to >= 0 && to < 64);
+    assert(flag >= 0 && flag < 16);
 
     // Reset castling rights if the king moves
     if (piece_on_square[from] == WHITE_KING) {
@@ -32,6 +32,7 @@ bool ChessLogic::make_move(u64 move) {
     }
 
     // Reset halfmove clock counter
+    half_moves++;
     if (piece_on_square[from] == WHITE_PAWN || piece_on_square[from] == BLACK_PAWN) {
         half_moves = 0;
     }
@@ -111,6 +112,7 @@ bool ChessLogic::make_move(u64 move) {
         default:
             break;
     }
+    if (!white_turn) full_moves++;
     change_turn();
     total_moves++;
     return true;

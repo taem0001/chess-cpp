@@ -48,6 +48,8 @@ void BitBoardGenerator::init() {
 }
 
 u64 BitBoardGenerator::find_magic(int sq, int m, bool bishop) {
+    assert(sq >= 0 && sq < 64);
+
     u64 mask, b[4096], a[4096], used[4096], magic;
     int i, j, k, n, fail;
 
@@ -88,6 +90,8 @@ u64 BitBoardGenerator::find_magic(int sq, int m, bool bishop) {
 }
 
 u64 BitBoardGenerator::generate_bishop_attacks(int sq, u64 block) {
+    assert(sq >= 0 && sq < 64);
+
     u64 result = 0ULL;
     int rank = sq / 8;
     int file = sq % 8;
@@ -129,6 +133,8 @@ u64 BitBoardGenerator::generate_bishop_attacks(int sq, u64 block) {
 }
 
 u64 BitBoardGenerator::generate_rook_attacks(int sq, u64 block) {
+    assert(sq >= 0 && sq < 64);
+
     u64 result = 0ULL;
     int rank = sq / 8;
     int file = sq % 8;
@@ -170,6 +176,8 @@ u64 BitBoardGenerator::generate_rook_attacks(int sq, u64 block) {
 }
 
 u64 BitBoardGenerator::generate_bishop_mask(int sq) {
+    assert(sq >= 0 && sq < 64);
+
     u64 mask = 0ULL;
     int rank = sq / 8;
     int file = sq % 8;
@@ -190,6 +198,8 @@ u64 BitBoardGenerator::generate_bishop_mask(int sq) {
 }
 
 u64 BitBoardGenerator::generate_rook_mask(int sq) {
+    assert(sq >= 0 && sq < 64);
+
     u64 mask = 0ULL;
     int rank = sq / 8;
     int file = sq % 8;
@@ -214,6 +224,8 @@ u64 BitBoardGenerator::generate_rook_mask(int sq) {
 }
 
 u64 BitBoardGenerator::pieces_attacking_square(u64 *bitboards, int sq, bool turn) {
+    assert(sq >= 0 && sq < 64);
+
     u64 res = 0;
     u64 square_pos = mask_piece[sq];
 
@@ -342,6 +354,8 @@ u64 BitBoardGenerator::generate_king_bitboard(ChessLogic &game, bool turn) {
 }
 
 u64 BitBoardGenerator::generate_bishop_bitboard(int sq, u64 occ) {
+    assert(sq >= 0 && sq < 64);
+
     u64 mask = bishop_masks[sq];
     u64 blockers = occ & mask;
     int index = (int)((blockers * bishop_magics[sq]) >> (64 - BBits[sq]));
@@ -349,6 +363,8 @@ u64 BitBoardGenerator::generate_bishop_bitboard(int sq, u64 occ) {
 }
 
 u64 BitBoardGenerator::generate_rook_bitboard(int sq, u64 occ) {
+    assert(sq >= 0 && sq < 64);
+
     u64 mask = rook_masks[sq];
     u64 blockers = occ & mask;
     int index = (int)((blockers * rook_magics[sq]) >> (64 - RBits[sq]));
@@ -356,6 +372,8 @@ u64 BitBoardGenerator::generate_rook_bitboard(int sq, u64 occ) {
 }
 
 u64 BitBoardGenerator::generate_queen_bitboard(int sq, u64 occ) {
+    assert(sq >= 0 && sq < 64);
+
     u64 bishop = generate_bishop_bitboard(sq, occ);
     u64 rook = generate_rook_bitboard(sq, occ);
     return bishop | rook;
@@ -417,6 +435,8 @@ u64 BitBoardGenerator::generate_pinned_pieces_bitboard(u64 *bitboards, bool turn
 }
 
 u64 BitBoardGenerator::xray_rook_attacks(u64 occ, u64 blockers, int sq) {
+    assert(sq >= 0 && sq < 64);
+
     u64 attacks = generate_rook_bitboard(sq, occ);
     blockers &= attacks;
     u64 var = generate_rook_bitboard(sq, occ ^ blockers);
@@ -424,6 +444,8 @@ u64 BitBoardGenerator::xray_rook_attacks(u64 occ, u64 blockers, int sq) {
 }
 
 u64 BitBoardGenerator::xray_bishop_attacks(u64 occ, u64 blockers, int sq) {
+    assert(sq >= 0 && sq < 64);
+
     u64 attacks = generate_bishop_bitboard(sq, occ);
     blockers &= attacks;
     u64 var = generate_bishop_bitboard(sq, occ ^ blockers);
@@ -431,6 +453,8 @@ u64 BitBoardGenerator::xray_bishop_attacks(u64 occ, u64 blockers, int sq) {
 }
 
 int BitBoardGenerator::get_pinning_piece_square(u64 *bitboards, int sq, bool turn) {
+    assert(sq >= 0 && sq < 64);
+
     u64 own_pieces = turn ? bitboards[WHITE] : bitboards[BLACK];
     u64 op_rq = turn ? bitboards[BLACK_ROOK] | bitboards[BLACK_QUEEN] : bitboards[WHITE_ROOK] | bitboards[WHITE_QUEEN];
     u64 op_bq =
@@ -458,20 +482,22 @@ int BitBoardGenerator::get_pinning_piece_square(u64 *bitboards, int sq, bool tur
     return 64;
 }
 
-bool BitBoardGenerator::square_attacked_by_pawn_or_knight(int square, u64 *bitboards, bool enemy_turn) {
+bool BitBoardGenerator::square_attacked_by_pawn_or_knight(int sq, u64 *bitboards, bool enemy_turn) {
+    assert(sq >= 0 && sq < 64);
+
     // enemy_turn = the color of the potential attacker
     u64 attackers = 0;
 
     if (enemy_turn) {
         // Black attackers
-        attackers |= shift_north_west(mask_piece[square]) & bitboards[BLACK_PAWN];
-        attackers |= shift_north_east(mask_piece[square]) & bitboards[BLACK_PAWN];
-        attackers |= knight_attack_squares[square] & bitboards[BLACK_KNIGHT];
+        attackers |= shift_north_west(mask_piece[sq]) & bitboards[BLACK_PAWN];
+        attackers |= shift_north_east(mask_piece[sq]) & bitboards[BLACK_PAWN];
+        attackers |= knight_attack_squares[sq] & bitboards[BLACK_KNIGHT];
     } else {
         // White attackers
-        attackers |= shift_south_west(mask_piece[square]) & bitboards[WHITE_PAWN];
-        attackers |= shift_south_east(mask_piece[square]) & bitboards[WHITE_PAWN];
-        attackers |= knight_attack_squares[square] & bitboards[WHITE_KNIGHT];
+        attackers |= shift_south_west(mask_piece[sq]) & bitboards[WHITE_PAWN];
+        attackers |= shift_south_east(mask_piece[sq]) & bitboards[WHITE_PAWN];
+        attackers |= knight_attack_squares[sq] & bitboards[WHITE_KNIGHT];
     }
 
     return attackers != 0;

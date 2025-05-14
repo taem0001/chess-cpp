@@ -12,9 +12,8 @@ std::vector<u64> MoveGenerator::generate_legal_moves(ChessLogic &logic) {
     logic.set_doublecheck(double_);
 
     generate_king_moves(moves, logic);
-    if (logic.get_doublecheck()) {
-        return moves;
-    }
+    if (logic.get_doublecheck()) return moves;
+
     generate_pawn_pushes(moves, logic);
     generate_pawn_captures(moves, logic);
     generate_knight_moves(moves, logic);
@@ -202,7 +201,7 @@ void MoveGenerator::generate_king_moves(std::vector<u64> &moves, ChessLogic &log
         from = first_bit(king);
         while (attacks) {
             to = first_bit(attacks);
-            if (simulate_check(bitboards, piece_on_square, turn ? WHITE_KING : BLACK_KING, turn, from, to)) {
+            if (simulate_check(bitboards, piece_on_square, turn, from, to)) {
                 flag = enemy & mask_piece[to] ? capture : quiet_move;
                 moves.push_back(define_move(from, to, flag, logic.get_totalmoves()));
             }
@@ -369,10 +368,14 @@ std::vector<u64> MoveGenerator::handle_single_check(std::vector<u64> &moves, Che
     return check_moves;
 }
 
-bool MoveGenerator::simulate_check(u64 *bitboards, int *piece_on_square, PieceType type, bool turn, int from, int to) {
+bool MoveGenerator::simulate_check(u64 *bitboards, int *piece_on_square, bool turn, int from, int to) {
+    assert(from >= 0 && from < 64);
+    assert(to >= 0 && to < 64);
+
     u64 sim[15];
     std::memcpy(sim, bitboards, sizeof(u64) * 15);
 
+    int type = turn ? WHITE_KING : BLACK_KING;
     int _type = piece_on_square[to];
     if (_type != -1) {
         sim[_type] &= ~mask_piece[to];

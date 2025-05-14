@@ -25,6 +25,9 @@ void Board::draw_board() {
 }
 
 void Board::move_piece(int from, int to) {
+    assert(from >= 0 && from < 64);
+    assert(to >= 0 && to < 64);
+
     // Remove captured piece
     if (piece_on_square[to] != -1) {
         bitboards[piece_on_square[to]] &= ~mask_piece[to];
@@ -48,6 +51,9 @@ void Board::move_piece(int from, int to) {
 }
 
 void Board::promote_piece(bool turn, char piece, int sq) {
+    assert(sq >= 0 && sq < 64);
+    assert(piece == 'n' || piece == 'N' || piece == 'b' || piece == 'B' || piece == 'r' || piece == 'R' || piece == 'q' || piece == 'Q');
+
     PieceType type;
     switch (piece) {
         case 'n':
@@ -88,6 +94,8 @@ void Board::promote_piece(bool turn, char piece, int sq) {
 }
 
 void Board::remove_piece(int sq) {
+    assert(sq >= 0 && sq < 64);
+
     int type = piece_on_square[sq];
 
     // If the square is not empty, remove the piece
