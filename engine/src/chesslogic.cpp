@@ -139,13 +139,15 @@ bool ChessLogic::make_move(u16 move) {
     int new_castle = get_castling_mask(bk_castle, bq_castle, wk_castle, wq_castle);
     if (new_castle) zobrist_hash ^= board.get_zobrist_castle(new_castle);
 
-    // Toggle side to move in hash
-    if (!white_turn) zobrist_hash ^= board.get_zobrist_blacktomove();
+    // Toggle side to move in hash and update full moves
+    if (!white_turn) {
+        zobrist_hash ^= board.get_zobrist_blacktomove();
+        full_moves++;
+    }
 
     undo_data.captured_piece_type = captured_piece_type;
     undo_stack.push_back(undo_data);
 
-    if (!white_turn) full_moves++;
     change_turn();
     return true;
 }
@@ -163,6 +165,9 @@ bool ChessLogic::unmake_move(u16 move) {
     // Pop previous move data from stack
     MoveData undo_data = undo_stack.back();
     undo_stack.pop_back();
+
+    // Restore previous zobrist hash
+    zobrist_hash = undo_data.zobrist_hash;
 
     // Reset pieces to previous position
     if (flag == quiet_move || flag == double_pawn_push) {
@@ -258,3 +263,4 @@ void ChessLogic::set_singlecheck(bool b) { single_check = b; }
 bool ChessLogic::get_doublecheck() { return double_check; }
 void ChessLogic::set_doublecheck(bool b) { double_check = b; }
 bool ChessLogic::fifty_move_rule() { return half_moves >= 100; }
+u64 ChessLogic::get_zobrist_hash() { return zobrist_hash; }

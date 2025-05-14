@@ -47,6 +47,7 @@ public:
     void set_doublecheck(bool);
     bool fivefold_repitition();
     bool fifty_move_rule();
+    u64 get_zobrist_hash();
 };
 
 #endif // !CHESSLOGIC_H
