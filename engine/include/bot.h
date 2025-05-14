@@ -7,7 +7,11 @@
 class Bot {
 private:
     std::vector<TTEntry> tt_table;
+    u64 nodes_searched;
+    u64 tt_hits;
 
+    bool probe_tt(u64, TTEntry &);
+    void store_tt(u64, int, int, u8, u16);
     int evaluate(ChessLogic &);
     int negamax(ChessLogic &, int, int, int, int);
     u16 search_move(ChessLogic &, int, int);

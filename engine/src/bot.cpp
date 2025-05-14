@@ -1,6 +1,6 @@
 #include "../include/bot.h"
 
-Bot::Bot() : tt_table(TABLE_SIZE) { MoveGenerator::init(); }
+Bot::Bot() : tt_table(TABLE_SIZE), nodes_searched(0), tt_hits(0) { MoveGenerator::init(); }
 
 u16 Bot::choose_move(ChessLogic logic, std::vector<u16> &moves) {
     int color = logic.get_turn() ? 1 : -1;
@@ -32,12 +32,21 @@ int Bot::evaluate(ChessLogic &logic) {
 }
 
 int Bot::negamax(ChessLogic &logic, int depth, int color, int alpha, int beta) {
-    if (depth == 0) {
-        return evaluate(logic);
+    nodes_searched++;
+    int alpha_orig = alpha;
+
+    // Check if position is in transposition table
+    u64 key = logic.get_zobrist_hash();
+    TTEntry entry;
+    if (probe_tt(key, entry) && entry.depth >= depth) {
+        if (entry.flag == EXACT) return entry.score;
+        if (entry.flag == LOWERBOUND && entry.score >= beta) return entry.score;
+        if (entry.flag == UPPERBOUND && entry.score <= alpha) return entry.score;
     }
 
-    std::vector<u16> unorderd_moves = MoveGenerator::generate_legal_moves(logic);
-    std::vector<u16> moves = order_moves(logic, unorderd_moves);
+    if (depth == 0) return evaluate(logic);
+
+    std::vector<u16> moves = order_moves(logic, MoveGenerator::generate_legal_moves(logic));
     if (moves.size() == 0) {
         if (logic.get_singlecheck() || logic.get_doublecheck()) {
             return -INF + depth;
@@ -46,18 +55,29 @@ int Bot::negamax(ChessLogic &logic, int depth, int color, int alpha, int beta) {
     }
 
     int best_score = -INF;
+    u16 best_move = 0;
 
     for (u64 move : moves) {
         logic.make_move(move);
         int score = -negamax(logic, depth - 1, -color, -beta, -alpha);
         logic.unmake_move(move);
 
-        best_score = max(best_score, score);
-        alpha = max(alpha, score);
-        if (alpha >= beta) {
-            break;
+        if (score > best_score) {
+            best_score = score;
+            best_move = move;
         }
+
+        alpha = max(alpha, score);
+        if (alpha >= beta) break;
     }
+
+    u8 flag;
+    if (best_score <= alpha_orig) flag = UPPERBOUND;
+    else if (best_score >= beta) flag = LOWERBOUND;
+    else flag = EXACT;
+
+    store_tt(key, best_score, depth, flag, best_move);
+
     return best_score;
 }
 
@@ -66,11 +86,24 @@ std::vector<u16> Bot::order_moves(ChessLogic &logic, std::vector<u16> moves) {
     std::vector<u16> result;
     u64 *bitboards = logic.get_board().get_bitboards();
 
+    u64 key = logic.get_zobrist_hash();
+    TTEntry entry;
+    u16 tt_move = 0;
+
+    if (probe_tt(key, entry)) {
+        tt_move = entry.best_move;
+    }
+
     for (u16 move : moves) {
         int move_score = 0;
         int from = (int)get_from(move);
         int to = (int)get_to(move);
         int flag = (int)get_flag(move);
+
+        // If move is found from transposition table reward it
+        if (tt_move == move) {
+            move_score += 10000;
+        }
 
         // Reward captures and especially between low-ranking and high-ranking pieces
         if (flag == capture || flag == ep_capture) {
@@ -123,13 +156,15 @@ u16 Bot::search_move(ChessLogic &logic, int thinktime, int color) {
     const int time_buffer = thinktime * 95 / 100;
 
     while (true) {
+        nodes_searched = 0;
+
         auto now = steady_clock::now();
         int elapsed = duration_cast<milliseconds>(now - start).count();
         if (elapsed >= time_buffer) {
             break;
         }
 
-        std::vector<u16> moves = MoveGenerator::generate_legal_moves(logic);
+        std::vector<u16> moves = order_moves(logic, MoveGenerator::generate_legal_moves(logic));
 
         int current_best_score = -INF;
         u16 current_best_move = 0;
@@ -163,5 +198,31 @@ u16 Bot::search_move(ChessLogic &logic, int thinktime, int color) {
     }
 
     std::cout << "Depth searched: " << depth << "\n";
+    std::cout << "Nodes searched: " << nodes_searched << "\n";
+    std::cout << "TT hits: " << tt_hits << "\n";
     return best_move;
+}
+
+bool Bot::probe_tt(u64 key, TTEntry &entry_out) {
+    size_t index = key % TABLE_SIZE;
+    TTEntry &entry = tt_table[index];
+    if (entry.key == key) {
+        tt_hits++;
+        entry_out = entry;
+        return true;
+    }
+    return false;
+}
+
+void Bot::store_tt(u64 key, int score, int depth, u8 flag, u16 best_move) {
+    size_t index = key % TABLE_SIZE;
+    TTEntry &entry = tt_table[index];
+
+    if (entry.key != key || depth >= entry.depth) {
+        entry.key = key;
+        entry.score = score;
+        entry.depth = depth;
+        entry.flag = flag;
+        entry.best_move = best_move;
+    }
 }

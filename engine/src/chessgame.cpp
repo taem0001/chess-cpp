@@ -84,8 +84,6 @@ void ChessGame::run_game(Bot &bot, bool bot_color) {
                 }
             } while (!correct_pos || !valid_move);
         }
-
-        std::cout << logic.get_zobrist_hash() << "\n";
         
         logic.make_move(move);
         logic.draw_game();

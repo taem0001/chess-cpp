@@ -34,14 +34,15 @@ typedef enum {
     BLACK_KING
 } PieceType;
 
-typedef enum {
-    EXACT,
-    LOWER_BOUND,
-    UPPER_BOUND
-} TTFlag;
-
 typedef uint64_t u64;
 typedef uint16_t u16;
+typedef uint8_t u8;
+
+typedef enum : u8 {
+    EXACT,
+    LOWERBOUND,
+    UPPERBOUND
+} TTFlag;
 
 typedef struct {
     int score;
@@ -59,11 +60,11 @@ typedef struct {
 } MoveData;
 
 typedef struct {
-    u64 zobrist_key;
-    int depth;
-    int score;
-    TTFlag flag;
-    u16 move;
+    u64 key;
+    u16 score;
+    u8 depth;
+    u8 flag;
+    u16 best_move;
 } TTEntry;
 
 static const char symbols[] = {'P', 'R', 'N', 'B', 'Q', 'K',
@@ -178,7 +179,7 @@ static const u64 rook_promo_capture = 0xe;
 static const u64 queen_promo_capture = 0xf;
 
 // Transposition table stuff
-static constexpr int TABLE_SIZE = 1 << 20;
+static constexpr size_t TABLE_SIZE = 1 << 20;
 
 // Evaluation
 static const int INF = 1000000;
