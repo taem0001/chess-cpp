@@ -1,4 +1,4 @@
-/engine/build/
+/build/
 /.vscode/
 /engine/.vscode/
 /*.o
