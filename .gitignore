@@ -1,6 +1,6 @@
 /build/
 /.vscode/
-/engine/.vscode/
+/src/.vscode/
 /*.o
 /*.exe
 *.sh

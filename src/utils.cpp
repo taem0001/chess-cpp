@@ -1,5 +1,8 @@
 #include "../include/utils.h"
 
+/// @brief Returns position of first set bit in 64-bit integer.
+/// @param bitboard 
+/// @return 
 int first_bit(u64 bitboard) {
     if (bitboard == 0) {
         return 64;
@@ -9,6 +12,9 @@ int first_bit(u64 bitboard) {
     return deBruijn_lookup_table[debruijn_index];
 }
 
+/// @brief Returns position of last set bit in 64-bit integer.
+/// @param bitboard 
+/// @return 
 int last_bit(u64 bitboard) {
     if (bitboard == 0) {
         return 64;
@@ -18,6 +24,10 @@ int last_bit(u64 bitboard) {
     return static_cast<int>(index);
 }
 
+/// @brief Returns the maximal value between two integers.
+/// @param n1 
+/// @param n2 
+/// @return 
 int max(int n1, int n2) {
     if (n1 > n2) {
         return n1;
@@ -25,6 +35,10 @@ int max(int n1, int n2) {
     return n2;
 }
 
+/// @brief Returns the evaluation score of whatever is on the square.
+/// @param bitboards 
+/// @param square 
+/// @return 
 int get_piece_score(u64 *bitboards, int square) {
     int type;
     int score;
@@ -74,6 +88,12 @@ int get_piece_score(u64 *bitboards, int square) {
     return score;
 }
 
+/// @brief Computes the combination of castling opportunities. 
+/// @param bk Black king-side castle
+/// @param bq Black queen-side castle
+/// @param wk White king-side castle
+/// @param wq White queen-side castle
+/// @return An integer with bits set for the sides that both kings can castle.
 int get_castling_mask(bool bk, bool bq, bool wk, bool wq) {
     return (int)(bk << 0) | (int)(bq << 1) | (int)(wk << 2) | (int)(wq << 3);
 }
