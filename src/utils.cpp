@@ -126,6 +126,13 @@ int get_promoted_piece_index(int flag, bool turn) {
     return result;
 }
 
+/// @brief Checks if the move is in the list of moves.
+/// @brief If the move is in the list, then the move is assigned.
+/// @param moves 
+/// @param from 
+/// @param to 
+/// @param move 
+/// @return 
 bool contains_move(std::vector<u16> &moves, int from, int to, u16 *move) {
     assert(from >= 0 && from < 64);
     assert(to >= 0 && to < 64);
@@ -142,6 +149,11 @@ bool contains_move(std::vector<u16> &moves, int from, int to, u16 *move) {
     return false;
 }
 
+/// @brief Converts the move string e.g. "e2e4" to the corresponding row and file for both
+/// @param pos 
+/// @param from 
+/// @param to 
+/// @return 
 bool get_pos(std::string &pos, int *from, int *to) {
     if (pos.length() != 4) {
         return false;
@@ -172,6 +184,10 @@ bool get_pos(std::string &pos, int *from, int *to) {
     return true;
 }
 
+/// @brief Gets the symbol for the piece on the square.
+/// @param bitboards 
+/// @param square 
+/// @return 
 char get_symbol(u64 *bitboards, int square) {
     for (int i = 3; i < 15; i++) {
         if (bitboards[i] & (1ULL << square)) {
@@ -181,15 +197,50 @@ char get_symbol(u64 *bitboards, int square) {
     return ' ';
 }
 
+/// @brief Shifts the bitboard north.
+/// @param b 
+/// @return 
 u64 shift_north(u64 b) { return b << 8ULL; }
+
+/// @brief Shifts the bitboard south.
+/// @param b 
+/// @return 
 u64 shift_south(u64 b) { return b >> 8ULL; }
+
+/// @brief Shifts the bitboard east.
+/// @param b 
+/// @return 
 u64 shift_east(u64 b) { return (b << 1ULL) & clear_file[0]; }
+
+/// @brief Shifts the bitboard north east.
+/// @param b 
+/// @return 
 u64 shift_north_east(u64 b) { return (b << 9ULL) & clear_file[0]; }
+
+/// @brief Shifts the bitboard south east.
+/// @param b 
+/// @return 
 u64 shift_south_east(u64 b) { return (b >> 7ULL) & clear_file[0]; }
+
+/// @brief Shifts the bitboard west.
+/// @param b 
+/// @return 
 u64 shift_west(u64 b) { return (b >> 1ULL) & clear_file[7]; }
+
+/// @brief Shifts the bitboard south west.
+/// @param b 
+/// @return 
 u64 shift_south_west(u64 b) { return (b >> 9ULL) & clear_file[7]; }
+
+/// @brief Shifts the bitboard north west.
+/// @param b 
+/// @return 
 u64 shift_north_west(u64 b) { return (b << 7ULL) & clear_file[7]; }
 
+/// @brief Computes the bitboard with straight or diagonal squares between the two squares.
+/// @param sq1 
+/// @param sq2 
+/// @return 
 u64 in_between(int sq1, int sq2) {
     assert(sq1 >= 0 && sq1 < 64);
     assert(sq2 >= 0 && sq2 < 64);
@@ -211,6 +262,11 @@ u64 in_between(int sq1, int sq2) {
     return line & btwn;
 }
 
+/// @brief Encodes a move from the from- and to-square plus the move flag.
+/// @param from 
+/// @param to 
+/// @param flag 
+/// @return 16-bit integer that encodes a move. 
 u16 define_move(int from, int to, int flag) {
     assert(from >= 0 && from < 64);
     assert(to >= 0 && to < 64);
@@ -220,10 +276,23 @@ u16 define_move(int from, int to, int flag) {
     return result;
 }
 
+/// @brief Gets the from square from a defined move.
+/// @param move 
+/// @return 16-bit integer only containing the from square.
 u16 get_from(u16 move) { return move & 0x3f; }
+
+/// @brief Gets the to square from a defined move.
+/// @param move 
+/// @return 16-bit integer only containing the to square.
 u16 get_to(u16 move) { return (move >> 6) & 0x3f; }
+
+/// @brief Gets the move flag from the defined move.
+/// @param move 
+/// @return 16-bit integer only containing the move flag.
 u16 get_flag(u16 move) { return (move >> 12) & 0xf; }
 
+/// @brief Prints the bitboard in a board layout.
+/// @param bitboard 
 void print_bitboard(u64 bitboard) {
     for (int rank = 7; rank >= 0; --rank) {
         for (int file = 0; file < 8; ++file) {
@@ -235,6 +304,8 @@ void print_bitboard(u64 bitboard) {
     std::cout << "\n";
 }
 
+/// @brief Prints the entire list of moves.
+/// @param moves 
 void print_moves(std::vector<u16> &moves) {
     for (u64 move : moves) {
         std::cout << print_pos((int)get_from(move)) << print_pos((int)get_to(move)) << "\n";
@@ -242,6 +313,11 @@ void print_moves(std::vector<u16> &moves) {
     std::cout << "\n";
 }
 
+/// @brief Merges two vectors into one.
+/// @param vec 
+/// @param left 
+/// @param mid 
+/// @param right 
 void merge(std::vector<MoveScore> &vec, int left, int mid, int right) {
     int i, j, k;
     int n1 = mid - left + 1;
@@ -279,6 +355,10 @@ void merge(std::vector<MoveScore> &vec, int left, int mid, int right) {
     }
 }
 
+/// @brief Sorts the vector using merge sort algorithm.
+/// @param vec 
+/// @param left 
+/// @param right 
 void merge_sort(std::vector<MoveScore> &vec, int left, int right) {
     if (left < right) {
         // Calculate mid point
@@ -293,6 +373,9 @@ void merge_sort(std::vector<MoveScore> &vec, int left, int right) {
     }
 }
 
+/// @brief Prints a single square as a position e.g. square 8 would be "a2".
+/// @param pos 
+/// @return A string describing the square.
 std::string print_pos(int pos) {
     std::string res = "";
     int rank = pos / 8;
