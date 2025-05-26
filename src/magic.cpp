@@ -34,6 +34,4 @@ u64 index_to_u64(int index, int bits, u64 m) {
     return result;
 }
 
-int transform(u64 b, u64 magic, int bits) {
-    return (int)((b * magic) >> (64 - bits));
-}
+int transform(u64 b, u64 magic, int bits) { return (int)((b * magic) >> (64 - bits)); }

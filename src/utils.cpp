@@ -1,8 +1,8 @@
 #include "../include/utils.h"
 
 /// @brief Returns position of first set bit in 64-bit integer.
-/// @param bitboard 
-/// @return 
+/// @param bitboard
+/// @return
 int first_bit(u64 bitboard) {
     if (bitboard == 0) {
         return 64;
@@ -13,8 +13,8 @@ int first_bit(u64 bitboard) {
 }
 
 /// @brief Returns position of last set bit in 64-bit integer.
-/// @param bitboard 
-/// @return 
+/// @param bitboard
+/// @return
 int last_bit(u64 bitboard) {
     if (bitboard == 0) {
         return 64;
@@ -25,9 +25,9 @@ int last_bit(u64 bitboard) {
 }
 
 /// @brief Returns the maximal value between two integers.
-/// @param n1 
-/// @param n2 
-/// @return 
+/// @param n1
+/// @param n2
+/// @return
 int max(int n1, int n2) {
     if (n1 > n2) {
         return n1;
@@ -36,9 +36,9 @@ int max(int n1, int n2) {
 }
 
 /// @brief Returns the evaluation score of whatever is on the square.
-/// @param bitboards 
-/// @param square 
-/// @return 
+/// @param bitboards
+/// @param square
+/// @return
 int get_piece_score(u64 *bitboards, int square) {
     int type;
     int score;
@@ -50,45 +50,45 @@ int get_piece_score(u64 *bitboards, int square) {
     }
 
     switch (type) {
-    case WHITE_PAWN:
-        score = pawn_value;
-        break;
-    case WHITE_KNIGHT:
-        score = knight_value;
-        break;
-    case WHITE_BISHOP:
-        score = bishop_value;
-        break;
-    case WHITE_ROOK:
-        score = rook_value;
-        break;
-    case WHITE_QUEEN:
-        score = queen_value;
-        break;
-    case BLACK_PAWN:
-        score = pawn_value;
-        break;
-    case BLACK_KNIGHT:
-        score = knight_value;
-        break;
-    case BLACK_BISHOP:
-        score = bishop_value;
-        break;
-    case BLACK_ROOK:
-        score = rook_value;
-        break;
-    case BLACK_QUEEN:
-        score = queen_value;
-        break;
-    default:
-        score = 0;
-        break;
+        case WHITE_PAWN:
+            score = pawn_value;
+            break;
+        case WHITE_KNIGHT:
+            score = knight_value;
+            break;
+        case WHITE_BISHOP:
+            score = bishop_value;
+            break;
+        case WHITE_ROOK:
+            score = rook_value;
+            break;
+        case WHITE_QUEEN:
+            score = queen_value;
+            break;
+        case BLACK_PAWN:
+            score = pawn_value;
+            break;
+        case BLACK_KNIGHT:
+            score = knight_value;
+            break;
+        case BLACK_BISHOP:
+            score = bishop_value;
+            break;
+        case BLACK_ROOK:
+            score = rook_value;
+            break;
+        case BLACK_QUEEN:
+            score = queen_value;
+            break;
+        default:
+            score = 0;
+            break;
     }
 
     return score;
 }
 
-/// @brief Computes the combination of castling opportunities. 
+/// @brief Computes the combination of castling opportunities.
 /// @param bk Black king-side castle
 /// @param bq Black queen-side castle
 /// @param wk White king-side castle
@@ -101,26 +101,25 @@ int get_castling_mask(bool bk, bool bq, bool wk, bool wq) {
 int get_promoted_piece_index(int flag, bool turn) {
     int result = -1;
 
-    switch (flag)
-    {
-    case knight_promotion:
-    case knight_promo_capture:
-        result = turn ? WHITE_KNIGHT : BLACK_KNIGHT;
-        break;
-    case bishop_promotion:
-    case bishop_promo_capture:
-        result = turn ? WHITE_BISHOP : BLACK_BISHOP;
-        break;
-    case rook_promotion:
-    case rook_promo_capture:
-        result = turn ? WHITE_ROOK : BLACK_ROOK;
-        break;
-    case queen_promotion:
-    case queen_promo_capture:
-        result = turn ? WHITE_QUEEN : BLACK_QUEEN;
-        break;
-    default:
-        break;
+    switch (flag) {
+        case knight_promotion:
+        case knight_promo_capture:
+            result = turn ? WHITE_KNIGHT : BLACK_KNIGHT;
+            break;
+        case bishop_promotion:
+        case bishop_promo_capture:
+            result = turn ? WHITE_BISHOP : BLACK_BISHOP;
+            break;
+        case rook_promotion:
+        case rook_promo_capture:
+            result = turn ? WHITE_ROOK : BLACK_ROOK;
+            break;
+        case queen_promotion:
+        case queen_promo_capture:
+            result = turn ? WHITE_QUEEN : BLACK_QUEEN;
+            break;
+        default:
+            break;
     }
     assert(result != -1);
     return result;
@@ -128,11 +127,11 @@ int get_promoted_piece_index(int flag, bool turn) {
 
 /// @brief Checks if the move is in the list of moves.
 /// @brief If the move is in the list, then the move is assigned.
-/// @param moves 
-/// @param from 
-/// @param to 
-/// @param move 
-/// @return 
+/// @param moves
+/// @param from
+/// @param to
+/// @param move
+/// @return
 bool contains_move(std::vector<u16> &moves, int from, int to, u16 *move) {
     assert(from >= 0 && from < 64);
     assert(to >= 0 && to < 64);
@@ -150,10 +149,10 @@ bool contains_move(std::vector<u16> &moves, int from, int to, u16 *move) {
 }
 
 /// @brief Converts the move string e.g. "e2e4" to the corresponding row and file for both
-/// @param pos 
-/// @param from 
-/// @param to 
-/// @return 
+/// @param pos
+/// @param from
+/// @param to
+/// @return
 bool get_pos(std::string &pos, int *from, int *to) {
     if (pos.length() != 4) {
         return false;
@@ -185,9 +184,9 @@ bool get_pos(std::string &pos, int *from, int *to) {
 }
 
 /// @brief Gets the symbol for the piece on the square.
-/// @param bitboards 
-/// @param square 
-/// @return 
+/// @param bitboards
+/// @param square
+/// @return
 char get_symbol(u64 *bitboards, int square) {
     for (int i = 3; i < 15; i++) {
         if (bitboards[i] & (1ULL << square)) {
@@ -198,49 +197,49 @@ char get_symbol(u64 *bitboards, int square) {
 }
 
 /// @brief Shifts the bitboard north.
-/// @param b 
-/// @return 
+/// @param b
+/// @return
 u64 shift_north(u64 b) { return b << 8ULL; }
 
 /// @brief Shifts the bitboard south.
-/// @param b 
-/// @return 
+/// @param b
+/// @return
 u64 shift_south(u64 b) { return b >> 8ULL; }
 
 /// @brief Shifts the bitboard east.
-/// @param b 
-/// @return 
+/// @param b
+/// @return
 u64 shift_east(u64 b) { return (b << 1ULL) & clear_file[0]; }
 
 /// @brief Shifts the bitboard north east.
-/// @param b 
-/// @return 
+/// @param b
+/// @return
 u64 shift_north_east(u64 b) { return (b << 9ULL) & clear_file[0]; }
 
 /// @brief Shifts the bitboard south east.
-/// @param b 
-/// @return 
+/// @param b
+/// @return
 u64 shift_south_east(u64 b) { return (b >> 7ULL) & clear_file[0]; }
 
 /// @brief Shifts the bitboard west.
-/// @param b 
-/// @return 
+/// @param b
+/// @return
 u64 shift_west(u64 b) { return (b >> 1ULL) & clear_file[7]; }
 
 /// @brief Shifts the bitboard south west.
-/// @param b 
-/// @return 
+/// @param b
+/// @return
 u64 shift_south_west(u64 b) { return (b >> 9ULL) & clear_file[7]; }
 
 /// @brief Shifts the bitboard north west.
-/// @param b 
-/// @return 
+/// @param b
+/// @return
 u64 shift_north_west(u64 b) { return (b << 7ULL) & clear_file[7]; }
 
 /// @brief Computes the bitboard with straight or diagonal squares between the two squares.
-/// @param sq1 
-/// @param sq2 
-/// @return 
+/// @param sq1
+/// @param sq2
+/// @return
 u64 in_between(int sq1, int sq2) {
     assert(sq1 >= 0 && sq1 < 64);
     assert(sq2 >= 0 && sq2 < 64);
@@ -263,10 +262,10 @@ u64 in_between(int sq1, int sq2) {
 }
 
 /// @brief Encodes a move from the from- and to-square plus the move flag.
-/// @param from 
-/// @param to 
-/// @param flag 
-/// @return 16-bit integer that encodes a move. 
+/// @param from
+/// @param to
+/// @param flag
+/// @return 16-bit integer that encodes a move.
 u16 define_move(int from, int to, int flag) {
     assert(from >= 0 && from < 64);
     assert(to >= 0 && to < 64);
@@ -277,22 +276,22 @@ u16 define_move(int from, int to, int flag) {
 }
 
 /// @brief Gets the from square from a defined move.
-/// @param move 
+/// @param move
 /// @return 16-bit integer only containing the from square.
 u16 get_from(u16 move) { return move & 0x3f; }
 
 /// @brief Gets the to square from a defined move.
-/// @param move 
+/// @param move
 /// @return 16-bit integer only containing the to square.
 u16 get_to(u16 move) { return (move >> 6) & 0x3f; }
 
 /// @brief Gets the move flag from the defined move.
-/// @param move 
+/// @param move
 /// @return 16-bit integer only containing the move flag.
 u16 get_flag(u16 move) { return (move >> 12) & 0xf; }
 
 /// @brief Prints the bitboard in a board layout.
-/// @param bitboard 
+/// @param bitboard
 void print_bitboard(u64 bitboard) {
     for (int rank = 7; rank >= 0; --rank) {
         for (int file = 0; file < 8; ++file) {
@@ -305,7 +304,7 @@ void print_bitboard(u64 bitboard) {
 }
 
 /// @brief Prints the entire list of moves.
-/// @param moves 
+/// @param moves
 void print_moves(std::vector<u16> &moves) {
     for (u64 move : moves) {
         std::cout << print_pos((int)get_from(move)) << print_pos((int)get_to(move)) << "\n";
@@ -314,10 +313,10 @@ void print_moves(std::vector<u16> &moves) {
 }
 
 /// @brief Merges two vectors into one.
-/// @param vec 
-/// @param left 
-/// @param mid 
-/// @param right 
+/// @param vec
+/// @param left
+/// @param mid
+/// @param right
 void merge(std::vector<MoveScore> &vec, int left, int mid, int right) {
     int i, j, k;
     int n1 = mid - left + 1;
@@ -356,9 +355,9 @@ void merge(std::vector<MoveScore> &vec, int left, int mid, int right) {
 }
 
 /// @brief Sorts the vector using merge sort algorithm.
-/// @param vec 
-/// @param left 
-/// @param right 
+/// @param vec
+/// @param left
+/// @param right
 void merge_sort(std::vector<MoveScore> &vec, int left, int right) {
     if (left < right) {
         // Calculate mid point
@@ -374,7 +373,7 @@ void merge_sort(std::vector<MoveScore> &vec, int left, int right) {
 }
 
 /// @brief Prints a single square as a position e.g. square 8 would be "a2".
-/// @param pos 
+/// @param pos
 /// @return A string describing the square.
 std::string print_pos(int pos) {
     std::string res = "";
@@ -384,4 +383,16 @@ std::string print_pos(int pos) {
     res += 'a' + file;
     res += '1' + rank;
     return res;
+}
+
+/// @brief Filters out all quiet moves.
+/// @param moves 
+void only_noisy_moves(std::vector<u16> &moves) {
+    for (int i = moves.size() - 1; i >= 0; i--) {
+        int flag = (int)get_flag(moves[i]);
+
+        if (flag == quiet_move || flag == double_pawn_push) {
+            moves.erase(moves.begin() + i);
+        }
+    }
 }

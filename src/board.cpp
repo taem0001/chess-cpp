@@ -52,7 +52,8 @@ void Board::move_piece(int from, int to) {
 
 void Board::promote_piece(bool turn, int type, int sq) {
     assert(sq >= 0 && sq < 64);
-    assert(type == WHITE_KNIGHT || type == BLACK_KNIGHT || type == WHITE_BISHOP || type == BLACK_BISHOP || type == WHITE_ROOK || type == BLACK_ROOK || type == WHITE_QUEEN || type == BLACK_QUEEN);
+    assert(type == WHITE_KNIGHT || type == BLACK_KNIGHT || type == WHITE_BISHOP || type == BLACK_BISHOP ||
+           type == WHITE_ROOK || type == BLACK_ROOK || type == WHITE_QUEEN || type == BLACK_QUEEN);
 
     // Remove pawn on the promote square
     if (turn) {
@@ -83,9 +84,9 @@ void Board::add_piece(int sq, int type) {
     bitboards[type] |= mask_piece[sq];
 
     bitboards[WHITE] = bitboards[WHITE_PAWN] | bitboards[WHITE_ROOK] | bitboards[WHITE_BISHOP] |
-                    bitboards[WHITE_KNIGHT] | bitboards[WHITE_QUEEN] | bitboards[WHITE_KING];
+                       bitboards[WHITE_KNIGHT] | bitboards[WHITE_QUEEN] | bitboards[WHITE_KING];
     bitboards[BLACK] = bitboards[BLACK_PAWN] | bitboards[BLACK_ROOK] | bitboards[BLACK_BISHOP] |
-                    bitboards[BLACK_KNIGHT] | bitboards[BLACK_QUEEN] | bitboards[BLACK_KING];
+                       bitboards[BLACK_KNIGHT] | bitboards[BLACK_QUEEN] | bitboards[BLACK_KING];
     bitboards[ALL] = bitboards[WHITE] | bitboards[BLACK];
 }
 
@@ -102,9 +103,9 @@ void Board::remove_piece(int sq) {
     // Update the bitboards
     bitboards[type] &= ~mask_piece[sq];
     bitboards[WHITE] = bitboards[WHITE_PAWN] | bitboards[WHITE_ROOK] | bitboards[WHITE_BISHOP] |
-                    bitboards[WHITE_KNIGHT] | bitboards[WHITE_QUEEN] | bitboards[WHITE_KING];
+                       bitboards[WHITE_KNIGHT] | bitboards[WHITE_QUEEN] | bitboards[WHITE_KING];
     bitboards[BLACK] = bitboards[BLACK_PAWN] | bitboards[BLACK_ROOK] | bitboards[BLACK_BISHOP] |
-                    bitboards[BLACK_KNIGHT] | bitboards[BLACK_QUEEN] | bitboards[BLACK_KING];
+                       bitboards[BLACK_KNIGHT] | bitboards[BLACK_QUEEN] | bitboards[BLACK_KING];
     bitboards[ALL] = bitboards[WHITE] | bitboards[BLACK];
 }
 
@@ -138,8 +139,6 @@ u64 Board::get_zobrist_blacktomove() { return zobrist_blacktomove; }
 u64 Board::get_zobrist_castle(int castle_rights) {
     assert(castle_rights >= 0 && castle_rights < 16);
     return zobrist_castle[castle_rights];
-} 
-
-u64 Board::get_zobrist_ep(int ep_sq) {
-    return zobrist_epfile[ep_sq % 8];
 }
+
+u64 Board::get_zobrist_ep(int ep_sq) { return zobrist_epfile[ep_sq % 8]; }

@@ -39,12 +39,16 @@ int Bot::negamax(ChessLogic &logic, int depth, int color, int alpha, int beta) {
     u64 key = logic.get_zobrist_hash();
     TTEntry entry;
     if (probe_tt(key, entry) && entry.depth >= depth) {
-        if (entry.flag == EXACT) return entry.score;
-        if (entry.flag == LOWERBOUND && entry.score >= beta) return entry.score;
-        if (entry.flag == UPPERBOUND && entry.score <= alpha) return entry.score;
+        if (entry.flag == EXACT)
+            return entry.score;
+        if (entry.flag == LOWERBOUND && entry.score >= beta)
+            return entry.score;
+        if (entry.flag == UPPERBOUND && entry.score <= alpha)
+            return entry.score;
     }
 
-    if (depth == 0) return evaluate(logic);
+    if (depth == 0)
+        return quiescence(logic, alpha, beta, color);
 
     std::vector<u16> moves = order_moves(logic, MoveGenerator::generate_legal_moves(logic));
     if (moves.size() == 0) {
@@ -68,17 +72,49 @@ int Bot::negamax(ChessLogic &logic, int depth, int color, int alpha, int beta) {
         }
 
         alpha = max(alpha, score);
-        if (alpha >= beta) break;
+        if (alpha >= beta)
+            break;
     }
 
     u8 flag;
-    if (best_score <= alpha_orig) flag = UPPERBOUND;
-    else if (best_score >= beta) flag = LOWERBOUND;
-    else flag = EXACT;
+    if (best_score <= alpha_orig)
+        flag = UPPERBOUND;
+    else if (best_score >= beta)
+        flag = LOWERBOUND;
+    else
+        flag = EXACT;
 
     store_tt(key, best_score, depth, flag, best_move);
 
     return best_score;
+}
+
+int Bot::quiescence(ChessLogic &logic, int alpha, int beta, int color) {
+    int static_eval = color * evaluate(logic);
+
+    int best_val = static_eval;
+    if (best_val >= beta)
+        return best_val;
+    if (best_val > alpha)
+        alpha = best_val;
+
+    std::vector<u16> moves = MoveGenerator::generate_legal_moves(logic);
+    only_noisy_moves(moves);
+
+    for (u16 move : moves) {
+        logic.make_move(move);
+        int score = -quiescence(logic, -beta, -alpha, -color);
+        logic.unmake_move(move);
+
+        if (score >= beta)
+            return score;
+        if (score > best_val)
+            best_val = score;
+        if (score > alpha)
+            alpha = score;
+    }
+
+    return best_val;
 }
 
 std::vector<u16> Bot::order_moves(ChessLogic &logic, std::vector<u16> moves) {
@@ -154,6 +190,9 @@ u16 Bot::search_move(ChessLogic &logic, int thinktime, int color) {
     int depth = 1;
 
     const int time_buffer = thinktime * 95 / 100;
+
+    // Clear the table before each search
+    tt_table.clear();
 
     while (true) {
         nodes_searched = 0;

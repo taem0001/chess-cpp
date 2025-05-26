@@ -319,6 +319,7 @@ void print_bitboard(u64);
 void print_moves(std::vector<u16> &);
 void merge(std::vector<MoveScore> &, int, int, int);
 void merge_sort(std::vector<MoveScore> &, int, int);
+void only_noisy_moves(std::vector<u16> &);
 std::string print_pos(int);
 
 #endif  // !UTILS_H

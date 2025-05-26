@@ -2,13 +2,13 @@
 #include "../include/fen.h"
 
 ChessLogic::ChessLogic() : board() {
-    board.init_zobrist(); 
+    board.init_zobrist();
     load_pos(STARTPOS);
 }
 
-void ChessLogic::load_pos(const std::string &fen) { 
+void ChessLogic::load_pos(const std::string &fen) {
     FenHandler::load_fen(*this, fen);
-    zobrist_hash = compute_zobrist_hash(); 
+    zobrist_hash = compute_zobrist_hash();
 }
 
 void ChessLogic::draw_game() { board.draw_board(); }
@@ -41,11 +41,13 @@ bool ChessLogic::make_move(u16 move) {
 
     // Save castling rights in hash before changes
     int old_castling = get_castling_mask(bk_castle, bq_castle, wk_castle, wq_castle);
-    if (old_castling) zobrist_hash ^= board.get_zobrist_castle(old_castling);
+    if (old_castling)
+        zobrist_hash ^= board.get_zobrist_castle(old_castling);
 
     // Save en passant in hash before changes and reset
     int old_ep = en_passant_square;
-    if (old_ep != -1) zobrist_hash ^= board.get_zobrist_ep(old_ep);
+    if (old_ep != -1)
+        zobrist_hash ^= board.get_zobrist_ep(old_ep);
     en_passant_square = -1;
 
     // Remove moving piece from origin in hash
@@ -126,18 +128,25 @@ bool ChessLogic::make_move(u16 move) {
     }
 
     // Reset castling rights if the king moves
-    if (moved_piece == WHITE_KING) wk_castle = wq_castle = false;
-    if (moved_piece == BLACK_KING) bk_castle = bq_castle = false;
+    if (moved_piece == WHITE_KING)
+        wk_castle = wq_castle = false;
+    if (moved_piece == BLACK_KING)
+        bk_castle = bq_castle = false;
 
     // Reset castling rights if rooks move from their original squares
-    if (from == 0 && moved_piece == WHITE_ROOK) wq_castle = false;
-    if (from == 7 && moved_piece == WHITE_ROOK) wk_castle = false;
-    if (from == 56 && moved_piece == BLACK_ROOK) bq_castle = false;
-    if (from == 63 && moved_piece == BLACK_ROOK) bk_castle = false;
+    if (from == 0 && moved_piece == WHITE_ROOK)
+        wq_castle = false;
+    if (from == 7 && moved_piece == WHITE_ROOK)
+        wk_castle = false;
+    if (from == 56 && moved_piece == BLACK_ROOK)
+        bq_castle = false;
+    if (from == 63 && moved_piece == BLACK_ROOK)
+        bk_castle = false;
 
     // Update castling rights in hash
     int new_castle = get_castling_mask(bk_castle, bq_castle, wk_castle, wq_castle);
-    if (new_castle) zobrist_hash ^= board.get_zobrist_castle(new_castle);
+    if (new_castle)
+        zobrist_hash ^= board.get_zobrist_castle(new_castle);
 
     // Toggle side to move in hash and update full moves
     if (!white_turn) {
@@ -185,7 +194,7 @@ bool ChessLogic::unmake_move(u16 move) {
     } else if (flag == capture) {
         assert(undo_data.captured_piece_type != -1);
         board.move_piece(to, from);
-        board.add_piece(to, undo_data.captured_piece_type);        
+        board.add_piece(to, undo_data.captured_piece_type);
     } else if (flag == ep_capture) {
         assert(undo_data.captured_piece_type != -1);
         board.move_piece(to, from);
@@ -220,25 +229,27 @@ u64 ChessLogic::compute_zobrist_hash() {
     int *piece_on_square = board.get_piece_on_squares();
     u64 hash = 0;
 
-    for (int sq = 0; sq < 64; sq++)  {
+    for (int sq = 0; sq < 64; sq++) {
         int type = piece_on_square[sq];
-        if (type != -1) hash ^= board.get_zobrist_piece(type, sq);
+        if (type != -1)
+            hash ^= board.get_zobrist_piece(type, sq);
     }
 
-    if (!white_turn) hash ^= board.get_zobrist_blacktomove();
+    if (!white_turn)
+        hash ^= board.get_zobrist_blacktomove();
 
     int castling = get_castling_mask(bk_castle, bq_castle, wk_castle, wq_castle);
-    if (castling != 0) hash ^= board.get_zobrist_castle(castling);
-    
-    if (en_passant_square != -1) hash ^= board.get_zobrist_ep(en_passant_square);
+    if (castling != 0)
+        hash ^= board.get_zobrist_castle(castling);
+
+    if (en_passant_square != -1)
+        hash ^= board.get_zobrist_ep(en_passant_square);
 
     return hash;
 }
 
 // TODO: Complete this when zobrist hashing is implemented
-bool ChessLogic::fivefold_repitition() {
-    return false;
-}
+bool ChessLogic::fivefold_repitition() { return false; }
 
 Board &ChessLogic::get_board() { return board; }
 void ChessLogic::change_turn() { white_turn = !white_turn; }

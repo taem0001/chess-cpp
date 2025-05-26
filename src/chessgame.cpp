@@ -84,7 +84,7 @@ void ChessGame::run_game(Bot &bot, bool bot_color) {
                 }
             } while (!correct_pos || !valid_move);
         }
-        
+
         logic.make_move(move);
         logic.draw_game();
     }

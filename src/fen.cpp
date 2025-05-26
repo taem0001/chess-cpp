@@ -3,7 +3,7 @@
 void FenHandler::load_fen(ChessLogic &logic, const std::string &fen) {
     u64 *bitboards = logic.get_board().get_bitboards();
     int *piece_on_square = logic.get_board().get_piece_on_squares();
-    
+
     // Set all squares to be empty
     std::fill(bitboards, bitboards + 15, 0);
     std::fill(piece_on_square, piece_on_square + 64, -1);
@@ -30,19 +30,44 @@ void FenHandler::load_fen(ChessLogic &logic, const std::string &fen) {
             } else {
                 int piece_type = -1;
                 switch (c) {
-                    case 'p': piece_type = BLACK_PAWN; break;
-                    case 'r': piece_type = BLACK_ROOK; break;
-                    case 'n': piece_type = BLACK_KNIGHT; break;
-                    case 'b': piece_type = BLACK_BISHOP; break;
-                    case 'q': piece_type = BLACK_QUEEN; break;
-                    case 'k': piece_type = BLACK_KING; break;
-                    case 'P': piece_type = WHITE_PAWN; break;
-                    case 'R': piece_type = WHITE_ROOK; break;
-                    case 'N': piece_type = WHITE_KNIGHT; break;
-                    case 'B': piece_type = WHITE_BISHOP; break;
-                    case 'Q': piece_type = WHITE_QUEEN; break;
-                    case 'K': piece_type = WHITE_KING; break;
-                    default: break;
+                    case 'p':
+                        piece_type = BLACK_PAWN;
+                        break;
+                    case 'r':
+                        piece_type = BLACK_ROOK;
+                        break;
+                    case 'n':
+                        piece_type = BLACK_KNIGHT;
+                        break;
+                    case 'b':
+                        piece_type = BLACK_BISHOP;
+                        break;
+                    case 'q':
+                        piece_type = BLACK_QUEEN;
+                        break;
+                    case 'k':
+                        piece_type = BLACK_KING;
+                        break;
+                    case 'P':
+                        piece_type = WHITE_PAWN;
+                        break;
+                    case 'R':
+                        piece_type = WHITE_ROOK;
+                        break;
+                    case 'N':
+                        piece_type = WHITE_KNIGHT;
+                        break;
+                    case 'B':
+                        piece_type = WHITE_BISHOP;
+                        break;
+                    case 'Q':
+                        piece_type = WHITE_QUEEN;
+                        break;
+                    case 'K':
+                        piece_type = WHITE_KING;
+                        break;
+                    default:
+                        break;
                 }
                 assert(piece_type == -1 || (piece_type >= 3 && piece_type < 15));
 
