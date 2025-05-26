@@ -90,6 +90,19 @@ int Bot::negamax(ChessLogic &logic, int depth, int color, int alpha, int beta) {
 }
 
 int Bot::quiescence(ChessLogic &logic, int alpha, int beta, int color) {
+    nodes_searched++;
+    
+    u64 key = logic.get_zobrist_hash();
+    TTEntry entry;
+
+    if (probe_tt(key, entry)) {
+        if (entry.flag == EXACT)
+            return entry.score;
+        if (entry.flag == LOWERBOUND && entry.score >= beta)
+            return entry.score;
+        if (entry.flag == UPPERBOUND && entry.score <= alpha)
+            return entry.score;
+    }
     int static_eval = color * evaluate(logic);
 
     int best_val = static_eval;
@@ -113,6 +126,8 @@ int Bot::quiescence(ChessLogic &logic, int alpha, int beta, int color) {
         if (score > alpha)
             alpha = score;
     }
+
+    store_tt(key, best_val, 0, EXACT, 0);
 
     return best_val;
 }
@@ -257,7 +272,15 @@ void Bot::store_tt(u64 key, int score, int depth, u8 flag, u16 best_move) {
     size_t index = key % TABLE_SIZE;
     TTEntry &entry = tt_table[index];
 
-    if (entry.key != key || depth >= entry.depth) {
+    bool replace = false;
+    if (entry.key != key)
+        replace = true;
+    else if (depth > entry.depth)
+        replace = true;
+    else if (depth == entry.depth && flag == EXACT && entry.flag != EXACT)
+        replace = true;
+
+    if (replace) {
         entry.key = key;
         entry.score = score;
         entry.depth = depth;
