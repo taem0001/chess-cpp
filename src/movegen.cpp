@@ -4,23 +4,42 @@ void MoveGenerator::init() { BitBoardGenerator::init(); }
 
 std::vector<u16> MoveGenerator::generate_legal_moves(ChessLogic &logic) {
     std::vector<u16> moves;
+    u64 *bb = logic.get_board().get_bitboards();
+    bool turn = logic.get_turn();
 
+    // Calculate pinned pieces
+    u64 pinned_all = BitBoardGenerator::generate_pinned_pieces_bitboard(bb, turn);
+
+    u64 pawns   = turn ? bb[WHITE_PAWN]   : bb[BLACK_PAWN];
+    u64 knights = turn ? bb[WHITE_KNIGHT] : bb[BLACK_KNIGHT];
+    u64 bishops = turn ? bb[WHITE_BISHOP] : bb[BLACK_BISHOP];
+    u64 rooks   = turn ? bb[WHITE_ROOK]   : bb[BLACK_ROOK];
+    u64 queens  = turn ? bb[WHITE_QUEEN]  : bb[BLACK_QUEEN];
+
+    u64 pinned_pawns   = pinned_all & pawns;
+    u64 pinned_knights = pinned_all & knights;
+    u64 pinned_bishops = pinned_all & bishops;
+    u64 pinned_rooks   = pinned_all & rooks;
+    u64 pinned_queens  = pinned_all & queens;
+
+    // Check detection
     bool single_ = false;
     bool double_ = false;
     check_detection(logic.get_board().get_bitboards(), &single_, &double_, logic.get_turn());
     logic.set_singlecheck(single_);
     logic.set_doublecheck(double_);
 
+    // Generate moves
     generate_king_moves(moves, logic);
     if (logic.get_doublecheck())
         return moves;
 
-    generate_pawn_pushes(moves, logic);
-    generate_pawn_captures(moves, logic);
-    generate_knight_moves(moves, logic);
-    generate_bishop_moves(moves, logic);
-    generate_rook_moves(moves, logic);
-    generate_queen_moves(moves, logic);
+    generate_pawn_pushes(moves, logic, pinned_pawns);
+    generate_pawn_captures(moves, logic, pinned_pawns);
+    generate_knight_moves(moves, logic, pinned_knights);
+    generate_bishop_moves(moves, logic, pinned_bishops);
+    generate_rook_moves(moves, logic, pinned_rooks);
+    generate_queen_moves(moves, logic, pinned_queens);
 
     if (logic.get_singlecheck()) {
         moves = handle_single_check(moves, logic);
@@ -29,11 +48,10 @@ std::vector<u16> MoveGenerator::generate_legal_moves(ChessLogic &logic) {
     return moves;
 }
 
-void MoveGenerator::generate_pawn_pushes(std::vector<u16> &moves, ChessLogic &logic) {
+void MoveGenerator::generate_pawn_pushes(std::vector<u16> &moves, ChessLogic &logic, u64 pinned_pawns) {
     bool turn = logic.get_turn();
     u64 *bitboards = logic.get_board().get_bitboards();
     u64 pawns = turn ? bitboards[WHITE_PAWN] : bitboards[BLACK_PAWN];
-    u64 pinned_pawns = pawns & BitBoardGenerator::generate_pinned_pieces_bitboard(bitboards, turn);
     int king_sq = turn ? first_bit(bitboards[WHITE_KING]) : first_bit(bitboards[BLACK_KING]);
     int from, to;
     u64 pin_ray;
@@ -72,13 +90,12 @@ void MoveGenerator::generate_pawn_pushes(std::vector<u16> &moves, ChessLogic &lo
     }
 }
 
-void MoveGenerator::generate_pawn_captures(std::vector<u16> &moves, ChessLogic &logic) {
+void MoveGenerator::generate_pawn_captures(std::vector<u16> &moves, ChessLogic &logic, u64 pinned_pawns) {
     bool turn = logic.get_turn();
     int *piece_on_square = logic.get_board().get_piece_on_squares();
     u64 *bitboards = logic.get_board().get_bitboards();
     u64 pawns = turn ? bitboards[WHITE_PAWN] : bitboards[BLACK_PAWN];
     u64 captures = BitBoardGenerator::generate_pawn_captures_bitboard(logic, turn);
-    u64 pinned_pawns = pawns & BitBoardGenerator::generate_pinned_pieces_bitboard(bitboards, turn);
     int king_sq = turn ? first_bit(bitboards[WHITE_KING]) : first_bit(bitboards[BLACK_KING]);
     int en_passant_sq = logic.get_en_passant_sq();
     int from, to;
@@ -159,13 +176,12 @@ void MoveGenerator::generate_pawn_captures(std::vector<u16> &moves, ChessLogic &
     }
 }
 
-void MoveGenerator::generate_knight_moves(std::vector<u16> &moves, ChessLogic &logic) {
+void MoveGenerator::generate_knight_moves(std::vector<u16> &moves, ChessLogic &logic, u64 pinned_knights) {
     bool turn = logic.get_turn();
     u64 *bitboards = logic.get_board().get_bitboards();
     u64 knights = turn ? bitboards[WHITE_KNIGHT] : bitboards[BLACK_KNIGHT];
     u64 enemy = turn ? bitboards[BLACK] : bitboards[WHITE];
     u64 mask = turn ? ~bitboards[WHITE] : ~bitboards[BLACK];
-    u64 pinned_knights = BitBoardGenerator::generate_pinned_pieces_bitboard(bitboards, turn) & knights;
     int from, to;
 
     while (knights) {
@@ -218,13 +234,12 @@ void MoveGenerator::generate_king_moves(std::vector<u16> &moves, ChessLogic &log
     }
 }
 
-void MoveGenerator::generate_bishop_moves(std::vector<u16> &moves, ChessLogic &logic) {
+void MoveGenerator::generate_bishop_moves(std::vector<u16> &moves, ChessLogic &logic, u64 pinned_bishops) {
     bool turn = logic.get_turn();
     u64 *bitboards = logic.get_board().get_bitboards();
     u64 bishops = turn ? bitboards[WHITE_BISHOP] : bitboards[BLACK_BISHOP];
     u64 enemy = turn ? bitboards[BLACK] : bitboards[WHITE];
     u64 friendly = turn ? bitboards[WHITE] : bitboards[BLACK];
-    u64 pinned_bishops = BitBoardGenerator::generate_pinned_pieces_bitboard(bitboards, turn) & bishops;
     int king_sq = turn ? first_bit(bitboards[WHITE_KING]) : first_bit(bitboards[BLACK_KING]);
 
     int from, to;
@@ -250,13 +265,12 @@ void MoveGenerator::generate_bishop_moves(std::vector<u16> &moves, ChessLogic &l
     }
 }
 
-void MoveGenerator::generate_rook_moves(std::vector<u16> &moves, ChessLogic &logic) {
+void MoveGenerator::generate_rook_moves(std::vector<u16> &moves, ChessLogic &logic, u64 pinned_rooks) {
     bool turn = logic.get_turn();
     u64 *bitboards = logic.get_board().get_bitboards();
     u64 rooks = turn ? bitboards[WHITE_ROOK] : bitboards[BLACK_ROOK];
     u64 enemy = turn ? bitboards[BLACK] : bitboards[WHITE];
     u64 friendly = turn ? bitboards[WHITE] : bitboards[BLACK];
-    u64 pinned_rooks = BitBoardGenerator::generate_pinned_pieces_bitboard(bitboards, turn) & rooks;
     int king_sq = turn ? first_bit(bitboards[WHITE_KING]) : first_bit(bitboards[BLACK_KING]);
 
     int from, to;
@@ -282,13 +296,12 @@ void MoveGenerator::generate_rook_moves(std::vector<u16> &moves, ChessLogic &log
     }
 }
 
-void MoveGenerator::generate_queen_moves(std::vector<u16> &moves, ChessLogic &logic) {
+void MoveGenerator::generate_queen_moves(std::vector<u16> &moves, ChessLogic &logic, u64 pinned_queens) {
     bool turn = logic.get_turn();
     u64 *bitboards = logic.get_board().get_bitboards();
     u64 queen = turn ? bitboards[WHITE_QUEEN] : bitboards[BLACK_QUEEN];
     u64 enemy = turn ? bitboards[BLACK] : bitboards[WHITE];
     u64 friendly = turn ? bitboards[WHITE] : bitboards[BLACK];
-    u64 pinned_queens = BitBoardGenerator::generate_pinned_pieces_bitboard(bitboards, turn) & queen;
     int king_sq = turn ? first_bit(bitboards[WHITE_KING]) : first_bit(bitboards[BLACK_KING]);
 
     int from, to;
