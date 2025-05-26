@@ -12,7 +12,8 @@ std::vector<u16> MoveGenerator::generate_legal_moves(ChessLogic &logic) {
     logic.set_doublecheck(double_);
 
     generate_king_moves(moves, logic);
-    if (logic.get_doublecheck()) return moves;
+    if (logic.get_doublecheck())
+        return moves;
 
     generate_pawn_pushes(moves, logic);
     generate_pawn_captures(moves, logic);
@@ -124,7 +125,7 @@ void MoveGenerator::generate_pawn_captures(std::vector<u16> &moves, ChessLogic &
                 }
             }
         }
-        
+
         // En passant
         if (en_passant_sq != -1) {
             u64 enp_mask = turn ? shift_north_west(mask_piece[from]) | shift_north_east(mask_piece[from])
