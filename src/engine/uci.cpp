@@ -60,6 +60,8 @@ void run_uci() {
             std::cout << "readyok\n";
         } else if (!line.compare("ucinewgame")) {
             bot.clear_tt();
+        } else if (!line.compare("d")) {
+            logic.draw_game();
         }
     }
 }

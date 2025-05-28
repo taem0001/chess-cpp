@@ -203,9 +203,10 @@ std::vector<u16> Bot::order_moves(ChessLogic &logic, std::vector<u16> moves) {
 u16 Bot::search_move(ChessLogic &logic, int color) {
     stop_search = false;
     u16 result_move = 0;
+    int depth;
 
     std::thread search_thread([&]() {
-        int depth = 1;
+        depth = 1;
         int best_score = -INF;
 
         while (!stop_search) {
