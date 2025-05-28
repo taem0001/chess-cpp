@@ -206,9 +206,6 @@ u16 Bot::search_move(ChessLogic &logic, int thinktime, int color) {
 
     const int time_buffer = thinktime * 95 / 100;
 
-    // Clear the table before each search
-    tt_table.clear();
-
     while (true) {
         nodes_searched = 0;
 
@@ -287,4 +284,8 @@ void Bot::store_tt(u64 key, int score, int depth, u8 flag, u16 best_move) {
         entry.flag = flag;
         entry.best_move = best_move;
     }
+}
+
+void Bot::clear_tt() {
+    tt_table.clear();
 }

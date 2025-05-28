@@ -21,6 +21,7 @@ private:
 public:
     Bot();
     u16 choose_move(ChessLogic, std::vector<u16> &);
+    void clear_tt();
 };
 
 #endif // !BOT_H
