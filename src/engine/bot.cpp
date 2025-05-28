@@ -4,7 +4,7 @@ Bot::Bot() : tt_table(TABLE_SIZE), nodes_searched(0), tt_hits(0) { MoveGenerator
 
 u16 Bot::choose_move(ChessLogic logic, std::vector<u16> &moves) {
     int color = logic.get_turn() ? 1 : -1;
-    return search_move(logic, 1000, color);
+    return search_move(logic, color);
 }
 
 int Bot::evaluate(ChessLogic &logic) {
@@ -32,6 +32,8 @@ int Bot::evaluate(ChessLogic &logic) {
 }
 
 int Bot::negamax(ChessLogic &logic, int depth, int color, int alpha, int beta) {
+    if (stop_search) return 0;
+
     nodes_searched++;
     int alpha_orig = alpha;
 
@@ -90,6 +92,8 @@ int Bot::negamax(ChessLogic &logic, int depth, int color, int alpha, int beta) {
 }
 
 int Bot::quiescence(ChessLogic &logic, int alpha, int beta, int color) {
+    if (stop_search) return 0;
+
     nodes_searched++;
     
     u64 key = logic.get_zobrist_hash();
@@ -196,62 +200,42 @@ std::vector<u16> Bot::order_moves(ChessLogic &logic, std::vector<u16> moves) {
     return result;
 }
 
-u16 Bot::search_move(ChessLogic &logic, int thinktime, int color) {
-    using namespace std::chrono;
+u16 Bot::search_move(ChessLogic &logic, int color) {
+    stop_search = false;
+    u16 result_move = 0;
 
-    auto start = steady_clock::now();
-    u16 best_move = 0;
-    int best_score = -INF;
-    int depth = 1;
+    std::thread search_thread([&]() {
+        int depth = 1;
+        int best_score = -INF;
 
-    const int time_buffer = thinktime * 95 / 100;
+        while (!stop_search) {
+            std::vector<u16> moves = order_moves(logic, MoveGenerator::generate_legal_moves(logic));
+            int current_best_score = -INF;
+            u16 current_best_move = 0;
 
-    while (true) {
-        nodes_searched = 0;
+            for (u16 move : moves) {
+                if (stop_search) return;
 
-        auto now = steady_clock::now();
-        int elapsed = duration_cast<milliseconds>(now - start).count();
-        if (elapsed >= time_buffer) {
-            break;
-        }
+                logic.make_move(move);
+                int score = -negamax(logic, depth - 1, -color, -INF, INF);
+                logic.unmake_move(move);
 
-        std::vector<u16> moves = order_moves(logic, MoveGenerator::generate_legal_moves(logic));
-
-        int current_best_score = -INF;
-        u16 current_best_move = 0;
-        bool completed = true;
-
-        for (u16 move : moves) {
-            now = steady_clock::now();
-            int elapsed = duration_cast<milliseconds>(now - start).count();
-            if (elapsed >= time_buffer) {
-                completed = false;
-                break;
+                if (score > current_best_score) {
+                    current_best_score = score;
+                    current_best_move = move;
+                }
             }
 
-            logic.make_move(move);
-            int score = -negamax(logic, depth - 1, -color, -INF, INF);
-            logic.unmake_move(move);
-
-            if (score > current_best_score) {
-                current_best_score = score;
-                current_best_move = move;
-            }
-        }
-
-        if (completed) {
-            best_move = current_best_move;
-            best_score = current_best_score;
+            result_move = current_best_move;
             depth++;
-        } else {
-            break;
         }
-    }
+    });
 
-    std::cout << "Depth searched: " << depth << "\n";
-    std::cout << "Nodes searched: " << nodes_searched << "\n";
-    std::cout << "TT hits: " << tt_hits << "\n";
-    return best_move;
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    stop_search = true;
+    search_thread.join();
+
+    return result_move;
 }
 
 bool Bot::probe_tt(u64 key, TTEntry &entry_out) {

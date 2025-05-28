@@ -1,5 +1,6 @@
 #ifndef UTILS_H
 #define UTILS_H
+#include <atomic>
 #include <bit>
 #include <bitset>
 #include <cctype>
@@ -13,6 +14,7 @@
 #include <chrono>
 #include <cassert>
 #include <random>
+#include <thread>
 
 #define STARTPOS "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
