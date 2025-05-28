@@ -1,6 +1,6 @@
-#include "../include/chesslogic.h"
-#include "../include/movegen.h"
-#include "../include/utils.h"
+#include "../src/include/chesslogic.h"
+#include "../src/include/movegen.h"
+#include "../src/include/utils.h"
 #include <windows.h>
 #include <iomanip>
 
