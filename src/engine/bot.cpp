@@ -2,7 +2,7 @@
 
 Bot::Bot() : tt_table(TABLE_SIZE), nodes_searched(0), tt_hits(0) { MoveGenerator::init(); }
 
-u16 Bot::choose_move(ChessLogic logic, std::vector<u16> &moves) {
+u16 Bot::choose_move(ChessLogic logic) {
     int color = logic.get_turn() ? 1 : -1;
     return search_move(logic, color);
 }

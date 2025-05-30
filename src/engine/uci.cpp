@@ -93,6 +93,10 @@ void run_uci() {
             bot.clear_tt();
         } else if (!line.compare("d")) {
             logic.draw_game();
+        } else if (line.rfind("go", 0) == 0) {
+            u16 best_move = bot.choose_move(logic);
+            std::string uci_move = print_pos(get_from(best_move)) + print_pos(get_to(best_move));
+            std::cout << "bestmove " << uci_move << "\n";
         }
     }
 }
