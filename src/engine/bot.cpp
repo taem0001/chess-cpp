@@ -7,7 +7,7 @@ u16 Bot::choose_move(ChessLogic logic, std::vector<u16> &moves) {
     return search_move(logic, color);
 }
 
-int Bot::evaluate(ChessLogic &logic) {
+int Bot::evaluate(ChessLogic &logic, int color) {
     u64 *bitboards = logic.get_board().get_bitboards();
 
     u64 q_w = bitboards[WHITE_QUEEN];
@@ -27,12 +27,100 @@ int Bot::evaluate(ChessLogic &logic) {
     int n_diff = __popcnt64(n_w) - __popcnt64(n_b);
     int p_diff = __popcnt64(p_w) - __popcnt64(p_b);
 
-    return queen_value * q_diff + rook_value * r_diff + bishop_value * b_diff + knight_value * n_diff +
-           pawn_value * p_diff;
+    int material_diff = queen_value * q_diff + rook_value * r_diff + bishop_value * b_diff + knight_value * n_diff +
+                        pawn_value * p_diff;
+    int sq_eval = 0;
+    
+    // Evaluate white pieces' position
+    while (p_w) {
+        int sq = first_bit(p_w);
+        sq_eval += pawn_heatmap[sq] * 10;
+        p_w &= p_w - 1;
+    }
+    
+    while (n_w) {
+        int sq = first_bit(n_w);
+        sq_eval += knight_heatmap[sq] * 10;
+        n_w &= n_w - 1;
+    }
+
+    while (b_w) {
+        int sq = first_bit(b_w);
+        sq_eval += bishop_heatmap[sq] * 10;
+        b_w &= b_w - 1;
+    }
+
+    while (r_w) {
+        int sq = first_bit(r_w);
+        sq_eval += rook_heatmap[sq] * 10;
+        r_w &= r_w - 1;
+    }
+
+    while (q_w) {
+        int sq = first_bit(q_w);
+        sq_eval += queen_heatmap[sq] * 10;
+        q_w &= q_w - 1;
+    }
+
+    int king_sq = first_bit(bitboards[WHITE_KING]);
+    int total_pieces = *logic.get_total_pieces();
+    if (total_pieces > 18) {
+        sq_eval += king_opening_heatmap[king_sq];
+    } else {
+        sq_eval += king_endgame_heatmap[king_sq];
+    }
+
+    // Evaluate black pieces' position
+    while (p_b) {
+        int sq = first_bit(p_b);
+        int msq = sq ^ 56;
+        sq_eval -= pawn_heatmap[msq] * 10;
+        p_b &= p_b - 1;
+    }
+
+    while (n_b) {
+        int sq = first_bit(n_b);
+        int msq = sq ^ 56;
+        sq_eval -= knight_heatmap[msq] * 10;
+        n_b &= n_b - 1;
+    }
+
+    while (b_b) {
+        int sq = first_bit(b_b);
+        int msq = sq ^ 56;
+        sq_eval -= bishop_heatmap[msq] * 10;
+        b_b &= b_b - 1;
+    }
+
+    while (r_b) {
+        int sq = first_bit(r_b);
+        int msq = sq ^ 56;
+        sq_eval -= rook_heatmap[msq] * 10;
+        r_b &= r_b - 1;
+    }
+
+    while (q_b) {
+        int sq = first_bit(q_b);
+        int msq = sq ^ 56;
+        sq_eval -= queen_heatmap[msq] * 10;
+        q_b &= q_b - 1;
+    }
+
+    king_sq = first_bit(bitboards[BLACK_KING]) ^ 56;
+    if (total_pieces > 18) {
+        sq_eval -= king_opening_heatmap[king_sq];
+    } else {
+        sq_eval -= king_endgame_heatmap[king_sq];
+    }
+
+    int total_eval = material_diff + sq_eval;
+
+    return total_eval * color;
 }
 
 int Bot::negamax(ChessLogic &logic, int depth, int color, int alpha, int beta) {
-    if (stop_search) return 0;
+    if (stop_search)
+        return 0;
 
     nodes_searched++;
     int alpha_orig = alpha;
@@ -92,10 +180,11 @@ int Bot::negamax(ChessLogic &logic, int depth, int color, int alpha, int beta) {
 }
 
 int Bot::quiescence(ChessLogic &logic, int alpha, int beta, int color) {
-    if (stop_search) return 0;
+    if (stop_search)
+        return 0;
 
     nodes_searched++;
-    
+
     u64 key = logic.get_zobrist_hash();
     TTEntry entry;
 
@@ -107,7 +196,7 @@ int Bot::quiescence(ChessLogic &logic, int alpha, int beta, int color) {
         if (entry.flag == UPPERBOUND && entry.score <= alpha)
             return entry.score;
     }
-    int static_eval = color * evaluate(logic);
+    int static_eval = evaluate(logic, color);
 
     int best_val = static_eval;
     if (best_val >= beta)
@@ -215,7 +304,8 @@ u16 Bot::search_move(ChessLogic &logic, int color) {
             u16 current_best_move = 0;
 
             for (u16 move : moves) {
-                if (stop_search) return;
+                if (stop_search)
+                    return;
 
                 logic.make_move(move);
                 int score = -negamax(logic, depth - 1, -color, -INF, INF);
@@ -271,6 +361,4 @@ void Bot::store_tt(u64 key, int score, int depth, u8 flag, u16 best_move) {
     }
 }
 
-void Bot::clear_tt() {
-    tt_table.clear();
-}
+void Bot::clear_tt() { tt_table.clear(); }

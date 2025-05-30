@@ -15,11 +15,43 @@ void run_uci() {
             std::cout << "id author Taemur Baig\n";
             std::cout << "uciok\n";
         } else if (line.rfind("position", 0) == 0) {
+            int fen_start;
+            std::string fen_part;
+
             if (line.find("startpos") != std::string::npos) {
                 logic.load_pos(STARTPOS);
+
+                fen_start = line.find("startpos") + 9;
+                fen_part = line.substr(fen_start);
+
+                int moves_index = fen_part.find("moves");
+                std::string moves_string;
+
+                // Get moves if they are defined
+                if (moves_index != std::string::npos) {
+                    moves_string = fen_part.substr(moves_index + 6);
+                }
+
+                if (!moves_string.empty()) {
+                    std::istringstream iss(moves_string);
+                    std::string move_str;
+                    while (iss >> move_str) {
+                        int from, to;
+                        u16 move;
+                        get_pos(move_str, &from, &to);
+                        std::vector<u16> moves = MoveGenerator::generate_legal_moves(logic);
+                        if (contains_move(moves, from, to, &move)) {
+                            logic.make_move(move);
+                        } else {
+                            std::cout << "Invalid move sequence\n";
+                            logic.load_pos(STARTPOS);
+                            break;
+                        }
+                    }
+                }
             } else if (line.find("fen") != std::string::npos) {
-                int fen_start = line.find("fen") + 4;
-                std::string fen_part = line.substr(fen_start);
+                fen_start = line.find("fen") + 4;
+                fen_part = line.substr(fen_start);
 
                 int moves_index = fen_part.find("moves");
                 std::string fen_string;
@@ -39,7 +71,6 @@ void run_uci() {
                     std::istringstream iss(moves_string);
                     std::string move_str;
                     while (iss >> move_str) {
-                        std::cout << move_str << "\n";
                         int from, to;
                         u16 move;
                         get_pos(move_str, &from, &to);
