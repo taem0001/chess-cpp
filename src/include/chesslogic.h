@@ -12,6 +12,7 @@ private:
     int en_passant_square;
     int half_moves;
     int full_moves;
+    int total_pieces;
     u64 zobrist_hash;
 
     u64 compute_zobrist_hash();
@@ -48,6 +49,7 @@ public:
     bool fivefold_repitition();
     bool fifty_move_rule();
     u64 get_zobrist_hash();
+    int *get_total_pieces();
 };
 
 #endif // !CHESSLOGIC_H

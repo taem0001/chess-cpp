@@ -1,7 +1,7 @@
 #include "../include/chesslogic.h"
 #include "../include/fen.h"
 
-ChessLogic::ChessLogic() : board() {
+ChessLogic::ChessLogic() : total_pieces(0), board() {
     board.init_zobrist();
     load_pos(STARTPOS);
 }
@@ -84,6 +84,7 @@ bool ChessLogic::make_move(u16 move) {
             board.move_piece(from, to);
             zobrist_hash ^= board.get_zobrist_piece(moved_piece, to);
             half_moves = 0;
+            total_pieces--;
             break;
         case ep_capture:
             board.move_piece(from, to);
@@ -93,6 +94,7 @@ bool ChessLogic::make_move(u16 move) {
             board.remove_piece(en_passant_capture);
             zobrist_hash ^= board.get_zobrist_piece(captured_piece_type, en_passant_capture);
             zobrist_hash ^= board.get_zobrist_piece(moved_piece, to);
+            total_pieces--;
             break;
         case knight_promotion:
         case bishop_promotion:
@@ -114,6 +116,7 @@ bool ChessLogic::make_move(u16 move) {
             promoted = get_promoted_piece_index(flag, white_turn);
             board.promote_piece(white_turn, promoted, to);
             zobrist_hash ^= board.get_zobrist_piece(promoted, to);
+            total_pieces--;
             break;
         default:
             board.move_piece(from, to);
@@ -195,11 +198,13 @@ bool ChessLogic::unmake_move(u16 move) {
         assert(undo_data.captured_piece_type != -1);
         board.move_piece(to, from);
         board.add_piece(to, undo_data.captured_piece_type);
+        total_pieces++;
     } else if (flag == ep_capture) {
         assert(undo_data.captured_piece_type != -1);
         board.move_piece(to, from);
         int sq = undo_data.turn ? to - 8 : to + 8;
         board.add_piece(sq, undo_data.captured_piece_type);
+        total_pieces++;
     } else if (flag >= knight_promotion && flag < knight_promo_capture) {
         board.remove_piece(to);
         int pawn = undo_data.turn ? WHITE_PAWN : BLACK_PAWN;
@@ -210,6 +215,7 @@ bool ChessLogic::unmake_move(u16 move) {
         int pawn = undo_data.turn ? WHITE_PAWN : BLACK_PAWN;
         board.add_piece(from, pawn);
         board.add_piece(to, undo_data.captured_piece_type);
+        total_pieces++;
     }
 
     // Restore game state
@@ -275,3 +281,4 @@ bool ChessLogic::get_doublecheck() { return double_check; }
 void ChessLogic::set_doublecheck(bool b) { double_check = b; }
 bool ChessLogic::fifty_move_rule() { return half_moves >= 100; }
 u64 ChessLogic::get_zobrist_hash() { return zobrist_hash; }
+int *ChessLogic::get_total_pieces() { return &total_pieces; }

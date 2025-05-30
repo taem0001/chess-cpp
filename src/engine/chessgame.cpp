@@ -34,7 +34,7 @@ void ChessGame::run_game(Bot &bot, bool bot_color) {
 
         if (bot_color == turn) {
             auto t1 = std::chrono::high_resolution_clock::now();
-            move = bot.choose_move(logic, moves);
+            move = bot.choose_move(logic);
             auto t2 = std::chrono::high_resolution_clock::now();
 
             auto ms_int = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
@@ -128,9 +128,9 @@ void ChessGame::run_game_bot(Bot &bot1, Bot &bot2) {
         }
 
         if (turn) {
-            move = bot1.choose_move(logic, moves);
+            move = bot1.choose_move(logic);
         } else {
-            move = bot2.choose_move(logic, moves);
+            move = bot2.choose_move(logic);
         }
 
         std::cout << logic.get_halfmoves() << "\n";

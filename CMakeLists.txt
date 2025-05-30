@@ -8,40 +8,53 @@ include_directories(include)
 
 # Main application
 add_executable(runChess
-    src/main.cpp
-    src/board.cpp
-    src/chesslogic.cpp
-    src/fen.cpp
-    src/chessgame.cpp
-    src/utils.cpp
-    src/movegen.cpp
-    src/bitboard.cpp
-    src/magic.cpp
-    src/bot.cpp
+    src/engine/main.cpp
+    src/engine/board.cpp
+    src/engine/chesslogic.cpp
+    src/engine/fen.cpp
+    src/engine/chessgame.cpp
+    src/engine/utils.cpp
+    src/engine/movegen.cpp
+    src/engine/bitboard.cpp
+    src/engine/magic.cpp
+    src/engine/bot.cpp
 )
 
 # Bot vs Bot application
 add_executable(runBot
     test/botvsbot.cpp
-    src/board.cpp
-    src/chesslogic.cpp
-    src/fen.cpp
-    src/chessgame.cpp
-    src/utils.cpp
-    src/movegen.cpp
-    src/bitboard.cpp
-    src/magic.cpp
-    src/bot.cpp
+    src/engine/board.cpp
+    src/engine/chesslogic.cpp
+    src/engine/fen.cpp
+    src/engine/chessgame.cpp
+    src/engine/utils.cpp
+    src/engine/movegen.cpp
+    src/engine/bitboard.cpp
+    src/engine/magic.cpp
+    src/engine/bot.cpp
 )
 
 # Unit test executable
 add_executable(runTests
     test/test.cpp
-    src/board.cpp
-    src/chesslogic.cpp
-    src/fen.cpp
-    src/utils.cpp
-    src/movegen.cpp
-    src/bitboard.cpp
-    src/magic.cpp
+    src/engine/board.cpp
+    src/engine/chesslogic.cpp
+    src/engine/fen.cpp
+    src/engine/utils.cpp
+    src/engine/movegen.cpp
+    src/engine/bitboard.cpp
+    src/engine/magic.cpp
+)
+
+# UCI program
+add_executable(runUCI
+    src/engine/board.cpp
+    src/engine/chesslogic.cpp
+    src/engine/fen.cpp
+    src/engine/utils.cpp
+    src/engine/movegen.cpp
+    src/engine/bitboard.cpp
+    src/engine/magic.cpp
+    src/engine/bot.cpp
+    src/engine/uci.cpp
 )
