@@ -12,7 +12,7 @@ add_executable(runChess
     src/engine/board.cpp
     src/engine/chesslogic.cpp
     src/engine/fen.cpp
-    src/engine/chessgame.cpp
+    test/chessgame.cpp
     src/engine/utils.cpp
     src/engine/movegen.cpp
     src/engine/bitboard.cpp
@@ -26,7 +26,7 @@ add_executable(runBot
     src/engine/board.cpp
     src/engine/chesslogic.cpp
     src/engine/fen.cpp
-    src/engine/chessgame.cpp
+    test/chessgame.cpp
     src/engine/utils.cpp
     src/engine/movegen.cpp
     src/engine/bitboard.cpp
@@ -56,5 +56,5 @@ add_executable(runUCI
     src/engine/bitboard.cpp
     src/engine/magic.cpp
     src/engine/bot.cpp
-    src/engine/uci.cpp
+    src/uci.cpp
 )

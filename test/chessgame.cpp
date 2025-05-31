@@ -1,4 +1,4 @@
-#include "../include/chessgame.h"
+#include "../src/include/chessgame.h"
 
 ChessGame::ChessGame() : logic(), running(true), draw(false), winner(false) { MoveGenerator::init(); }
 

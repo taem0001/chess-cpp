@@ -1,4 +1,4 @@
-#include "../include/uci.h"
+#include "include/uci.h"
 
 void run_uci() {
     Bot bot;
