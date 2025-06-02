@@ -1,6 +1,7 @@
 #include "../src/include/chesslogic.h"
 #include "../src/include/movegen.h"
 #include "../src/include/utils.h"
+#include "../src/include/perft.h"
 #include <windows.h>
 #include <iomanip>
 
@@ -35,43 +36,6 @@ void print_result(const std::string& status, const std::string& fen, int depth, 
     std::cout << " | TIME: " << std::setw(10) << time_us << " microseconds";
     std::cout << " | EXPECTED: " << std::setw(14) << expected;
     std::cout << " | GOT: " << std::setw(14) << actual << "\n";
-}
-
-u64 perft(ChessLogic &logic, int depth) {
-    std::vector<u16> moves = MoveGenerator::generate_legal_moves(logic);
-
-    if (depth == 1) {
-        return moves.size();
-    }
-    if (depth == 0) {
-        return 1;
-    }
-
-    u64 total_nodes = 0;
-    for (u16 move : moves) {
-        logic.make_move(move);
-        u64 nodes = perft(logic, depth - 1);
-        logic.unmake_move(move);
-        total_nodes += nodes;
-    }
-    return total_nodes;
-}
-
-u64 divide_perft(ChessLogic &logic, int depth) {
-    std::vector<u16> moves = MoveGenerator::generate_legal_moves(logic);
-    u64 total_nodes = 0;
-
-    for (u16 move : moves) {
-        logic.make_move(move);
-        u64 nodes = perft(logic, depth - 1);
-        logic.unmake_move(move);
-
-        std::string move_str = print_pos((int)get_from(move)) + print_pos((int)get_to(move));
-        std::cout << move_str << ": " << nodes << "\n";
-        total_nodes += nodes;
-    }
-    std::cout << "Total nodes: " << total_nodes << "\n";
-    return total_nodes;
 }
 
 void run_perft_test(const std::string &fen, int depth, u64 expected) {

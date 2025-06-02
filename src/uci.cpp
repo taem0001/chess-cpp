@@ -1,4 +1,91 @@
-#include "include/uci.h"
+#include "include/perft.h"
+#include "include/utils.h"
+#include "include/movegen.h"
+#include "include/chesslogic.h"
+#include "include/bot.h"
+
+void handle_position(ChessLogic &logic, const std::string &position) {
+    size_t p = position.find("startpos");
+    if (p != std::string::npos) {
+        logic.load_pos(STARTPOS);
+
+        size_t after = p + strlen("startpos"); //  = p + 8
+        if (after >= position.size()) {
+            return;
+        }
+        if (position[after] == ' ')
+            ++after;
+
+        std::string fen_part = position.substr(after);
+        size_t mvpos = fen_part.find("moves");
+        if (mvpos == std::string::npos) {
+            return;
+        }
+
+        size_t start_of_list = mvpos + strlen("moves ");
+        std::string moves_list = fen_part.substr(start_of_list);
+
+        std::istringstream iss(moves_list);
+        std::string mv;
+        while (iss >> mv) {
+            int from, to;
+            u16 move;
+            get_pos(mv, &from, &to);
+            auto legal = MoveGenerator::generate_legal_moves(logic);
+            if (contains_move(legal, from, to, &move)) {
+                logic.make_move(move);
+            } else {
+                std::cout << "Invalid move sequence: " << mv << "\n";
+                logic.load_pos(STARTPOS);
+                return;
+            }
+        }
+        return;
+    }
+
+    size_t pf = position.find("fen");
+    if (pf != std::string::npos) {
+        size_t i = pf + strlen("fen ");
+        if (i >= position.size()) {
+            std::cout << "Incomplete 'position fen' command\n";
+            return;
+        }
+
+        std::string after_fen = position.substr(i);
+        size_t m = after_fen.find(" moves ");
+        std::string fen_string, moves_string;
+        if (m != std::string::npos) {
+            fen_string   = after_fen.substr(0, m);
+            moves_string = after_fen.substr(m + strlen(" moves "));
+        } else {
+            fen_string = after_fen;
+        }
+
+        logic.load_pos(fen_string);
+
+        if (!moves_string.empty()) {
+            std::istringstream iss(moves_string);
+            std::string mv;
+            while (iss >> mv) {
+                int from, to;
+                u16 move;
+                get_pos(mv, &from, &to);
+                auto legal = MoveGenerator::generate_legal_moves(logic);
+                if (contains_move(legal, from, to, &move)) {
+                    logic.make_move(move);
+                } else {
+                    std::cout << "Invalid move: " << mv << "\n";
+                    logic.load_pos(fen_string);
+                    return;
+                }
+            }
+        }
+        return;
+    }
+
+    std::cout << "Invalid position command "
+              << "(expected 'position startpos' or 'position fen …')\n";
+}
 
 void run_uci() {
     Bot bot;
@@ -9,84 +96,25 @@ void run_uci() {
     std::string line;
     while (std::getline(std::cin, line)) {
         if (!line.compare("quit")) {
+            bot.on_uci_stop();
+            std::cout << "\n";
             return;
+        } else if (!line.compare("stop")) {
+            bot.on_uci_stop();
+
+            u16 best_move = bot.get_result_move();
+            char promo  = get_promotion_symbol((int)get_flag(best_move));
+            std::string uci_move = print_pos(get_from(best_move)) + print_pos(get_to(best_move));
+            uci_move += get_promotion_symbol((int)get_flag(best_move));
+
+            std::cout << "bestmove " << uci_move << "\n";
         } else if (!line.compare("uci")) {
             std::cout << "id name YellowEngine\n";
             std::cout << "id author Taemur Baig\n";
             std::cout << "uciok\n";
         } else if (line.rfind("position", 0) == 0) {
-            int fen_start;
-            std::string fen_part;
-
-            if (line.find("startpos") != std::string::npos) {
-                logic.load_pos(STARTPOS);
-
-                fen_start = line.find("startpos") + 9;
-                fen_part = line.substr(fen_start);
-
-                int moves_index = fen_part.find("moves");
-                std::string moves_string;
-
-                // Get moves if they are defined
-                if (moves_index != std::string::npos) {
-                    moves_string = fen_part.substr(moves_index + 6);
-                }
-
-                if (!moves_string.empty()) {
-                    std::istringstream iss(moves_string);
-                    std::string move_str;
-                    while (iss >> move_str) {
-                        int from, to;
-                        u16 move;
-                        get_pos(move_str, &from, &to);
-                        std::vector<u16> moves = MoveGenerator::generate_legal_moves(logic);
-                        if (contains_move(moves, from, to, &move)) {
-                            logic.make_move(move);
-                        } else {
-                            std::cout << "Invalid move sequence\n";
-                            logic.load_pos(STARTPOS);
-                            break;
-                        }
-                    }
-                }
-            } else if (line.find("fen") != std::string::npos) {
-                fen_start = line.find("fen") + 4;
-                fen_part = line.substr(fen_start);
-
-                int moves_index = fen_part.find("moves");
-                std::string fen_string;
-                std::string moves_string;
-
-                // Get moves if they are defined
-                if (moves_index != std::string::npos) {
-                    fen_string = fen_part.substr(0, moves_index - 1);
-                    moves_string = fen_part.substr(moves_index + 6);
-                } else {
-                    fen_string = fen_part;
-                }
-
-                logic.load_pos(fen_string);
-
-                if (!moves_string.empty()) {
-                    std::istringstream iss(moves_string);
-                    std::string move_str;
-                    while (iss >> move_str) {
-                        int from, to;
-                        u16 move;
-                        get_pos(move_str, &from, &to);
-                        std::vector<u16> moves = MoveGenerator::generate_legal_moves(logic);
-                        if (contains_move(moves, from, to, &move)) {
-                            logic.make_move(move);
-                        } else {
-                            std::cout << "Invalid move sequence\n";
-                            logic.load_pos(fen_string);
-                            break;
-                        }
-                    }
-                }
-            } else {
-                std::cout << "Invalid position command (expected 'startpos' or 'fen')\n";
-            }
+            std::string position = line.substr(9);
+            handle_position(logic, position);
         } else if (!line.compare("isready")) {
             std::cout << "readyok\n";
         } else if (!line.compare("ucinewgame")) {
@@ -94,9 +122,16 @@ void run_uci() {
         } else if (!line.compare("d")) {
             logic.draw_game();
         } else if (line.rfind("go", 0) == 0) {
-            u16 best_move = bot.choose_move(logic);
-            std::string uci_move = print_pos(get_from(best_move)) + print_pos(get_to(best_move));
-            std::cout << "bestmove " << uci_move << "\n";
+            std::string command = line.substr(3);
+            if (command.find("perft") != std::string::npos) {
+                int depth_start = command.find("perft") + 6;
+                int depth = std::stoi(command.substr(depth_start));
+                divide_perft(logic, depth);
+            } else if (command.find("infinite") != std::string::npos) {
+                UCIGoParams params;
+                int color = logic.get_turn() ? 1 : -1;
+                bot.start_search(logic, color, params);
+            }
         }
     }
 }

@@ -1,10 +1,67 @@
 #include "../include/bot.h"
 
-Bot::Bot() : tt_table(TABLE_SIZE), nodes_searched(0), tt_hits(0) { MoveGenerator::init(); }
+Bot::Bot() : stop_search(false), searching(false), result_move(0), current_depth(0), tt_table(TABLE_SIZE) { MoveGenerator::init(); }
 
-u16 Bot::choose_move(ChessLogic logic) {
-    int color = logic.get_turn() ? 1 : -1;
-    return search_move(logic, color);
+void Bot::on_uci_stop() {
+    if (!searching) return;
+
+    {
+        std::lock_guard<std::mutex> lk(stop_mtx);
+        stop_search.store(true, std::memory_order_relaxed);
+    }
+    stop_cv.notify_one();
+
+    if (search_thread.joinable()) {
+        search_thread.join();
+    }
+
+    searching = false;
+}
+
+u16 Bot::get_result_move() const {
+    return result_move;
+}
+
+void Bot::search_worker(ChessLogic logic, int color) {
+    int depth = 1;
+    u16 best_move = 0;
+
+    while (!stop_search.load(std::memory_order_relaxed)) {
+        auto moves = order_moves(logic, MoveGenerator::generate_legal_moves(logic));
+
+        int current_best_score = -INF;
+        u16 current_best_move  = 0;
+
+        for (u16 move : moves) {
+            if (stop_search.load(std::memory_order_relaxed)) {
+                return;
+            }
+
+            logic.make_move(move);
+            int score = -negamax(logic, depth - 1, -color, -INF, INF);
+            logic.unmake_move(move);
+
+            if (score > current_best_score) {
+                current_best_score = score;
+                current_best_move  = move;
+            }
+        }
+
+        best_move = current_best_move;
+        depth++;
+
+        result_move = best_move;
+        current_depth = depth - 1;
+    }
+}
+
+void Bot::start_search(ChessLogic &logic, int color, const UCIGoParams &params) {
+    if (searching) return;
+
+    stop_search.store(false, std::memory_order_relaxed);
+    ChessLogic logic_copy = logic; 
+    searching = true;
+    search_thread = std::thread(&Bot::search_worker, this, std::move(logic_copy), color);
 }
 
 int Bot::evaluate(ChessLogic &logic, int color) {
@@ -122,7 +179,6 @@ int Bot::negamax(ChessLogic &logic, int depth, int color, int alpha, int beta) {
     if (stop_search)
         return 0;
 
-    nodes_searched++;
     int alpha_orig = alpha;
 
     // Check if position is in transposition table
@@ -183,7 +239,6 @@ int Bot::quiescence(ChessLogic &logic, int alpha, int beta, int color) {
     if (stop_search)
         return 0;
 
-    nodes_searched++;
 
     u64 key = logic.get_zobrist_hash();
     TTEntry entry;
@@ -289,51 +344,10 @@ std::vector<u16> Bot::order_moves(ChessLogic &logic, std::vector<u16> moves) {
     return result;
 }
 
-u16 Bot::search_move(ChessLogic &logic, int color) {
-    stop_search = false;
-    u16 result_move = 0;
-    int depth;
-
-    std::thread search_thread([&]() {
-        depth = 1;
-        int best_score = -INF;
-
-        while (!stop_search) {
-            std::vector<u16> moves = order_moves(logic, MoveGenerator::generate_legal_moves(logic));
-            int current_best_score = -INF;
-            u16 current_best_move = 0;
-
-            for (u16 move : moves) {
-                if (stop_search)
-                    return;
-
-                logic.make_move(move);
-                int score = -negamax(logic, depth - 1, -color, -INF, INF);
-                logic.unmake_move(move);
-
-                if (score > current_best_score) {
-                    current_best_score = score;
-                    current_best_move = move;
-                }
-            }
-
-            result_move = current_best_move;
-            depth++;
-        }
-    });
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    stop_search = true;
-    search_thread.join();
-
-    return result_move;
-}
-
 bool Bot::probe_tt(u64 key, TTEntry &entry_out) {
     size_t index = key % TABLE_SIZE;
     TTEntry &entry = tt_table[index];
     if (entry.key == key) {
-        tt_hits++;
         entry_out = entry;
         return true;
     }

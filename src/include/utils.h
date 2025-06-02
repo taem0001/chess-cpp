@@ -15,6 +15,8 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <condition_variable>
+#include <mutex>
 
 #define STARTPOS "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
@@ -64,6 +66,14 @@ typedef struct {
     u8 flag;
     u16 best_move;
 } TTEntry;
+
+typedef struct {
+    bool infinite;
+    int wtime, btime;
+    int depth;
+    int nodes;
+    int movetime;
+} UCIGoParams;
 
 static const char symbols[] = {'P', 'R', 'N', 'B', 'Q', 'K', 'p', 'r', 'n', 'b', 'q', 'k'};
 
@@ -317,6 +327,7 @@ int get_promoted_piece_index(int, bool);
 bool contains_move(std::vector<u16> &, int, int, u16 *);
 bool get_pos(std::string &, int *, int *);
 char get_symbol(u64 *, int);
+char get_promotion_symbol(int);
 u64 shift_north(u64);
 u64 shift_south(u64);
 u64 shift_east(u64);

@@ -7,21 +7,29 @@
 class Bot {
 private:
     std::vector<TTEntry> tt_table;
-    u64 nodes_searched;
-    u64 tt_hits;
+
     std::atomic<bool> stop_search;
+    std::mutex stop_mtx;
+    std::condition_variable stop_cv;
+    std::thread search_thread;
+    bool searching;
+    u16 result_move;
+    int current_depth;
+    
+    void search_worker(ChessLogic, int);
 
     bool probe_tt(u64, TTEntry &);
     void store_tt(u64, int, int, u8, u16);
     int evaluate(ChessLogic &, int);
     int negamax(ChessLogic &, int, int, int, int);
     int quiescence(ChessLogic &, int, int, int);
-    u16 search_move(ChessLogic &, int);
     std::vector<u16> order_moves(ChessLogic &, std::vector<u16>);
 
 public:
     Bot();
-    u16 choose_move(ChessLogic);
+    u16 get_result_move() const;
+    void start_search(ChessLogic &, int, const UCIGoParams &);
+    void on_uci_stop();
     void clear_tt();
 };
 

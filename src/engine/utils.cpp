@@ -196,6 +196,37 @@ char get_symbol(u64 *bitboards, int square) {
     return ' ';
 }
 
+/// @brief Gets the symbol for the piece which the pawn is being promoted to.
+/// @param flag 
+/// @return 
+char get_promotion_symbol(int flag) {
+    char result;
+    switch (flag)
+    {
+    case knight_promotion:
+    case knight_promo_capture:
+        result = 'n';
+        break;
+    case bishop_promotion:
+    case bishop_promo_capture:
+        result = 'b';
+        break;
+    case rook_promotion:
+    case rook_promo_capture:
+        result = 'r';
+        break;
+    case queen_promotion:
+    case queen_promo_capture:
+        result = 'q';
+        break;
+    default:
+        result = '\0';
+        break;
+    }
+
+    return result;
+}
+
 /// @brief Shifts the bitboard north.
 /// @param b
 /// @return
