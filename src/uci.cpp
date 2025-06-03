@@ -128,9 +128,52 @@ void run_uci() {
                 int depth = std::stoi(command.substr(depth_start));
                 divide_perft(logic, depth);
             } else if (command.find("infinite") != std::string::npos) {
-                UCIGoParams params;
+                UCIGoParams params = {true, -1, -1, -1, -1, -1};
+
                 int color = logic.get_turn() ? 1 : -1;
                 bot.start_search(logic, color, params);
+            } else if (command.find("depth") != std::string::npos) {
+                UCIGoParams params = {false, -1, -1, -1, -1, -1};
+
+                int dpos = command.find("depth");
+                int num_start = dpos + strlen("depth");
+                while (num_start < command.size() && command[num_start] == ' ')
+                    ++num_start;
+
+                int limit = std::stoi(command.substr(num_start));
+                int color = logic.get_turn() ? 1 : -1;
+
+                params.depth = limit;
+                bot.start_search(logic, color, params);
+
+                // If limit is reached before thinking is stopped then return best move
+                u16 best_move = bot.get_result_move();
+                char promo  = get_promotion_symbol((int)get_flag(best_move));
+                std::string uci_move = print_pos(get_from(best_move)) + print_pos(get_to(best_move));
+                uci_move += get_promotion_symbol((int)get_flag(best_move));
+
+                std::cout << "bestmove " << uci_move << "\n";
+            } else if (command.find("movetime") != std::string::npos) {
+                UCIGoParams params = {false, -1, -1, -1, -1, -1};
+
+                int tpos = command.find("movetime");
+                int num_start = tpos + strlen("movetime");
+                while (num_start < command.size() && command[num_start] == ' ')
+                    ++num_start;
+                
+                int time = std::stoi(command.substr(num_start));
+                int color = logic.get_turn() ? 1 : -1;
+
+                params.movetime = time;
+                bot.start_search(logic, color, params);
+
+                // If limit is reached before thinking is stopped then return best move
+                u16 best_move = bot.get_result_move();
+                char promo  = get_promotion_symbol((int)get_flag(best_move));
+                std::string uci_move = print_pos(get_from(best_move)) + print_pos(get_to(best_move));
+                uci_move += get_promotion_symbol((int)get_flag(best_move));
+
+                std::cout << "bestmove " << uci_move << "\n";
             }
         }
     }

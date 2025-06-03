@@ -55,13 +55,51 @@ void Bot::search_worker(ChessLogic logic, int color) {
     }
 }
 
+void Bot::search_worker_to_depth(ChessLogic logic, int color, int limit) {
+    int depth = 1;
+    u16 best_move = 0;
+
+    while (!stop_search.load(std::memory_order_relaxed) && depth <= limit) {
+        auto moves = order_moves(logic, MoveGenerator::generate_legal_moves(logic));
+
+        int current_best_score = -INF;
+        u16 current_best_move  = 0;
+
+        for (u16 move : moves) {
+            if (stop_search.load(std::memory_order_relaxed)) {
+                return;
+            }
+
+            logic.make_move(move);
+            int score = -negamax(logic, depth - 1, -color, -INF, INF);
+            logic.unmake_move(move);
+
+            if (score > current_best_score) {
+                current_best_score = score;
+                current_best_move  = move;
+            }
+        }
+
+        best_move = current_best_move;
+        depth++;
+
+        result_move = best_move;
+        current_depth = depth - 1;
+    }
+}
+
 void Bot::start_search(ChessLogic &logic, int color, const UCIGoParams &params) {
     if (searching) return;
 
     stop_search.store(false, std::memory_order_relaxed);
     ChessLogic logic_copy = logic; 
     searching = true;
-    search_thread = std::thread(&Bot::search_worker, this, std::move(logic_copy), color);
+    
+    if (params.depth != -1) {
+        search_thread = std::thread(&Bot::search_worker_to_depth, this, std::move(logic_copy), color, params.depth);
+    } else if (params.infinite) {
+        search_thread = std::thread(&Bot::search_worker, this, std::move(logic_copy), color);
+    }
 }
 
 int Bot::evaluate(ChessLogic &logic, int color) {

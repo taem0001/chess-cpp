@@ -17,6 +17,7 @@ private:
     int current_depth;
     
     void search_worker(ChessLogic, int);
+    void search_worker_to_depth(ChessLogic, int, int);
 
     bool probe_tt(u64, TTEntry &);
     void store_tt(u64, int, int, u8, u16);
