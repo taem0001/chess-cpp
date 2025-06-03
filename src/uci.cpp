@@ -100,14 +100,8 @@ void run_uci() {
             std::cout << "\n";
             return;
         } else if (!line.compare("stop")) {
-            bot.on_uci_stop();
-
-            u16 best_move = bot.get_result_move();
-            char promo  = get_promotion_symbol((int)get_flag(best_move));
-            std::string uci_move = print_pos(get_from(best_move)) + print_pos(get_to(best_move));
-            uci_move += get_promotion_symbol((int)get_flag(best_move));
-
-            std::cout << "bestmove " << uci_move << "\n";
+            if (bot.on_uci_stop()) 
+                bot.print_best_move();
         } else if (!line.compare("uci")) {
             std::cout << "id name YellowEngine\n";
             std::cout << "id author Taemur Baig\n";
@@ -147,12 +141,7 @@ void run_uci() {
                 bot.start_search(logic, color, params);
 
                 // If limit is reached before thinking is stopped then return best move
-                u16 best_move = bot.get_result_move();
-                char promo  = get_promotion_symbol((int)get_flag(best_move));
-                std::string uci_move = print_pos(get_from(best_move)) + print_pos(get_to(best_move));
-                uci_move += get_promotion_symbol((int)get_flag(best_move));
-
-                std::cout << "bestmove " << uci_move << "\n";
+                bot.print_best_move();
             } else if (command.find("movetime") != std::string::npos) {
                 UCIGoParams params = {false, -1, -1, -1, -1, -1};
 
@@ -166,14 +155,6 @@ void run_uci() {
 
                 params.movetime = time;
                 bot.start_search(logic, color, params);
-
-                // If limit is reached before thinking is stopped then return best move
-                u16 best_move = bot.get_result_move();
-                char promo  = get_promotion_symbol((int)get_flag(best_move));
-                std::string uci_move = print_pos(get_from(best_move)) + print_pos(get_to(best_move));
-                uci_move += get_promotion_symbol((int)get_flag(best_move));
-
-                std::cout << "bestmove " << uci_move << "\n";
             }
         }
     }

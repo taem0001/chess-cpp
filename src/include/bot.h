@@ -30,8 +30,10 @@ public:
     Bot();
     u16 get_result_move() const;
     void start_search(ChessLogic &, int, const UCIGoParams &);
-    void on_uci_stop();
+    bool on_uci_stop();
     void clear_tt();
+    void print_best_move() const;
+
 };
 
 #endif // !BOT_H

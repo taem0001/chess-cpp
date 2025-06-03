@@ -2,8 +2,8 @@
 
 Bot::Bot() : stop_search(false), searching(false), result_move(0), current_depth(0), tt_table(TABLE_SIZE) { MoveGenerator::init(); }
 
-void Bot::on_uci_stop() {
-    if (!searching) return;
+bool Bot::on_uci_stop() {
+    if (!searching) return false;
 
     {
         std::lock_guard<std::mutex> lk(stop_mtx);
@@ -16,10 +16,21 @@ void Bot::on_uci_stop() {
     }
 
     searching = false;
+
+    return true;
 }
 
 u16 Bot::get_result_move() const {
     return result_move;
+}
+
+void Bot::print_best_move() const {
+    u16 best_move = result_move;
+    char promo  = get_promotion_symbol((int)get_flag(best_move));
+    std::string uci_move = print_pos(get_from(best_move)) + print_pos(get_to(best_move));
+    uci_move += get_promotion_symbol((int)get_flag(best_move));
+
+    std::cout << "bestmove " << uci_move << "\n";
 }
 
 void Bot::search_worker(ChessLogic logic, int color) {
@@ -99,6 +110,15 @@ void Bot::start_search(ChessLogic &logic, int color, const UCIGoParams &params) 
         search_thread = std::thread(&Bot::search_worker_to_depth, this, std::move(logic_copy), color, params.depth);
     } else if (params.infinite) {
         search_thread = std::thread(&Bot::search_worker, this, std::move(logic_copy), color);
+    } else if (params.movetime > 0) {
+        search_thread = std::thread(&Bot::search_worker, this, std::move(logic_copy), color);
+
+        std::thread([this, movetime = params.movetime]() {
+            std::this_thread::sleep_for(std::chrono::milliseconds(movetime));
+
+            if (this->on_uci_stop())
+                this->print_best_move();
+        }).detach();
     }
 }
 
