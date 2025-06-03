@@ -4,6 +4,17 @@
 #include "include/chesslogic.h"
 #include "include/bot.h"
 
+int get_uci_param(const std::string &command, const std::string &param) {
+    int pos = command.find(param);
+    int num_start = pos + param.length();
+    while (num_start < command.size() && command[num_start] == ' ')
+        ++num_start;
+
+    int result = std::stoi(command.substr(num_start));
+
+    return result;
+}
+
 void handle_position(ChessLogic &logic, const std::string &position) {
     size_t p = position.find("startpos");
     if (p != std::string::npos) {
@@ -129,28 +140,15 @@ void run_uci() {
             } else if (command.find("depth") != std::string::npos) {
                 UCIGoParams params = {false, -1, -1, -1, -1, -1};
 
-                int dpos = command.find("depth");
-                int num_start = dpos + strlen("depth");
-                while (num_start < command.size() && command[num_start] == ' ')
-                    ++num_start;
-
-                int limit = std::stoi(command.substr(num_start));
+                int limit = get_uci_param(command, "depth");
                 int color = logic.get_turn() ? 1 : -1;
 
                 params.depth = limit;
                 bot.start_search(logic, color, params);
-
-                // If limit is reached before thinking is stopped then return best move
-                bot.print_best_move();
             } else if (command.find("movetime") != std::string::npos) {
                 UCIGoParams params = {false, -1, -1, -1, -1, -1};
 
-                int tpos = command.find("movetime");
-                int num_start = tpos + strlen("movetime");
-                while (num_start < command.size() && command[num_start] == ' ')
-                    ++num_start;
-                
-                int time = std::stoi(command.substr(num_start));
+                int time = get_uci_param(command, "movetime");
                 int color = logic.get_turn() ? 1 : -1;
 
                 params.movetime = time;

@@ -33,7 +33,6 @@ public:
     bool on_uci_stop();
     void clear_tt();
     void print_best_move() const;
-
 };
 
 #endif // !BOT_H

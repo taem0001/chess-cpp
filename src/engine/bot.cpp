@@ -63,6 +63,8 @@ void Bot::search_worker(ChessLogic logic, int color) {
 
         result_move = best_move;
         current_depth = depth - 1;
+
+        std::cout << "info depth " << current_depth << "\n";
     }
 }
 
@@ -96,6 +98,14 @@ void Bot::search_worker_to_depth(ChessLogic logic, int color, int limit) {
 
         result_move = best_move;
         current_depth = depth - 1;
+
+        std::cout << "info depth " << current_depth << "\n";
+    }
+    searching = false;
+
+    if (!stop_search.load(std::memory_order_relaxed)) {
+        stop_search.store(true);
+        print_best_move();
     }
 }
 
@@ -106,8 +116,9 @@ void Bot::start_search(ChessLogic &logic, int color, const UCIGoParams &params) 
     ChessLogic logic_copy = logic; 
     searching = true;
     
-    if (params.depth != -1) {
+    if (params.depth > 0) {
         search_thread = std::thread(&Bot::search_worker_to_depth, this, std::move(logic_copy), color, params.depth);
+        search_thread.detach();     
     } else if (params.infinite) {
         search_thread = std::thread(&Bot::search_worker, this, std::move(logic_copy), color);
     } else if (params.movetime > 0) {
