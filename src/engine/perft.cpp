@@ -30,9 +30,9 @@ void divide_perft(ChessLogic logic, int depth) {
         logic.unmake_move(move);
 
         std::string move_str = print_pos((int)get_from(move)) + print_pos((int)get_to(move));
-        std::cout << move_str << ": " << nodes << "\n";
+        std::cout << move_str << ": " << nodes << "\n" << std::flush;
         total_nodes += nodes;
     }
-    std::cout << "\nNodes searched: " << total_nodes << "\n";
-    std::cout << "\n";
+    std::cout << "\nNodes searched: " << total_nodes << "\n" << std::flush;
+    std::cout << "\n" << std::flush;
 }

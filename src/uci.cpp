@@ -108,20 +108,20 @@ void run_uci() {
     while (std::getline(std::cin, line)) {
         if (!line.compare("quit")) {
             bot.on_uci_stop();
-            std::cout << "\n";
+            std::cout << "\n" << std::flush;
             return;
         } else if (!line.compare("stop")) {
             if (bot.on_uci_stop())
                 bot.print_best_move();
         } else if (!line.compare("uci")) {
-            std::cout << "id name YellowEngine\n";
-            std::cout << "id author Taemur Baig\n";
-            std::cout << "uciok\n";
+            std::cout << "id name YellowEngine\n" << std::flush;
+            std::cout << "id author Taemur Baig\n" << std::flush;
+            std::cout << "uciok\n" << std::flush;
         } else if (line.rfind("position", 0) == 0) {
             std::string position = line.substr(9);
             handle_position(logic, position);
         } else if (!line.compare("isready")) {
-            std::cout << "readyok\n";
+            std::cout << "readyok\n" << std::flush;
         } else if (!line.compare("ucinewgame")) {
             bot.clear_tt();
         } else if (!line.compare("d")) {
@@ -157,12 +157,12 @@ void run_uci() {
 
             // Check for "winc <x>"
             if (command.find("winc") != std::string::npos) {
-                params.wtime = get_uci_param(command, "winc");
+                params.winc = get_uci_param(command, "winc");
             }
 
             // Check for "binc <x>"
             if (command.find("binc") != std::string::npos) {
-                params.btime = get_uci_param(command, "binc");
+                params.binc = get_uci_param(command, "binc");
             }
 
             // Check for "movestogo <x>"
@@ -187,6 +187,8 @@ void run_uci() {
              * d) infinite
              */
             if (params.depth > 0) {
+                bot.start_search(logic, color, params);
+            } else if (params.movetime > 0) {
                 bot.start_search(logic, color, params);
             } else if (params.wtime > 0 || params.btime > 0) {
                 int remaining = (color == 1) ? params.wtime : params.btime;

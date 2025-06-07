@@ -28,9 +28,12 @@ void Bot::print_best_move() const {
     u16 best_move = result_move;
     char promo  = get_promotion_symbol((int)get_flag(best_move));
     std::string uci_move = print_pos(get_from(best_move)) + print_pos(get_to(best_move));
-    uci_move += get_promotion_symbol((int)get_flag(best_move));
 
-    std::cout << "bestmove " << uci_move << "\n";
+    if (promo != '\0') {
+        uci_move += promo;
+    }
+
+    std::cout << "bestmove " << uci_move << "\n" << std::flush;
 }
 
 void Bot::search_worker(ChessLogic logic, int color) {
