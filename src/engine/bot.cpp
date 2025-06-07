@@ -132,7 +132,7 @@ void Bot::start_search(ChessLogic &logic, int color, const UCIGoParams &params) 
     }
 }
 
-int Bot::evaluate(ChessLogic &logic, int color) {
+int Bot::evaluate(ChessLogic &logic) {
     u64 *bitboards = logic.get_board().get_bitboards();
 
     u64 q_w = bitboards[WHITE_QUEEN];
@@ -240,7 +240,7 @@ int Bot::evaluate(ChessLogic &logic, int color) {
 
     int total_eval = material_diff + sq_eval;
 
-    return total_eval * color;
+    return total_eval;
 }
 
 int Bot::negamax(ChessLogic &logic, int depth, int color, int alpha, int beta) {
@@ -319,7 +319,7 @@ int Bot::quiescence(ChessLogic &logic, int alpha, int beta, int color) {
         if (entry.flag == UPPERBOUND && entry.score <= alpha)
             return entry.score;
     }
-    int static_eval = evaluate(logic, color);
+    int static_eval = evaluate(logic) * color;
 
     int best_val = static_eval;
     if (best_val >= beta)

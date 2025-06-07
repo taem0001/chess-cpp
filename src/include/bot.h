@@ -21,7 +21,7 @@ private:
 
     bool probe_tt(u64, TTEntry &);
     void store_tt(u64, int, int, u8, u16);
-    int evaluate(ChessLogic &, int);
+    int evaluate(ChessLogic &);
     int negamax(ChessLogic &, int, int, int, int);
     int quiescence(ChessLogic &, int, int, int);
     std::vector<u16> order_moves(ChessLogic &, std::vector<u16>);
