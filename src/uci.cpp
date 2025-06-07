@@ -1,8 +1,8 @@
+#include "include/bot.h"
+#include "include/chesslogic.h"
+#include "include/movegen.h"
 #include "include/perft.h"
 #include "include/utils.h"
-#include "include/movegen.h"
-#include "include/chesslogic.h"
-#include "include/bot.h"
 
 int get_uci_param(const std::string &command, const std::string &param) {
     int pos = command.find(param);
@@ -66,7 +66,7 @@ void handle_position(ChessLogic &logic, const std::string &position) {
         size_t m = after_fen.find(" moves ");
         std::string fen_string, moves_string;
         if (m != std::string::npos) {
-            fen_string   = after_fen.substr(0, m);
+            fen_string = after_fen.substr(0, m);
             moves_string = after_fen.substr(m + strlen(" moves "));
         } else {
             fen_string = after_fen;
@@ -111,7 +111,7 @@ void run_uci() {
             std::cout << "\n";
             return;
         } else if (!line.compare("stop")) {
-            if (bot.on_uci_stop()) 
+            if (bot.on_uci_stop())
                 bot.print_best_move();
         } else if (!line.compare("uci")) {
             std::cout << "id name YellowEngine\n";
@@ -128,30 +128,78 @@ void run_uci() {
             logic.draw_game();
         } else if (line.rfind("go", 0) == 0) {
             std::string command = line.substr(3);
+            UCIGoParams params = {};
+
+            // Check for "infinite"
+            if (command.find("infinite") != std::string::npos) {
+                params.infinite = true;
+            }
+
+            // Check for "depth <x>"
+            if (command.find("depth") != std::string::npos) {
+                params.depth = get_uci_param(command, "depth");
+            }
+
+            // Check for "movetime <x>"
+            if (command.find("movetime") != std::string::npos) {
+                params.movetime = get_uci_param(command, "movetime");
+            }
+
+            // Check for "wtime <x>"
+            if (command.find("wtime") != std::string::npos) {
+                params.wtime = get_uci_param(command, "wtime");
+            }
+
+            // Check for "btime <x>"
+            if (command.find("btime") != std::string::npos) {
+                params.btime = get_uci_param(command, "btime");
+            }
+
+            // Check for "winc <x>"
+            if (command.find("winc") != std::string::npos) {
+                params.wtime = get_uci_param(command, "winc");
+            }
+
+            // Check for "binc <x>"
+            if (command.find("binc") != std::string::npos) {
+                params.btime = get_uci_param(command, "binc");
+            }
+
+            // Check for "movestogo <x>"
+            if (command.find("movestogo") != std::string::npos) {
+                params.movestogo = get_uci_param(command, "movestogo");
+            }
+
+            // Check for "perft <x>"
             if (command.find("perft") != std::string::npos) {
-                int depth_start = command.find("perft") + 6;
-                int depth = std::stoi(command.substr(depth_start));
+                int depth = get_uci_param(command, "perft");
                 divide_perft(logic, depth);
-            } else if (command.find("infinite") != std::string::npos) {
-                UCIGoParams params = {true, -1, -1, -1, -1, -1};
+            }
 
-                int color = logic.get_turn() ? 1 : -1;
+            // Whose turn it is
+            int color = logic.get_turn() ? 1 : -1;
+
+            /*
+             * Decide search mode. Prioritize:
+             * a) depth
+             * b) movetime
+             * c) wtime/btime
+             * d) infinite
+             */
+            if (params.depth > 0) {
                 bot.start_search(logic, color, params);
-            } else if (command.find("depth") != std::string::npos) {
-                UCIGoParams params = {false, -1, -1, -1, -1, -1};
+            } else if (params.wtime > 0 || params.btime > 0) {
+                int remaining = (color == 1) ? params.wtime : params.btime;
+                int increment = (color == 1) ? params.winc : params.binc;
+                int moves_left = params.movestogo > 0 ? params.movestogo : 30;
 
-                int limit = get_uci_param(command, "depth");
-                int color = logic.get_turn() ? 1 : -1;
-
-                params.depth = limit;
+                int est = (remaining / moves_left) + increment - 50;
+                if (est < 1)
+                    est = 1;
+                
+                params.movetime = est;
                 bot.start_search(logic, color, params);
-            } else if (command.find("movetime") != std::string::npos) {
-                UCIGoParams params = {false, -1, -1, -1, -1, -1};
-
-                int time = get_uci_param(command, "movetime");
-                int color = logic.get_turn() ? 1 : -1;
-
-                params.movetime = time;
+            } else if (params.infinite) {
                 bot.start_search(logic, color, params);
             }
         }

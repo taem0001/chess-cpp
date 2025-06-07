@@ -70,6 +70,8 @@ typedef struct {
 typedef struct {
     bool infinite;
     int wtime, btime;
+    int winc, binc;
+    int movestogo;
     int depth;
     int nodes;
     int movetime;
