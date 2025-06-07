@@ -63,8 +63,6 @@ void Bot::search_worker(ChessLogic logic, int color) {
 
         result_move = best_move;
         current_depth = depth - 1;
-
-        std::cout << "info depth " << current_depth << "\n";
     }
 }
 
@@ -98,8 +96,6 @@ void Bot::search_worker_to_depth(ChessLogic logic, int color, int limit) {
 
         result_move = best_move;
         current_depth = depth - 1;
-
-        std::cout << "info depth " << current_depth << "\n";
     }
     searching = false;
 
