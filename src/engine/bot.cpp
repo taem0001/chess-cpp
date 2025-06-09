@@ -452,7 +452,7 @@ void Bot::store_tt(u64 key, int score, int depth, u8 flag, u16 best_move) {
 int Bot::evaluate_passed_pawns(u64 white, u64 black) {
     int eval = 0;
     // Evaluate white passed pawns
-    int rank, file, sq;
+    int rank, sq;
     u64 mask;
     while (white) {
         sq = first_bit(white);
@@ -461,7 +461,7 @@ int Bot::evaluate_passed_pawns(u64 white, u64 black) {
         mask = BitBoardGenerator::passed_pawn_mask[sq];
 
         if ((mask & black) == 0) {
-            int rank = sq / 8;
+            rank = sq / 8;
             eval += passed_pawn_bonus[rank];
         }
     }
@@ -474,7 +474,7 @@ int Bot::evaluate_passed_pawns(u64 white, u64 black) {
         mask = BitBoardGenerator::passed_pawn_mask[sq];
 
         if ((mask & white) == 0) {
-            int rank = sq / 8;
+            rank = sq / 8;
             eval -= passed_pawn_bonus[rank];
         }
     }

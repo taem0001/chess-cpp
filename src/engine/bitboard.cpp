@@ -518,7 +518,3 @@ bool BitBoardGenerator::square_attacked_by_pawn_or_knight(int sq, u64 *bitboards
 
     return attackers != 0;
 }
-
-int BitBoardGenerator::evaluate_passed_pawns(u64 white, u64 black) {
-
-}
