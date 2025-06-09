@@ -83,7 +83,7 @@ void Bot::search_worker_to_depth(ChessLogic logic, int color, int limit) {
 
         for (u16 move : moves) {
             if (stop_search.load(std::memory_order_relaxed)) {
-                return;
+                break;
             }
 
             logic.make_move(move);
@@ -95,6 +95,8 @@ void Bot::search_worker_to_depth(ChessLogic logic, int color, int limit) {
                 current_best_move = move;
             }
         }
+        if (stop_search.load(std::memory_order_relaxed))
+            break;
 
         best_move = current_best_move;
         depth++;
@@ -251,9 +253,6 @@ int Bot::evaluate(ChessLogic &logic) {
 }
 
 int Bot::negamax(ChessLogic &logic, int depth, int color, int alpha, int beta) {
-    if (stop_search)
-        return 0;
-
     int alpha_orig = alpha;
 
     // Check if position is in transposition table
@@ -311,9 +310,6 @@ int Bot::negamax(ChessLogic &logic, int depth, int color, int alpha, int beta) {
 }
 
 int Bot::quiescence(ChessLogic &logic, int alpha, int beta, int color) {
-    if (stop_search)
-        return 0;
-
     u64 key = logic.get_zobrist_hash();
     TTEntry entry;
 
@@ -453,14 +449,14 @@ int Bot::evaluate_passed_pawns(u64 white, u64 black) {
     int eval = 0;
     // Evaluate white passed pawns
     int rank, sq;
-    u64 mask;
+    u64 mask, white_ = white, black_ = black;
     while (white) {
         sq = first_bit(white);
         white &= white - 1;
 
         mask = BitBoardGenerator::passed_pawn_mask[sq];
 
-        if ((mask & black) == 0) {
+        if ((mask & black_) == 0) {
             rank = sq / 8;
             eval += passed_pawn_bonus[rank];
         }
@@ -473,7 +469,7 @@ int Bot::evaluate_passed_pawns(u64 white, u64 black) {
 
         mask = BitBoardGenerator::passed_pawn_mask[sq];
 
-        if ((mask & white) == 0) {
+        if ((mask & white_) == 0) {
             rank = sq / 8;
             eval -= passed_pawn_bonus[rank];
         }
@@ -482,4 +478,4 @@ int Bot::evaluate_passed_pawns(u64 white, u64 black) {
     return eval;
 }
 
-void Bot::clear_tt() { tt_table.clear(); }
+void Bot::clear_tt() { std::fill(tt_table.begin(), tt_table.end(), TTEntry()); }
