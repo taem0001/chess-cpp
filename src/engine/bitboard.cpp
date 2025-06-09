@@ -282,8 +282,7 @@ u64 BitBoardGenerator::pieces_attacking_king(u64 *bitboards, bool turn) {
     return pieces_attacking_square(bitboards, king_pos, !turn);
 }
 
-u64 BitBoardGenerator::generate_attacks_bitboard(ChessLogic &game, bool turn) {
-    u64 *bitboards = game.get_board().get_bitboards();
+u64 BitBoardGenerator::generate_attacks_bitboard(u64 *bitboards, bool turn) {
     u64 bishops = turn ? bitboards[WHITE_BISHOP] : bitboards[BLACK_BISHOP];
     u64 rooks = turn ? bitboards[WHITE_ROOK] : bitboards[BLACK_ROOK];
     u64 queens = turn ? bitboards[WHITE_QUEEN] : bitboards[BLACK_QUEEN];
@@ -335,8 +334,7 @@ u64 BitBoardGenerator::generate_pawn_bitboard(u64 *bitboards, u64 pawn, bool tur
     return all_pushes;
 }
 
-u64 BitBoardGenerator::generate_pawn_captures_bitboard(ChessLogic &game, bool turn) {
-    u64 *bitboards = game.get_board().get_bitboards();
+u64 BitBoardGenerator::generate_pawn_captures_bitboard(u64 *bitboards, bool turn) {
     u64 pawns = turn ? bitboards[WHITE_PAWN] : bitboards[BLACK_PAWN];
     u64 res = 0;
 
@@ -359,8 +357,7 @@ u64 BitBoardGenerator::generate_pawn_captures_bitboard(ChessLogic &game, bool tu
     return res;
 }
 
-u64 BitBoardGenerator::generate_king_bitboard(ChessLogic &game, bool turn) {
-    u64 *bitboards = game.get_board().get_bitboards();
+u64 BitBoardGenerator::generate_king_bitboard(u64 *bitboards, bool turn) {
     u64 king = turn ? bitboards[WHITE_KING] : bitboards[BLACK_KING];
     u64 mask = turn ? ~bitboards[WHITE] : ~bitboards[BLACK];
     int pos = first_bit(king);
@@ -395,9 +392,8 @@ u64 BitBoardGenerator::generate_queen_bitboard(int sq, u64 occ) {
     return bishop | rook;
 }
 
-u64 BitBoardGenerator::generate_castle_bitboard(ChessLogic &game, bool turn) {
-    u64 *bitboards = game.get_board().get_bitboards();
-    u64 attacks = generate_attacks_bitboard(game, !turn);
+u64 BitBoardGenerator::generate_castle_bitboard(u64 *bitboards, bool turn, bool wk, bool wq, bool bk, bool bq) {
+    u64 attacks = generate_attacks_bitboard(bitboards, !turn);
     u64 king_attacks = pieces_attacking_king(bitboards, turn);
     u64 occ = bitboards[ALL];
     u64 res = 0;
@@ -408,19 +404,19 @@ u64 BitBoardGenerator::generate_castle_bitboard(ChessLogic &game, bool turn) {
     if (turn) {
         bool wkr_present = mask_piece[7] & bitboards[WHITE_ROOK];
         bool wkq_present = mask_piece[0] & bitboards[WHITE_ROOK];
-        if (game.get_wk_castle() && (attacks & wk_castle_mask) == 0 && (occ & wk_castle_mask) == 0 && wkr_present) {
+        if (wk && (attacks & wk_castle_mask) == 0 && (occ & wk_castle_mask) == 0 && wkr_present) {
             res |= mask_piece[6];
         }
-        if (game.get_wq_castle() && (attacks & wq_castle_mask_t) == 0 && (occ & wq_castle_mask) == 0 && wkq_present) {
+        if (wq && (attacks & wq_castle_mask_t) == 0 && (occ & wq_castle_mask) == 0 && wkq_present) {
             res |= mask_piece[2];
         }
     } else {
         bool bkr_present = mask_piece[63] & bitboards[BLACK_ROOK];
         bool bkq_present = mask_piece[56] & bitboards[BLACK_ROOK];
-        if (game.get_bk_castle() && (attacks & bk_castle_mask) == 0 && (occ & bk_castle_mask) == 0 && bkr_present) {
+        if (bk && (attacks & bk_castle_mask) == 0 && (occ & bk_castle_mask) == 0 && bkr_present) {
             res |= mask_piece[62];
         }
-        if (game.get_bq_castle() && (attacks & bq_castle_mask_t) == 0 && (occ & bq_castle_mask) == 0 && bkq_present) {
+        if (bq && (attacks & bq_castle_mask_t) == 0 && (occ & bq_castle_mask) == 0 && bkq_present) {
             res |= mask_piece[58];
         }
     }
@@ -517,4 +513,11 @@ bool BitBoardGenerator::square_attacked_by_pawn_or_knight(int sq, u64 *bitboards
     }
 
     return attackers != 0;
+}
+
+void BitBoardGenerator::check_detection(u64 *bb, bool turn, bool *singlecheck, bool *doublecheck) {
+    u64 attacks_to_king = pieces_attacking_king(bb, turn);
+    int check_count = __popcnt64(attacks_to_king);
+    *singlecheck = check_count == 1;
+    *doublecheck = check_count > 1;
 }

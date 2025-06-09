@@ -23,11 +23,7 @@ std::vector<u16> MoveGenerator::generate_legal_moves(ChessLogic &logic) {
     u64 pinned_queens  = pinned_all & queens;
 
     // Check detection
-    bool single_ = false;
-    bool double_ = false;
-    check_detection(logic.get_board().get_bitboards(), &single_, &double_, logic.get_turn());
-    logic.set_singlecheck(single_);
-    logic.set_doublecheck(double_);
+    logic.check_detection();
 
     // Generate moves
     generate_king_moves(moves, logic);
@@ -95,7 +91,7 @@ void MoveGenerator::generate_pawn_captures(std::vector<u16> &moves, ChessLogic &
     int *piece_on_square = logic.get_board().get_piece_on_squares();
     u64 *bitboards = logic.get_board().get_bitboards();
     u64 pawns = turn ? bitboards[WHITE_PAWN] : bitboards[BLACK_PAWN];
-    u64 captures = BitBoardGenerator::generate_pawn_captures_bitboard(logic, turn);
+    u64 captures = BitBoardGenerator::generate_pawn_captures_bitboard(bitboards, turn);
     int king_sq = turn ? first_bit(bitboards[WHITE_KING]) : first_bit(bitboards[BLACK_KING]);
     int en_passant_sq = logic.get_en_passant_sq();
     int from, to;
@@ -209,8 +205,8 @@ void MoveGenerator::generate_king_moves(std::vector<u16> &moves, ChessLogic &log
     u64 *bitboards = logic.get_board().get_bitboards();
     u64 king = turn ? bitboards[WHITE_KING] : bitboards[BLACK_KING];
     u64 enemy = turn ? bitboards[BLACK] : bitboards[WHITE];
-    u64 attacks = BitBoardGenerator::generate_king_bitboard(logic, turn);
-    u64 castle = BitBoardGenerator::generate_castle_bitboard(logic, turn);
+    u64 attacks = BitBoardGenerator::generate_king_bitboard(bitboards, turn);
+    u64 castle = BitBoardGenerator::generate_castle_bitboard(bitboards, turn, logic.get_wk_castle(), logic.get_wq_castle(), logic.get_bk_castle(), logic.get_bq_castle());
 
     int from, to;
     u64 flag;
@@ -325,13 +321,6 @@ void MoveGenerator::generate_queen_moves(std::vector<u16> &moves, ChessLogic &lo
         }
         queen &= queen - 1;
     }
-}
-
-void MoveGenerator::check_detection(u64 *bitboards, bool *single_check, bool *double_check, bool turn) {
-    u64 attacks_to_king = BitBoardGenerator::pieces_attacking_king(bitboards, turn);
-    int check_count = __popcnt64(attacks_to_king);
-    *single_check = check_count == 1;
-    *double_check = check_count > 1;
 }
 
 std::vector<u16> MoveGenerator::handle_single_check(std::vector<u16> &moves, ChessLogic &logic) {

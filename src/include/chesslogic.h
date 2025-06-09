@@ -1,5 +1,6 @@
 #ifndef CHESSLOGIC_H
 #define CHESSLOGIC_H
+#include "bitboard.h"
 #include "board.h"
 
 class ChessLogic {
@@ -16,7 +17,6 @@ private:
     u64 zobrist_hash;
 
     u64 compute_zobrist_hash();
-
 
 public:
     ChessLogic();
@@ -50,6 +50,7 @@ public:
     bool fifty_move_rule();
     u64 get_zobrist_hash();
     int *get_total_pieces();
+    void check_detection();
 };
 
 #endif // !CHESSLOGIC_H

@@ -426,15 +426,3 @@ std::string print_pos(int pos) {
     res += '1' + rank;
     return res;
 }
-
-/// @brief Filters out all quiet moves.
-/// @param moves 
-void only_noisy_moves(std::vector<u16> &moves) {
-    for (int i = moves.size() - 1; i >= 0; i--) {
-        int flag = (int)get_flag(moves[i]);
-
-        if (flag == quiet_move || flag == double_pawn_push) {
-            moves.erase(moves.begin() + i);
-        }
-    }
-}

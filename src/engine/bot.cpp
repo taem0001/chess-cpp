@@ -50,7 +50,7 @@ void Bot::search_worker(ChessLogic logic, int color) {
 
         for (u16 move : moves) {
             if (stop_search.load(std::memory_order_relaxed)) {
-                return;
+                break;
             }
 
             logic.make_move(move);
@@ -62,6 +62,9 @@ void Bot::search_worker(ChessLogic logic, int color) {
                 current_best_move = move;
             }
         }
+
+        if (stop_search.load(std::memory_order_relaxed))
+            break;
 
         best_move = current_best_move;
         depth++;
@@ -274,8 +277,9 @@ int Bot::negamax(ChessLogic &logic, int depth, int color, int alpha, int beta) {
     if (moves.size() == 0) {
         if (logic.get_singlecheck() || logic.get_doublecheck()) {
             return -INF + depth;
+        } else {
+            return 0;
         }
-        return 0;
     }
 
     int best_score = -INF;
@@ -283,7 +287,11 @@ int Bot::negamax(ChessLogic &logic, int depth, int color, int alpha, int beta) {
 
     for (u64 move : moves) {
         logic.make_move(move);
-        int score = -negamax(logic, depth - 1, -color, -beta, -alpha);
+
+        bool ext = logic.get_singlecheck() || logic.get_doublecheck();
+        int next_depth = depth - 1 + (ext ? 1 : 0);
+
+        int score = -negamax(logic, next_depth, -color, -beta, -alpha);
         logic.unmake_move(move);
 
         if (score > best_score) {
@@ -330,9 +338,24 @@ int Bot::quiescence(ChessLogic &logic, int alpha, int beta, int color) {
         alpha = best_val;
 
     std::vector<u16> moves = MoveGenerator::generate_legal_moves(logic);
-    only_noisy_moves(moves);
+    std::vector<u16> noisy;
 
     for (u16 move : moves) {
+        int flag = get_flag(move);
+
+        if (flag == capture || flag == ep_capture || flag >= knight_promo_capture) {
+            noisy.push_back(move);
+        } else {
+            logic.make_move(move);
+            bool check = logic.get_singlecheck() || logic.get_doublecheck();
+            logic.unmake_move(move);
+            if (check) {
+                noisy.push_back(move);
+            }
+        }
+    }
+
+    for (u16 move : noisy) {
         logic.make_move(move);
         int score = -quiescence(logic, -beta, -alpha, -color);
         logic.unmake_move(move);

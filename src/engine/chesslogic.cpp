@@ -2,6 +2,7 @@
 #include "../include/fen.h"
 
 ChessLogic::ChessLogic() : total_pieces(0), board() {
+    BitBoardGenerator::init();
     board.init_zobrist();
     load_pos(STARTPOS);
 }
@@ -34,6 +35,8 @@ bool ChessLogic::make_move(u16 move) {
     undo_data.bqc = bq_castle;
     undo_data.wkc = wk_castle;
     undo_data.wqc = wq_castle;
+    undo_data.s_check = single_check;
+    undo_data.d_check = double_check;
     undo_data.turn = white_turn;
     undo_data.ep_sq = en_passant_square;
     undo_data.half_moves = half_moves;
@@ -160,6 +163,7 @@ bool ChessLogic::make_move(u16 move) {
     undo_data.captured_piece_type = captured_piece_type;
     undo_stack.push_back(undo_data);
 
+    check_detection();
     change_turn();
     return true;
 }
@@ -227,6 +231,8 @@ bool ChessLogic::unmake_move(u16 move) {
     half_moves = undo_data.half_moves;
     full_moves = undo_data.full_moves;
     en_passant_square = undo_data.ep_sq;
+    single_check = undo_data.s_check;
+    double_check = undo_data.d_check;
 
     return true;
 }
@@ -256,7 +262,6 @@ u64 ChessLogic::compute_zobrist_hash() {
 
 // TODO: Complete this when zobrist hashing is implemented
 bool ChessLogic::fivefold_repitition() { return false; }
-
 Board &ChessLogic::get_board() { return board; }
 void ChessLogic::change_turn() { white_turn = !white_turn; }
 void ChessLogic::set_turn(bool b) { white_turn = b; }
@@ -282,3 +287,4 @@ void ChessLogic::set_doublecheck(bool b) { double_check = b; }
 bool ChessLogic::fifty_move_rule() { return half_moves >= 100; }
 u64 ChessLogic::get_zobrist_hash() { return zobrist_hash; }
 int *ChessLogic::get_total_pieces() { return &total_pieces; }
+void ChessLogic::check_detection() { BitBoardGenerator::check_detection(board.get_bitboards(), white_turn, &single_check, &double_check); }

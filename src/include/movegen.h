@@ -18,7 +18,6 @@ private:
     static void generate_rook_moves(std::vector<u16> &, ChessLogic &, u64);
     static void generate_queen_moves(std::vector <u16> &, ChessLogic &, u64);
 
-    static void check_detection(u64 *, bool *, bool *, bool);
     static bool simulate_check(u64 *, int *, bool, int, int);
     static std::vector<u16> handle_single_check(std::vector<u16> &, ChessLogic &);
 };

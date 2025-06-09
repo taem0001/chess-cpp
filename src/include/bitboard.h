@@ -1,6 +1,5 @@
 #ifndef BITBOARD_H
 #define BITBOARD_H
-#include "chesslogic.h"
 #include "utils.h"
 #include "magic.h"
 
@@ -12,19 +11,20 @@ public:
     static u64 passed_pawn_mask[64];
 
     static void init();
+    static void check_detection(u64 *, bool, bool *, bool *);
 
     static u64 pieces_attacking_square(u64 *, int, bool);
     static u64 pieces_attacking_king(u64 *, bool);
 
-    static u64 generate_attacks_bitboard(ChessLogic&, bool);
+    static u64 generate_attacks_bitboard(u64 *, bool);
 
     static u64 generate_pawn_bitboard(u64 *, u64, bool);
     static u64 generate_bishop_bitboard(int, u64);
     static u64 generate_rook_bitboard(int, u64);
     static u64 generate_queen_bitboard(int, u64);
-    static u64 generate_king_bitboard(ChessLogic&, bool);
-    static u64 generate_castle_bitboard(ChessLogic&, bool);
-    static u64 generate_pawn_captures_bitboard(ChessLogic&, bool);
+    static u64 generate_king_bitboard(u64 *, bool);
+    static u64 generate_castle_bitboard(u64 *, bool, bool, bool, bool, bool);
+    static u64 generate_pawn_captures_bitboard(u64 *, bool);
     static u64 generate_pinned_pieces_bitboard(u64 *, bool);
 
     static int get_pinning_piece_square(u64 *, int, bool);
