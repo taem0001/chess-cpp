@@ -35,6 +35,17 @@ int max(int n1, int n2) {
     return n2;
 }
 
+/// @brief Returns the minimal value between two integers.
+/// @param n1 
+/// @param n2 
+/// @return 
+int min(int n1, int n2) {
+    if (n1 < n2) {
+        return n1;
+    }
+    return n2;
+}
+
 /// @brief Returns the evaluation score of whatever is on the square.
 /// @param bitboards
 /// @param square

@@ -3,6 +3,7 @@
 #include "utils.h"
 #include "chesslogic.h"
 #include "movegen.h"
+#include "bitboard.h"
 
 class Bot {
 private:
@@ -24,6 +25,7 @@ private:
     int evaluate(ChessLogic &);
     int negamax(ChessLogic &, int, int, int, int);
     int quiescence(ChessLogic &, int, int, int);
+    int evaluate_passed_pawns(u64, u64);
     std::vector<u16> order_moves(ChessLogic &, std::vector<u16>);
 
 public:

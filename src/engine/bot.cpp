@@ -1,9 +1,13 @@
 #include "../include/bot.h"
 
-Bot::Bot() : stop_search(false), searching(false), result_move(0), current_depth(0), tt_table(TABLE_SIZE) { MoveGenerator::init(); }
+Bot::Bot() : stop_search(false), searching(false), result_move(0), current_depth(0), tt_table(TABLE_SIZE) {
+    BitBoardGenerator::init();
+    MoveGenerator::init();
+}
 
 bool Bot::on_uci_stop() {
-    if (!searching) return false;
+    if (!searching)
+        return false;
 
     {
         std::lock_guard<std::mutex> lk(stop_mtx);
@@ -20,13 +24,11 @@ bool Bot::on_uci_stop() {
     return true;
 }
 
-u16 Bot::get_result_move() const {
-    return result_move;
-}
+u16 Bot::get_result_move() const { return result_move; }
 
 void Bot::print_best_move() const {
     u16 best_move = result_move;
-    char promo  = get_promotion_symbol((int)get_flag(best_move));
+    char promo = get_promotion_symbol((int)get_flag(best_move));
     std::string uci_move = print_pos(get_from(best_move)) + print_pos(get_to(best_move));
 
     if (promo != '\0') {
@@ -44,7 +46,7 @@ void Bot::search_worker(ChessLogic logic, int color) {
         auto moves = order_moves(logic, MoveGenerator::generate_legal_moves(logic));
 
         int current_best_score = -INF;
-        u16 current_best_move  = 0;
+        u16 current_best_move = 0;
 
         for (u16 move : moves) {
             if (stop_search.load(std::memory_order_relaxed)) {
@@ -57,7 +59,7 @@ void Bot::search_worker(ChessLogic logic, int color) {
 
             if (score > current_best_score) {
                 current_best_score = score;
-                current_best_move  = move;
+                current_best_move = move;
             }
         }
 
@@ -77,7 +79,7 @@ void Bot::search_worker_to_depth(ChessLogic logic, int color, int limit) {
         auto moves = order_moves(logic, MoveGenerator::generate_legal_moves(logic));
 
         int current_best_score = -INF;
-        u16 current_best_move  = 0;
+        u16 current_best_move = 0;
 
         for (u16 move : moves) {
             if (stop_search.load(std::memory_order_relaxed)) {
@@ -90,7 +92,7 @@ void Bot::search_worker_to_depth(ChessLogic logic, int color, int limit) {
 
             if (score > current_best_score) {
                 current_best_score = score;
-                current_best_move  = move;
+                current_best_move = move;
             }
         }
 
@@ -109,15 +111,16 @@ void Bot::search_worker_to_depth(ChessLogic logic, int color, int limit) {
 }
 
 void Bot::start_search(ChessLogic &logic, int color, const UCIGoParams &params) {
-    if (searching) return;
+    if (searching)
+        return;
 
     stop_search.store(false, std::memory_order_relaxed);
-    ChessLogic logic_copy = logic; 
+    ChessLogic logic_copy = logic;
     searching = true;
-    
+
     if (params.depth > 0) {
         search_thread = std::thread(&Bot::search_worker_to_depth, this, std::move(logic_copy), color, params.depth);
-        search_thread.detach();     
+        search_thread.detach();
     } else if (params.infinite) {
         search_thread = std::thread(&Bot::search_worker, this, std::move(logic_copy), color);
     } else if (params.movetime > 0) {
@@ -146,6 +149,7 @@ int Bot::evaluate(ChessLogic &logic) {
     u64 p_w = bitboards[WHITE_PAWN];
     u64 p_b = bitboards[BLACK_PAWN];
 
+    // Evaluate material difference
     int q_diff = __popcnt64(q_w) - __popcnt64(q_b);
     int r_diff = __popcnt64(r_w) - __popcnt64(r_b);
     int b_diff = __popcnt64(b_w) - __popcnt64(b_b);
@@ -154,15 +158,18 @@ int Bot::evaluate(ChessLogic &logic) {
 
     int material_diff = queen_value * q_diff + rook_value * r_diff + bishop_value * b_diff + knight_value * n_diff +
                         pawn_value * p_diff;
-    int sq_eval = 0;
-    
+
+    // Evaluate passed pawns
+    int passed_pawns_eval = evaluate_passed_pawns(p_w, p_b);
+
     // Evaluate white pieces' position
+    int sq_eval = 0;
     while (p_w) {
         int sq = first_bit(p_w);
         sq_eval += pawn_heatmap[sq] * 10;
         p_w &= p_w - 1;
     }
-    
+
     while (n_w) {
         int sq = first_bit(n_w);
         sq_eval += knight_heatmap[sq] * 10;
@@ -238,7 +245,7 @@ int Bot::evaluate(ChessLogic &logic) {
         sq_eval -= king_endgame_heatmap[king_sq];
     }
 
-    int total_eval = material_diff + sq_eval;
+    int total_eval = material_diff + sq_eval + passed_pawns_eval;
 
     return total_eval;
 }
@@ -306,7 +313,6 @@ int Bot::negamax(ChessLogic &logic, int depth, int color, int alpha, int beta) {
 int Bot::quiescence(ChessLogic &logic, int alpha, int beta, int color) {
     if (stop_search)
         return 0;
-
 
     u64 key = logic.get_zobrist_hash();
     TTEntry entry;
@@ -441,6 +447,39 @@ void Bot::store_tt(u64 key, int score, int depth, u8 flag, u16 best_move) {
         entry.flag = flag;
         entry.best_move = best_move;
     }
+}
+
+int Bot::evaluate_passed_pawns(u64 white, u64 black) {
+    int eval = 0;
+    // Evaluate white passed pawns
+    int rank, file, sq;
+    u64 mask;
+    while (white) {
+        sq = first_bit(white);
+        white &= white - 1;
+
+        mask = BitBoardGenerator::passed_pawn_mask[sq];
+
+        if ((mask & black) == 0) {
+            int rank = sq / 8;
+            eval += passed_pawn_bonus[rank];
+        }
+    }
+
+    // Evaluate black passed pawns
+    while (black) {
+        sq = first_bit(black) ^ 56;
+        black &= black - 1;
+
+        mask = BitBoardGenerator::passed_pawn_mask[sq];
+
+        if ((mask & white) == 0) {
+            int rank = sq / 8;
+            eval -= passed_pawn_bonus[rank];
+        }
+    }
+
+    return eval;
 }
 
 void Bot::clear_tt() { tt_table.clear(); }

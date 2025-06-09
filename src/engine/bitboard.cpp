@@ -7,6 +7,7 @@ u64 BitBoardGenerator::rook_magics[64];
 u64 BitBoardGenerator::bishop_attacks[64][512];
 u64 BitBoardGenerator::rook_attacks[64][4096];
 u64 BitBoardGenerator::precomputed_in_between[64][64];
+u64 BitBoardGenerator::passed_pawn_mask[64];
 
 void BitBoardGenerator::init() {
     // Initialize bishop and rook masks plus in between masks
@@ -44,6 +45,21 @@ void BitBoardGenerator::init() {
             int index = (blockers * rook_magics[sq]) >> (64 - r_bits);
             rook_attacks[sq][index] = attacks;
         }
+    }
+
+    // Initialize passed pawn masks
+    for (int sq = 0; sq < 64; sq++) {
+        int rank = sq / 8;
+        int file = sq % 8;
+        u64 mask = 0;
+
+        for (int r = rank + 1; r < 8; r++) {
+            for (int f = max(file - 1, 0); f <= min(file + 1, 7); f++) {
+                mask |= mask_piece[r * 8 + f];
+            }
+        }
+
+        passed_pawn_mask[sq] = mask;
     }
 }
 
@@ -501,4 +517,8 @@ bool BitBoardGenerator::square_attacked_by_pawn_or_knight(int sq, u64 *bitboards
     }
 
     return attackers != 0;
+}
+
+int BitBoardGenerator::evaluate_passed_pawns(u64 white, u64 black) {
+
 }

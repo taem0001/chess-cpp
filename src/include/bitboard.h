@@ -9,6 +9,7 @@ public:
     static u64 precomputed_in_between[64][64];
     static u64 bishop_attacks[64][512];
     static u64 rook_attacks[64][4096];
+    static u64 passed_pawn_mask[64];
 
     static void init();
 

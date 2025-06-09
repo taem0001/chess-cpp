@@ -190,6 +190,8 @@ static const int bishop_value = 320;
 static const int knight_value = 300;
 static const int pawn_value = 100;
 
+static const int passed_pawn_bonus[8] = {0,  5, 10, 20, 35, 60, 100, 0};
+
 // Evaluation heat maps
 static const int pawn_heatmap[64] = {0,  0,  0,   0,  0,  0,   0,  0,  5,  10, 10, -20, -20, 10, 10, 5,
                                      5,  -5, -10, 0,  0,  -10, -5, 5,  0,  0,  0,  20,  20,  0,  0,  0,
@@ -323,6 +325,7 @@ static const u64 king_attack_pattern[] = {0x302,
 int first_bit(u64);
 int last_bit(u64);
 int max(int, int);
+int min(int, int);
 int get_piece_score(u64 *, int);
 int get_castling_mask(bool, bool, bool, bool);
 int get_promoted_piece_index(int, bool);
